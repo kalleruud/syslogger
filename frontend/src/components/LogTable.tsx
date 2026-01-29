@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -24,9 +24,12 @@ interface LogTableProps {
   logs: SyslogMessage[];
   isLoading?: boolean;
   onRowClick?: (log: SyslogMessage) => void;
+  onLoadMore?: (offset: number, limit: number) => Promise<SyslogMessage[]>;
 }
 
-export function LogTable({ logs, isLoading = false, onRowClick }: LogTableProps) {
+const LOGS_PER_PAGE = 100;
+
+export function LogTable({ logs, isLoading = false, onRowClick, onLoadMore }: LogTableProps) {
   const [sorting, setSorting] = useState<SortingState>([
     { id: "timestamp", desc: true },
   ]);
@@ -34,6 +37,9 @@ export function LogTable({ logs, isLoading = false, onRowClick }: LogTableProps)
   const [severityFilter, setSeverityFilter] = useState<number | undefined>();
   const [hostnameFilter, setHostnameFilter] = useState("");
   const [autoScroll, setAutoScroll] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const hasMoreRef = useRef(true);
 
   // Extract unique hostnames and severities for filtering
   const { hostnames, severities } = useMemo(() => {
@@ -76,6 +82,29 @@ export function LogTable({ logs, isLoading = false, onRowClick }: LogTableProps)
     setHostnameFilter("");
     setSorting([{ id: "timestamp", desc: true }]);
   }, []);
+
+  // Handle infinite scroll
+  const handleScroll = useCallback(async () => {
+    if (!scrollContainerRef.current || !onLoadMore || loadingMore || !hasMoreRef.current) return;
+
+    const container = scrollContainerRef.current;
+    const { scrollTop, scrollHeight, clientHeight } = container;
+
+    // Trigger load when user scrolls to bottom (within 200px)
+    if (scrollHeight - (scrollTop + clientHeight) < 200) {
+      setLoadingMore(true);
+      try {
+        const newLogs = await onLoadMore(logs.length, LOGS_PER_PAGE);
+        if (newLogs.length < LOGS_PER_PAGE) {
+          hasMoreRef.current = false;
+        }
+      } catch (error) {
+        console.error("Error loading more logs:", error);
+      } finally {
+        setLoadingMore(false);
+      }
+    }
+  }, [logs.length, onLoadMore, loadingMore]);
 
   return (
     <Card className="w-full h-full flex flex-col">
@@ -158,7 +187,11 @@ export function LogTable({ logs, isLoading = false, onRowClick }: LogTableProps)
         </div>
 
         {/* Table */}
-        <div className="border rounded-md flex-1 overflow-y-auto min-h-0">
+        <div
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className="border rounded-md flex-1 overflow-y-auto min-h-0"
+        >
           <Table className="w-full">
             <TableHeader className="sticky top-0 bg-muted z-10">
               {table.getHeaderGroups().map((headerGroup) => (
@@ -211,6 +244,16 @@ export function LogTable({ logs, isLoading = false, onRowClick }: LogTableProps)
               )}
             </TableBody>
           </Table>
+          {loadingMore && (
+            <div className="flex justify-center items-center py-4 bg-muted/50">
+              <div className="text-sm text-muted-foreground">Loading more logs...</div>
+            </div>
+          )}
+          {!hasMoreRef.current && logs.length > 0 && (
+            <div className="flex justify-center items-center py-4 bg-muted/50">
+              <div className="text-sm text-muted-foreground">No more logs</div>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

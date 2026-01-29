@@ -34,6 +34,23 @@ function App() {
     setLogs((prevLogs) => [log, ...prevLogs]);
   }, []);
 
+  // Load more logs for pagination
+  const handleLoadMore = useCallback(async (offset: number, limit: number) => {
+    try {
+      const response = await fetch(`/api/logs?limit=${limit}&offset=${offset}`);
+      if (!response.ok) throw new Error("Failed to fetch more logs");
+      const newLogs = await response.json();
+
+      // Append new logs to the end
+      setLogs((prevLogs) => [...prevLogs, ...newLogs]);
+
+      return newLogs;
+    } catch (err) {
+      console.error("Error loading more logs:", err);
+      return [];
+    }
+  }, []);
+
   // Setup WebSocket connection
   const { isConnected } = useWebSocket(handleNewLog);
 
@@ -61,7 +78,7 @@ function App() {
         )}
 
         <div className="flex-1 overflow-hidden">
-          <LogTable logs={logs} isLoading={isLoading} />
+          <LogTable logs={logs} isLoading={isLoading} onLoadMore={handleLoadMore} />
         </div>
       </div>
     </div>
