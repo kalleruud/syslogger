@@ -85,21 +85,29 @@ export function LogTable({ logs, isLoading = false, onRowClick, onLoadMore }: Lo
 
   // Handle infinite scroll
   const handleScroll = useCallback(async () => {
-    if (!scrollContainerRef.current || !onLoadMore || loadingMore || !hasMoreRef.current) return;
+    if (!scrollContainerRef.current || !onLoadMore || loadingMore || !hasMoreRef.current) {
+      return;
+    }
 
     const container = scrollContainerRef.current;
     const { scrollTop, scrollHeight, clientHeight } = container;
+    const distanceToBottom = scrollHeight - (scrollTop + clientHeight);
+
+    console.log(`[Scroll] scrollTop: ${scrollTop}, scrollHeight: ${scrollHeight}, clientHeight: ${clientHeight}, distance: ${distanceToBottom}`);
 
     // Trigger load when user scrolls to bottom (within 200px)
-    if (scrollHeight - (scrollTop + clientHeight) < 200) {
+    if (distanceToBottom < 200) {
+      console.log(`[Scroll] Loading more logs... (offset: ${logs.length})`);
       setLoadingMore(true);
       try {
         const newLogs = await onLoadMore(logs.length, LOGS_PER_PAGE);
+        console.log(`[Scroll] Loaded ${newLogs.length} new logs`);
         if (newLogs.length < LOGS_PER_PAGE) {
+          console.log('[Scroll] No more logs available');
           hasMoreRef.current = false;
         }
       } catch (error) {
-        console.error("Error loading more logs:", error);
+        console.error("[Scroll] Error loading more logs:", error);
       } finally {
         setLoadingMore(false);
       }
@@ -107,155 +115,155 @@ export function LogTable({ logs, isLoading = false, onRowClick, onLoadMore }: Lo
   }, [logs.length, onLoadMore, loadingMore]);
 
   return (
-    <Card className="w-full h-full flex flex-col overflow-hidden">
-      <CardHeader className="flex-shrink-0">
+    <div className="w-full h-full flex flex-col border rounded-lg bg-card text-card-foreground shadow-sm overflow-hidden">
+      {/* Header */}
+      <div className="p-6 border-b">
         <div className="flex items-center justify-between">
-          <CardTitle>Syslog Viewer</CardTitle>
+          <h2 className="text-2xl font-semibold">Syslog Viewer</h2>
           <div className="text-sm text-muted-foreground">
             {filteredData.length} logs
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="flex-1 flex flex-col gap-0 min-h-0 overflow-hidden">
-        {/* Filters */}
-        <div className="space-y-4 p-6 pb-4 flex-shrink-0 border-b">
-          <div>
-            <Input
-              placeholder="Search by message, app, or hostname..."
-              value={globalFilter}
-              onChange={(e) => setGlobalFilter(e.target.value)}
-              className="w-full"
-            />
-          </div>
+      </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">Severity</label>
-              <select
-                value={severityFilter ?? ""}
-                onChange={(e) =>
-                  setSeverityFilter(e.target.value ? parseInt(e.target.value) : undefined)
-                }
-                className="w-full px-3 py-2 border border-input rounded-md text-sm"
-              >
-                <option value="">All Severities</option>
-                {severities.map((sev) => (
-                  <option key={sev} value={sev}>
-                    {["Emergency", "Alert", "Critical", "Error", "Warning", "Notice", "Info", "Debug"][sev]} ({sev})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium mb-2 block">Hostname</label>
-              <select
-                value={hostnameFilter}
-                onChange={(e) => setHostnameFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-input rounded-md text-sm"
-              >
-                <option value="">All Hostnames</option>
-                {hostnames.map((hostname) => (
-                  <option key={hostname} value={hostname}>
-                    {hostname}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex items-end">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleClearFilters}
-                className="w-full"
-              >
-                Clear Filters
-              </Button>
-            </div>
-          </div>
-
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={autoScroll}
-              onChange={(e) => setAutoScroll(e.target.checked)}
-              className="rounded border-gray-300"
-            />
-            Auto-scroll to new logs
-          </label>
+      {/* Filters */}
+      <div className="space-y-4 p-6 border-b flex-shrink-0">
+        <div>
+          <Input
+            placeholder="Search by message, app, or hostname..."
+            value={globalFilter}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            className="w-full"
+          />
         </div>
 
-        {/* Table */}
-        <div
-          ref={scrollContainerRef}
-          onScroll={handleScroll}
-          className="flex-1 overflow-y-auto min-h-0"
-        >
-          <Table className="w-full">
-            <TableHeader className="sticky top-0 bg-muted z-10">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id} className="whitespace-nowrap">
-                      {header.isPlaceholder
-                        ? null
-                        : header.column.columnDef.header
-                          ? typeof header.column.columnDef.header === 'function'
-                            ? header.column.columnDef.header(header.getContext())
-                            : header.column.columnDef.header
-                          : null}
-                    </TableHead>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="text-sm font-medium mb-2 block">Severity</label>
+            <select
+              value={severityFilter ?? ""}
+              onChange={(e) =>
+                setSeverityFilter(e.target.value ? parseInt(e.target.value) : undefined)
+              }
+              className="w-full px-3 py-2 border border-input rounded-md text-sm"
+            >
+              <option value="">All Severities</option>
+              {severities.map((sev) => (
+                <option key={sev} value={sev}>
+                  {["Emergency", "Alert", "Critical", "Error", "Warning", "Notice", "Info", "Debug"][sev]} ({sev})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium mb-2 block">Hostname</label>
+            <select
+              value={hostnameFilter}
+              onChange={(e) => setHostnameFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-input rounded-md text-sm"
+            >
+              <option value="">All Hostnames</option>
+              {hostnames.map((hostname) => (
+                <option key={hostname} value={hostname}>
+                  {hostname}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex items-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleClearFilters}
+              className="w-full"
+            >
+              Clear Filters
+            </Button>
+          </div>
+        </div>
+
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={autoScroll}
+            onChange={(e) => setAutoScroll(e.target.checked)}
+            className="rounded border-gray-300"
+          />
+          Auto-scroll to new logs
+        </label>
+      </div>
+
+      {/* Table Container */}
+      <div
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto"
+      >
+        <Table className="w-full">
+          <TableHeader className="sticky top-0 bg-muted z-10">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id} className="whitespace-nowrap">
+                    {header.isPlaceholder
+                      ? null
+                      : header.column.columnDef.header
+                        ? typeof header.column.columnDef.header === 'function'
+                          ? header.column.columnDef.header(header.getContext())
+                          : header.column.columnDef.header
+                        : null}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="text-center py-8">
+                  Loading logs...
+                </TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="text-center py-8">
+                  No logs found
+                </TableCell>
+              </TableRow>
+            ) : (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  onClick={() => onRowClick?.(row.original)}
+                  className={onRowClick ? "cursor-pointer" : ""}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id} className="whitespace-nowrap">
+                      {cell.column.columnDef.cell
+                        ? typeof cell.column.columnDef.cell === 'function'
+                          ? cell.column.columnDef.cell(cell.getContext())
+                          : cell.column.columnDef.cell
+                        : null}
+                    </TableCell>
                   ))}
                 </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={columns.length} className="text-center py-8">
-                    Loading logs...
-                  </TableCell>
-                </TableRow>
-              ) : table.getRowModel().rows.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={columns.length} className="text-center py-8">
-                    No logs found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    onClick={() => onRowClick?.(row.original)}
-                    className={onRowClick ? "cursor-pointer" : ""}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} className="whitespace-nowrap">
-                        {cell.column.columnDef.cell
-                          ? typeof cell.column.columnDef.cell === 'function'
-                            ? cell.column.columnDef.cell(cell.getContext())
-                            : cell.column.columnDef.cell
-                          : null}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-          {loadingMore && (
-            <div className="flex justify-center items-center py-4 bg-muted/50">
-              <div className="text-sm text-muted-foreground">Loading more logs...</div>
-            </div>
-          )}
-          {!hasMoreRef.current && logs.length > 0 && (
-            <div className="flex justify-center items-center py-4 bg-muted/50">
-              <div className="text-sm text-muted-foreground">No more logs</div>
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+              ))
+            )}
+          </TableBody>
+        </Table>
+        {loadingMore && (
+          <div className="flex justify-center items-center py-4 bg-muted/50">
+            <div className="text-sm text-muted-foreground">Loading more logs...</div>
+          </div>
+        )}
+        {!hasMoreRef.current && logs.length > 0 && (
+          <div className="flex justify-center items-center py-4 bg-muted/50">
+            <div className="text-sm text-muted-foreground">No more logs</div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
