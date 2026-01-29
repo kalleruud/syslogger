@@ -35,6 +35,22 @@ const SEVERITY_NAMES: Record<number, string> = {
   7: 'Debug',
 };
 
+function parseRfc3164Timestamp(timestampStr: string): string {
+  // Convert RFC 3164 timestamp like "Jan 29 23:43:14" to ISO 8601
+  // Note: RFC 3164 doesn't include year, so we use the current year
+  const now = new Date();
+  const currentYear = now.getFullYear();
+
+  const date = new Date(`${timestampStr} ${currentYear}`);
+
+  // If the parsed date is in the future, use the previous year
+  if (date > now) {
+    date.setFullYear(currentYear - 1);
+  }
+
+  return date.toISOString();
+}
+
 function parseSyslog(message: string): Omit<SyslogMessage, 'id' | 'created_at'> | null {
   const raw = message;
 
@@ -84,7 +100,8 @@ function parseSyslog(message: string): Omit<SyslogMessage, 'id' | 'created_at'> 
     const priority = parseInt(match3164[1], 10);
     const facility = Math.floor(priority / 8);
     const severity = priority % 8;
-    const timestamp = match3164[2];
+    const rawTimestamp = match3164[2];
+    const timestamp = parseRfc3164Timestamp(rawTimestamp);
     const hostname = match3164[3];
     const appname = match3164[4].trim();
     const procid = match3164[5] || '';
