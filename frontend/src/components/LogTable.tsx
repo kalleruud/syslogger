@@ -87,7 +87,7 @@ export function LogTable({ logs, isLoading = false, onRowClick }: LogTableProps)
           </div>
         </div>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col gap-4">
+      <CardContent className="flex-1 flex flex-col gap-4 min-h-0">
         {/* Filters */}
         <div className="space-y-4">
           <div>
@@ -158,9 +158,9 @@ export function LogTable({ logs, isLoading = false, onRowClick }: LogTableProps)
         </div>
 
         {/* Table */}
-        <div className="border rounded-md overflow-hidden flex-1 overflow-y-auto">
-          <Table>
-            <TableHeader className="sticky top-0 bg-muted">
+        <div className="border rounded-md flex-1 overflow-y-auto min-h-0">
+          <Table className="w-full">
+            <TableHeader className="sticky top-0 bg-muted z-10">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
