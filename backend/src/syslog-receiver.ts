@@ -40,7 +40,7 @@ function parseSyslog(message: string): Omit<SyslogMessage, 'id' | 'created_at'> 
 
   // Try RFC 5424 format first
   const rfc5424Regex =
-    /^<(\d+)>1 ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+)(.*)$/;
+    /^<(\d+)>1 ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+) ([^ ]+) (.*)$/;
   const match5424 = message.match(rfc5424Regex);
 
   if (match5424) {
@@ -52,8 +52,15 @@ function parseSyslog(message: string): Omit<SyslogMessage, 'id' | 'created_at'> 
     const appname = match5424[4];
     const procid = match5424[5];
     const msgid = match5424[6];
-    const msgPart = match5424[7].trim();
-    const text = msgPart.startsWith('[') ? msgPart : msgPart;
+    let text = match5424[8];
+
+    // Extract structured data (if not just a dash) and message
+    const structuredMatch = text.match(/^(\[[^\]]*\]|-) (.*)$/);
+    if (structuredMatch) {
+      text = structuredMatch[2];
+    } else if (text.startsWith('-')) {
+      text = text.substring(1).trim();
+    }
 
     return {
       timestamp,
@@ -116,28 +123,44 @@ export function startSyslogReceiver(port: number): void {
 
   socket.on('message', (msg: Buffer, rinfo) => {
     const message = msg.toString('utf-8');
-    console.log(`Received syslog from ${rinfo.address}:${rinfo.port}`);
+    console.log(`\n[SYSLOG] Received message from ${rinfo.address}:${rinfo.port}`);
+    console.log(`[SYSLOG] Raw message: ${message}`);
+    console.log(`[SYSLOG] Message size: ${msg.length} bytes`);
 
     const parsed = parseSyslog(message);
     if (!parsed) {
-      console.error('Failed to parse syslog message');
+      console.error('[SYSLOG] ❌ Failed to parse syslog message');
       return;
     }
+
+    console.log('[SYSLOG] ✓ Parsed successfully:');
+    console.log(`  - Facility: ${parsed.facility}`);
+    console.log(`  - Severity: ${parsed.severity}`);
+    console.log(`  - Timestamp: ${parsed.timestamp}`);
+    console.log(`  - Hostname: ${parsed.hostname}`);
+    console.log(`  - Application: ${parsed.appname}`);
+    console.log(`  - Process ID: ${parsed.procid}`);
+    console.log(`  - Message ID: ${parsed.msgid}`);
+    console.log(`  - Message: ${parsed.message}`);
 
     try {
       const log = insertLog(parsed);
       broadcastLog(log);
-      console.log(`Stored log: ${log.id} - ${log.appname}: ${log.message}`);
+      console.log(`[SYSLOG] ✓ Stored log ID: ${log.id}`);
+      console.log(`[SYSLOG] ✓ Broadcast to WebSocket clients`);
     } catch (error) {
-      console.error('Error inserting log:', error);
+      console.error('[SYSLOG] ❌ Error inserting log:', error);
     }
   });
 
   socket.on('error', (error) => {
-    console.error('Syslog receiver error:', error);
+    console.error('[SYSLOG] ❌ Socket error:', error);
   });
 
-  socket.bind(port, '0.0.0.0', () => {
-    console.log(`Syslog receiver listening on port ${port}`);
+  socket.on('listening', () => {
+    const addr = socket.address();
+    console.log(`[SYSLOG] ✓ Syslog receiver listening on ${addr.address}:${addr.port} (UDP)`);
   });
+
+  socket.bind(port, '0.0.0.0');
 }

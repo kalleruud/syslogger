@@ -16,7 +16,9 @@ export function useWebSocket(onLog: (log: SyslogMessage) => void) {
 
     try {
       const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-      const ws = new WebSocket(`${protocol}://${window.location.host}`);
+      // Connect to backend server (port 3000) instead of current host
+      const backendUrl = `${protocol}://localhost:3000`;
+      const ws = new WebSocket(backendUrl);
 
       ws.onopen = () => {
         console.log('WebSocket connected');

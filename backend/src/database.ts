@@ -1,11 +1,11 @@
-import Database from 'better-sqlite3';
+import { Database } from 'bun:sqlite';
 import path from 'path';
 import fs from 'fs';
 import { SyslogMessage } from './types.js';
 
-let db: Database.Database;
+let db: Database;
 
-export function initDatabase(dbPath: string): Database.Database {
+export function initDatabase(dbPath: string): Database {
   const dir = path.dirname(dbPath);
 
   // Create directory if it doesn't exist
@@ -14,10 +14,9 @@ export function initDatabase(dbPath: string): Database.Database {
   }
 
   db = new Database(dbPath);
-  db.pragma('journal_mode = WAL');
 
   // Create table if it doesn't exist
-  db.exec(`
+  db.run(`
     CREATE TABLE IF NOT EXISTS syslogs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       timestamp TEXT NOT NULL,
@@ -40,7 +39,7 @@ export function initDatabase(dbPath: string): Database.Database {
   return db;
 }
 
-export function getDatabase(): Database.Database {
+export function getDatabase(): Database {
   if (!db) throw new Error('Database not initialized');
   return db;
 }

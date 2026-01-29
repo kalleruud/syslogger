@@ -65,7 +65,7 @@ const httpServer = createServer(async (req, res) => {
 
   // Serve static files from frontend/dist
   const currentDir = import.meta.dir || process.cwd();
-  const frontendPath = path.join(currentDir, '../frontend/dist');
+  const frontendPath = path.join(currentDir, '../../frontend/dist');
   let filePath = req.url === '/' ? '/index.html' : req.url || '/index.html';
 
   // Remove query string and hash
