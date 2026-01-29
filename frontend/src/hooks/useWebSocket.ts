@@ -21,7 +21,6 @@ export function useWebSocket(onLog: (log: SyslogMessage) => void) {
       const ws = new WebSocket(backendUrl);
 
       ws.onopen = () => {
-        console.log('WebSocket connected');
         setIsConnected(true);
         reconnectAttemptsRef.current = 0;
       };
@@ -33,24 +32,23 @@ export function useWebSocket(onLog: (log: SyslogMessage) => void) {
             onLog(message.data);
           }
         } catch (error) {
-          console.error('Failed to parse WebSocket message:', error);
+          if (import.meta.env.DEV) {
+            console.error('Failed to parse WebSocket message:', error);
+          }
         }
       };
 
-      ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
+      ws.onerror = () => {
         setIsConnected(false);
       };
 
       ws.onclose = () => {
-        console.log('WebSocket disconnected');
         setIsConnected(false);
 
         // Attempt to reconnect
         if (reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
           reconnectAttemptsRef.current += 1;
           reconnectTimeoutRef.current = setTimeout(() => {
-            console.log(`Reconnecting... (attempt ${reconnectAttemptsRef.current})`);
             connect();
           }, RECONNECT_INTERVAL);
         }
@@ -58,7 +56,9 @@ export function useWebSocket(onLog: (log: SyslogMessage) => void) {
 
       wsRef.current = ws;
     } catch (error) {
-      console.error('Failed to create WebSocket:', error);
+      if (import.meta.env.DEV) {
+        console.error('Failed to create WebSocket:', error);
+      }
       setIsConnected(false);
     }
   }, [onLog]);

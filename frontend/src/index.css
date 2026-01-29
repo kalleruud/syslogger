@@ -19,6 +19,9 @@
   --card-foreground: 210 40% 96%;
   --input: 217.2 32.6% 17.5%;
   --ring: 217.2 91.2% 59.8%;
+  --border: 217.2 32.6% 17.5%;
+  --popover: 222.2 84% 5%;
+  --popover-foreground: 210 40% 96%;
 }
 
 @media (prefers-color-scheme: light) {
@@ -39,10 +42,58 @@
     --card-foreground: 222.2 84% 5%;
     --input: 217.2 91.2% 59.8%;
     --ring: 217.2 91.2% 59.8%;
+    --border: 214.3 31.8% 91.4%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 5%;
   }
 }
 
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
+}
+
+/* Custom scrollbar for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
 }

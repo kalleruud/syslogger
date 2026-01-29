@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { SyslogMessage } from "./types";
 import { LogTable } from "./components/LogTable";
 import { useWebSocket } from "./hooks/useWebSocket";
+import { Terminal, AlertCircle } from "lucide-react";
 
 function App() {
   const [logs, setLogs] = useState<SyslogMessage[]>([]);
@@ -19,7 +20,6 @@ function App() {
         setLogs(data);
         setError(null);
       } catch (err) {
-        console.error("Error fetching logs:", err);
         setError(err instanceof Error ? err.message : "Failed to fetch logs");
       } finally {
         setIsLoading(false);
@@ -40,13 +40,9 @@ function App() {
       const response = await fetch(`/api/logs?limit=${limit}&offset=${offset}`);
       if (!response.ok) throw new Error("Failed to fetch more logs");
       const newLogs = await response.json();
-
-      // Append new logs to the end
       setLogs((prevLogs) => [...prevLogs, ...newLogs]);
-
       return newLogs;
-    } catch (err) {
-      console.error("Error loading more logs:", err);
+    } catch {
       return [];
     }
   }, []);
@@ -56,29 +52,37 @@ function App() {
 
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
-      <div className="p-4 flex items-center justify-between border-b">
-        <h1 className="text-3xl font-bold">Syslogger</h1>
-        <div className="flex items-center gap-2">
-          <div
-            className={`w-2 h-2 rounded-full ${
-              isConnected ? "bg-green-500" : "bg-red-500"
+      <header className="flex items-center justify-between px-4 py-3 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex-shrink-0">
+        <div className="flex items-center gap-2.5">
+          <Terminal className="h-5 w-5 text-foreground" />
+          <h1 className="text-lg font-semibold text-foreground">Syslogger</h1>
+        </div>
+        <div
+          className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium border ${
+            isConnected
+              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+              : "border-red-500/30 bg-red-500/10 text-red-400"
+          }`}
+        >
+          <span
+            className={`h-1.5 w-1.5 rounded-full ${
+              isConnected ? "bg-emerald-400 animate-pulse" : "bg-red-400"
             }`}
           />
-          <span className="text-sm text-muted-foreground">
-            {isConnected ? "Connected" : "Disconnected"}
-          </span>
+          {isConnected ? "Live" : "Disconnected"}
         </div>
-      </div>
+      </header>
 
       {error && (
-        <div className="p-4 bg-red-50 border-b border-red-200 text-sm text-red-800">
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-destructive/30 bg-destructive/10 text-sm text-destructive">
+          <AlertCircle className="h-4 w-4 flex-shrink-0" />
           {error}
         </div>
       )}
 
-      <div className="flex-1 overflow-hidden">
+      <main className="flex-1 overflow-hidden">
         <LogTable logs={logs} isLoading={isLoading} onLoadMore={handleLoadMore} />
-      </div>
+      </main>
     </div>
   );
 }
