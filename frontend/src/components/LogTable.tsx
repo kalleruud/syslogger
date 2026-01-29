@@ -107,8 +107,8 @@ export function LogTable({ logs, isLoading = false, onRowClick, onLoadMore }: Lo
   }, [logs.length, onLoadMore, loadingMore]);
 
   return (
-    <Card className="w-full h-full flex flex-col">
-      <CardHeader>
+    <Card className="w-full h-full flex flex-col overflow-hidden">
+      <CardHeader className="flex-shrink-0">
         <div className="flex items-center justify-between">
           <CardTitle>Syslog Viewer</CardTitle>
           <div className="text-sm text-muted-foreground">
@@ -116,9 +116,9 @@ export function LogTable({ logs, isLoading = false, onRowClick, onLoadMore }: Lo
           </div>
         </div>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col gap-4 min-h-0">
+      <CardContent className="flex-1 flex flex-col gap-0 min-h-0 overflow-hidden">
         {/* Filters */}
-        <div className="space-y-4">
+        <div className="space-y-4 p-6 pb-4 flex-shrink-0 border-b">
           <div>
             <Input
               placeholder="Search by message, app, or hostname..."
@@ -190,7 +190,7 @@ export function LogTable({ logs, isLoading = false, onRowClick, onLoadMore }: Lo
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="border rounded-md flex-1 overflow-y-auto min-h-0"
+          className="flex-1 overflow-y-auto min-h-0"
         >
           <Table className="w-full">
             <TableHeader className="sticky top-0 bg-muted z-10">
