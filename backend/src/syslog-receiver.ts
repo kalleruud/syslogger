@@ -1,38 +1,38 @@
-import { createSocket } from 'dgram';
-import { insertLog, getDatabase } from './database.js';
-import { SyslogMessage } from './types.js';
-import { broadcastLog } from './websocket.js';
+import { createSocket } from "dgram";
+import { insertLog, getDatabase } from "./database.js";
+import { SyslogMessage } from "./types.js";
+import { broadcastLog } from "./websocket.js";
 
 const FACILITY_NAMES: Record<number, string> = {
-  0: 'kernel',
-  1: 'user-level',
-  2: 'mail',
-  3: 'daemon',
-  4: 'auth',
-  5: 'syslog',
-  6: 'lpr',
-  7: 'news',
-  8: 'uucp',
-  9: 'cron',
-  16: 'local0',
-  17: 'local1',
-  18: 'local2',
-  19: 'local3',
-  20: 'local4',
-  21: 'local5',
-  22: 'local6',
-  23: 'local7',
+  0: "kernel",
+  1: "user-level",
+  2: "mail",
+  3: "daemon",
+  4: "auth",
+  5: "syslog",
+  6: "lpr",
+  7: "news",
+  8: "uucp",
+  9: "cron",
+  16: "local0",
+  17: "local1",
+  18: "local2",
+  19: "local3",
+  20: "local4",
+  21: "local5",
+  22: "local6",
+  23: "local7",
 };
 
 const SEVERITY_NAMES: Record<number, string> = {
-  0: 'Emergency',
-  1: 'Alert',
-  2: 'Critical',
-  3: 'Error',
-  4: 'Warning',
-  5: 'Notice',
-  6: 'Informational',
-  7: 'Debug',
+  0: "Emergency",
+  1: "Alert",
+  2: "Critical",
+  3: "Error",
+  4: "Warning",
+  5: "Notice",
+  6: "Informational",
+  7: "Debug",
 };
 
 function parseRfc3164Timestamp(timestampStr: string): string {
@@ -51,8 +51,28 @@ function parseRfc3164Timestamp(timestampStr: string): string {
   return date.toISOString();
 }
 
-function parseSyslog(message: string): Omit<SyslogMessage, 'id' | 'created_at'> | null {
+function detectSeverityFromMessage(text: string): number | null {
+  const match = text.match(
+    /\b(EMERG(?:ENCY)?|ALERT|CRIT(?:ICAL)?|ERR(?:OR)?|WARN(?:ING)?|NOTICE|INFO(?:RMATIONAL)?|DEBUG)\b/i,
+  );
+  if (!match) return null;
+  const level = match[1].toUpperCase();
+  if (level.startsWith("EMERG")) return 0;
+  if (level === "ALERT") return 1;
+  if (level.startsWith("CRIT")) return 2;
+  if (level.startsWith("ERR")) return 3;
+  if (level.startsWith("WARN")) return 4;
+  if (level === "NOTICE") return 5;
+  if (level.startsWith("INFO")) return 6;
+  if (level === "DEBUG") return 7;
+  return null;
+}
+
+function parseSyslog(
+  message: string,
+): Omit<SyslogMessage, "id" | "created_at"> | null {
   const raw = message;
+  message = message.trim();
 
   // Try RFC 5424 format first
   const rfc5424Regex =
@@ -74,14 +94,14 @@ function parseSyslog(message: string): Omit<SyslogMessage, 'id' | 'created_at'> 
     const structuredMatch = text.match(/^(\[[^\]]*\]|-) (.*)$/);
     if (structuredMatch) {
       text = structuredMatch[2];
-    } else if (text.startsWith('-')) {
+    } else if (text.startsWith("-")) {
       text = text.substring(1).trim();
     }
 
     return {
       timestamp,
       facility,
-      severity,
+      severity: detectSeverityFromMessage(text) ?? severity,
       hostname,
       appname,
       procid,
@@ -93,7 +113,7 @@ function parseSyslog(message: string): Omit<SyslogMessage, 'id' | 'created_at'> 
 
   // Try RFC 3164 format
   const rfc3164Regex =
-    /^<(\d+)>([A-Za-z]+ +\d+ \d+:\d+:\d+) ([^ ]+) ([^[]*)\[?(\d+)?\]?: *(.*)$/;
+    /^<(\d+)>([A-Za-z]+ +\d+ \d+:\d+:\d+) ([^ \[]+) ([^[]*)\[?(\d+)?\]?: *(.*)$/;
   const match3164 = message.match(rfc3164Regex);
 
   if (match3164) {
@@ -104,18 +124,47 @@ function parseSyslog(message: string): Omit<SyslogMessage, 'id' | 'created_at'> 
     const timestamp = parseRfc3164Timestamp(rawTimestamp);
     const hostname = match3164[3];
     const appname = match3164[4].trim();
-    const procid = match3164[5] || '';
-    const msgid = '';
+    const procid = match3164[5] || "";
+    const msgid = "";
     const text = match3164[6];
 
     return {
       timestamp,
       facility,
-      severity,
+      severity: detectSeverityFromMessage(text) ?? severity,
       hostname,
       appname,
       procid,
       msgid,
+      message: text,
+      raw,
+    };
+  }
+
+  // Try RFC 3164 without hostname (e.g., Docker container logs)
+  // Format: <PRI>TIMESTAMP APP[PID]: MSG
+  const rfc3164NoHostRegex =
+    /^<(\d+)>([A-Za-z]+ +\d+ \d+:\d+:\d+) ([^\[]+)\[(\d+)\]: *(.*)$/;
+  const match3164NoHost = message.match(rfc3164NoHostRegex);
+
+  if (match3164NoHost) {
+    const priority = parseInt(match3164NoHost[1], 10);
+    const facility = Math.floor(priority / 8);
+    const severity = priority % 8;
+    const rawTimestamp = match3164NoHost[2];
+    const timestamp = parseRfc3164Timestamp(rawTimestamp);
+    const appname = match3164NoHost[3].trim();
+    const procid = match3164NoHost[4];
+    const text = match3164NoHost[5];
+
+    return {
+      timestamp,
+      facility,
+      severity: detectSeverityFromMessage(text) ?? severity,
+      hostname: "",
+      appname,
+      procid,
+      msgid: "",
       message: text,
       raw,
     };
@@ -126,31 +175,33 @@ function parseSyslog(message: string): Omit<SyslogMessage, 'id' | 'created_at'> 
     timestamp: new Date().toISOString(),
     facility: 1,
     severity: 6,
-    hostname: 'unknown',
-    appname: 'unknown',
-    procid: '',
-    msgid: '',
+    hostname: "unknown",
+    appname: "unknown",
+    procid: "",
+    msgid: "",
     message: message,
     raw,
   };
 }
 
 export function startSyslogReceiver(port: number): void {
-  const socket = createSocket('udp4');
+  const socket = createSocket("udp4");
 
-  socket.on('message', (msg: Buffer, rinfo) => {
-    const message = msg.toString('utf-8');
-    console.log(`\n[SYSLOG] Received message from ${rinfo.address}:${rinfo.port}`);
+  socket.on("message", (msg: Buffer, rinfo) => {
+    const message = msg.toString("utf-8");
+    console.log(
+      `\n[SYSLOG] Received message from ${rinfo.address}:${rinfo.port}`,
+    );
     console.log(`[SYSLOG] Raw message: ${message}`);
     console.log(`[SYSLOG] Message size: ${msg.length} bytes`);
 
     const parsed = parseSyslog(message);
     if (!parsed) {
-      console.error('[SYSLOG] ❌ Failed to parse syslog message');
+      console.error("[SYSLOG] ❌ Failed to parse syslog message");
       return;
     }
 
-    console.log('[SYSLOG] ✓ Parsed successfully:');
+    console.log("[SYSLOG] ✓ Parsed successfully:");
     console.log(`  - Facility: ${parsed.facility}`);
     console.log(`  - Severity: ${parsed.severity}`);
     console.log(`  - Timestamp: ${parsed.timestamp}`);
@@ -166,18 +217,20 @@ export function startSyslogReceiver(port: number): void {
       console.log(`[SYSLOG] ✓ Stored log ID: ${log.id}`);
       console.log(`[SYSLOG] ✓ Broadcast to WebSocket clients`);
     } catch (error) {
-      console.error('[SYSLOG] ❌ Error inserting log:', error);
+      console.error("[SYSLOG] ❌ Error inserting log:", error);
     }
   });
 
-  socket.on('error', (error) => {
-    console.error('[SYSLOG] ❌ Socket error:', error);
+  socket.on("error", (error) => {
+    console.error("[SYSLOG] ❌ Socket error:", error);
   });
 
-  socket.on('listening', () => {
+  socket.on("listening", () => {
     const addr = socket.address();
-    console.log(`[SYSLOG] ✓ Syslog receiver listening on ${addr.address}:${addr.port} (UDP)`);
+    console.log(
+      `[SYSLOG] ✓ Syslog receiver listening on ${addr.address}:${addr.port} (UDP)`,
+    );
   });
 
-  socket.bind(port, '0.0.0.0');
+  socket.bind(port, "0.0.0.0");
 }
