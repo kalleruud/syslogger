@@ -1,7 +1,6 @@
-import { createServer } from 'http';
 import { initDatabase, getLogs, closeDatabase } from './database.js';
 import { startSyslogReceiver } from './syslog-receiver.js';
-import { initWebSocket } from './websocket.js';
+import { setServer } from './websocket.js';
 import { startCleanupTask } from './cleanup.js';
 import path from 'path';
 import fs from 'fs';
@@ -20,89 +19,6 @@ if (!fs.existsSync(dataDir)) {
 // Initialize database
 initDatabase(DB_PATH);
 
-// Create HTTP server
-const httpServer = createServer(async (req, res) => {
-  // CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-  if (req.method === 'OPTIONS') {
-    res.writeHead(200);
-    res.end();
-    return;
-  }
-
-  // API endpoint for initial log fetch
-  if (req.url?.startsWith('/api/logs')) {
-    const url = new URL(req.url, `http://localhost:${HTTP_PORT}`);
-    const limit = parseInt(url.searchParams.get('limit') || '100', 10);
-    const offset = parseInt(url.searchParams.get('offset') || '0', 10);
-    const severity_min = url.searchParams.get('severity_min');
-    const severity_max = url.searchParams.get('severity_max');
-    const hostname = url.searchParams.get('hostname');
-    const search = url.searchParams.get('search');
-
-    try {
-      const logs = getLogs({
-        limit,
-        offset,
-        severityMin: severity_min ? parseInt(severity_min, 10) : undefined,
-        severityMax: severity_max ? parseInt(severity_max, 10) : undefined,
-        hostname: hostname || undefined,
-        search: search || undefined,
-      });
-
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify(logs));
-    } catch (error) {
-      console.error('Error fetching logs:', error);
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Failed to fetch logs' }));
-    }
-    return;
-  }
-
-  // Serve static files from frontend/dist
-  const currentDir = import.meta.dir || process.cwd();
-  const frontendPath = path.join(currentDir, '../../frontend/dist');
-  let filePath = req.url === '/' ? '/index.html' : req.url || '/index.html';
-
-  // Remove query string and hash
-  filePath = filePath.split('?')[0].split('#')[0];
-
-  const fullPath = path.join(frontendPath, filePath);
-
-  try {
-    const stat = fs.statSync(fullPath);
-    if (stat.isFile()) {
-      const content = fs.readFileSync(fullPath);
-      const contentType = getContentType(fullPath);
-      res.writeHead(200, { 'Content-Type': contentType });
-      res.end(content);
-      return;
-    }
-  } catch (e) {
-    // File not found, fall through to SPA routing
-  }
-
-  // SPA routing: serve index.html for unmatched routes
-  try {
-    const indexPath = path.join(frontendPath, 'index.html');
-    if (fs.existsSync(indexPath)) {
-      const content = fs.readFileSync(indexPath);
-      res.writeHead(200, { 'Content-Type': 'text/html' });
-      res.end(content);
-      return;
-    }
-  } catch (e) {
-    // Fall through to 404
-  }
-
-  res.writeHead(404, { 'Content-Type': 'application/json' });
-  res.end(JSON.stringify({ error: 'Not found' }));
-});
-
 function getContentType(filePath: string): string {
   const ext = path.extname(filePath).toLowerCase();
   const types: Record<string, string> = {
@@ -117,8 +33,111 @@ function getContentType(filePath: string): string {
   return types[ext] || 'application/octet-stream';
 }
 
-// Initialize WebSocket
-initWebSocket(httpServer);
+const currentDir = import.meta.dir || process.cwd();
+const frontendPath = path.join(currentDir, '../../frontend/dist');
+
+const server = Bun.serve({
+  port: HTTP_PORT,
+  hostname: '0.0.0.0',
+  fetch(req, server) {
+    // Try WebSocket upgrade first
+    if (server.upgrade(req)) return undefined;
+
+    const url = new URL(req.url);
+
+    // CORS headers
+    const headers = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    };
+
+    if (req.method === 'OPTIONS') {
+      return new Response(null, { status: 200, headers });
+    }
+
+    // API endpoint for initial log fetch
+    if (url.pathname.startsWith('/api/logs')) {
+      const limit = parseInt(url.searchParams.get('limit') || '100', 10);
+      const offset = parseInt(url.searchParams.get('offset') || '0', 10);
+      const severity_min = url.searchParams.get('severity_min');
+      const severity_max = url.searchParams.get('severity_max');
+      const hostname = url.searchParams.get('hostname');
+      const search = url.searchParams.get('search');
+
+      try {
+        const logs = getLogs({
+          limit,
+          offset,
+          severityMin: severity_min ? parseInt(severity_min, 10) : undefined,
+          severityMax: severity_max ? parseInt(severity_max, 10) : undefined,
+          hostname: hostname || undefined,
+          search: search || undefined,
+        });
+
+        return new Response(JSON.stringify(logs), {
+          headers: { ...headers, 'Content-Type': 'application/json' },
+        });
+      } catch (error) {
+        console.error('Error fetching logs:', error);
+        return new Response(JSON.stringify({ error: 'Failed to fetch logs' }), {
+          status: 500,
+          headers: { ...headers, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
+    // Serve static files from frontend/dist
+    let filePath = url.pathname === '/' ? '/index.html' : url.pathname;
+
+    const fullPath = path.join(frontendPath, filePath);
+
+    try {
+      const stat = fs.statSync(fullPath);
+      if (stat.isFile()) {
+        const content = fs.readFileSync(fullPath);
+        const contentType = getContentType(fullPath);
+        return new Response(content, {
+          headers: { ...headers, 'Content-Type': contentType },
+        });
+      }
+    } catch (e) {
+      // File not found, fall through to SPA routing
+    }
+
+    // SPA routing: serve index.html for unmatched routes
+    try {
+      const indexPath = path.join(frontendPath, 'index.html');
+      if (fs.existsSync(indexPath)) {
+        const content = fs.readFileSync(indexPath);
+        return new Response(content, {
+          headers: { ...headers, 'Content-Type': 'text/html' },
+        });
+      }
+    } catch (e) {
+      // Fall through to 404
+    }
+
+    return new Response(JSON.stringify({ error: 'Not found' }), {
+      status: 404,
+      headers: { ...headers, 'Content-Type': 'application/json' },
+    });
+  },
+  websocket: {
+    open(ws) {
+      ws.subscribe("logs");
+    },
+    close(ws) {
+      ws.unsubscribe("logs");
+    },
+    message(ws, message) {
+      // No client->server messages expected
+    },
+  },
+});
+
+// Provide server reference for broadcasting
+setServer(server);
 
 // Start syslog receiver
 startSyslogReceiver(SYSLOG_PORT);
@@ -130,14 +149,10 @@ startCleanupTask(RETENTION_DAYS);
 process.on('SIGINT', () => {
   console.log('Shutting down...');
   closeDatabase();
-  httpServer.close(() => {
-    process.exit(0);
-  });
+  server.stop();
+  process.exit(0);
 });
 
-// Start HTTP server
-httpServer.listen(HTTP_PORT, '0.0.0.0', () => {
-  console.log(`Server listening on port ${HTTP_PORT}`);
-  console.log(`Syslog receiver listening on port ${SYSLOG_PORT}`);
-  console.log(`Database: ${DB_PATH}`);
-});
+console.log(`Server listening on port ${HTTP_PORT}`);
+console.log(`Syslog receiver listening on port ${SYSLOG_PORT}`);
+console.log(`Database: ${DB_PATH}`);

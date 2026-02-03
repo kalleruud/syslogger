@@ -4,8 +4,10 @@ import {
   getCoreRowModel,
   getSortedRowModel,
   getFilteredRowModel,
+  flexRender,
   SortingState,
 } from "@tanstack/react-table";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { SyslogMessage } from "../types";
 import { columns, SEVERITY_NAMES } from "./columns";
 import {
@@ -29,6 +31,13 @@ interface LogTableProps {
 }
 
 const LOGS_PER_PAGE = 100;
+
+const FACILITY_NAMES: Record<number, string> = {
+  0: "kern", 1: "user", 2: "mail", 3: "daemon", 4: "auth", 5: "syslog",
+  6: "lpr", 7: "news", 8: "uucp", 9: "cron", 10: "authpriv", 11: "ftp",
+  16: "local0", 17: "local1", 18: "local2", 19: "local3",
+  20: "local4", 21: "local5", 22: "local6", 23: "local7",
+};
 
 export function LogTable({ logs, isLoading = false, onLoadMore }: LogTableProps) {
   const [sorting, setSorting] = useState<SortingState>([
@@ -71,6 +80,7 @@ export function LogTable({ logs, isLoading = false, onLoadMore }: LogTableProps)
   const table = useReactTable({
     data: filteredData,
     columns,
+    columnResizeMode: "onChange",
     state: {
       sorting,
     },
@@ -78,6 +88,15 @@ export function LogTable({ logs, isLoading = false, onLoadMore }: LogTableProps)
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+  });
+
+  const { rows } = table.getRowModel();
+
+  const rowVirtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => scrollContainerRef.current,
+    estimateSize: () => 41,
+    overscan: 20,
   });
 
   const handleClearFilters = useCallback(() => {
@@ -124,12 +143,12 @@ export function LogTable({ logs, isLoading = false, onLoadMore }: LogTableProps)
     }
   }, [logs.length, onLoadMore, loadingMore]);
 
-  const FACILITY_NAMES: Record<number, string> = {
-    0: "kern", 1: "user", 2: "mail", 3: "daemon", 4: "auth", 5: "syslog",
-    6: "lpr", 7: "news", 8: "uucp", 9: "cron", 10: "authpriv", 11: "ftp",
-    16: "local0", 17: "local1", 18: "local2", 19: "local3",
-    20: "local4", 21: "local5", 22: "local6", 23: "local7",
-  };
+  const virtualRows = rowVirtualizer.getVirtualItems();
+  const totalSize = rowVirtualizer.getTotalSize();
+  const paddingTop = virtualRows.length > 0 ? virtualRows[0].start : 0;
+  const paddingBottom = virtualRows.length > 0
+    ? totalSize - virtualRows[virtualRows.length - 1].end
+    : 0;
 
   return (
     <div className="w-full h-full flex flex-col overflow-hidden">
@@ -219,31 +238,39 @@ export function LogTable({ logs, isLoading = false, onLoadMore }: LogTableProps)
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto"
+        className="flex-1 overflow-auto"
       >
-        <Table className="w-full">
+        <Table style={{ width: table.getCenterTotalSize() + 32, minWidth: '100%', tableLayout: 'fixed' }}>
           <TableHeader className="sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="border-b border-border hover:bg-transparent">
-                <TableHead className="w-8" />
+                <TableHead className="w-8" style={{ width: 32 }} />
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} className="whitespace-nowrap">
+                  <TableHead
+                    key={header.id}
+                    className="whitespace-nowrap relative group"
+                    style={{ width: header.getSize() }}
+                  >
                     {header.isPlaceholder
                       ? null
-                      : header.column.columnDef.header
-                        ? typeof header.column.columnDef.header === 'function'
-                          ? header.column.columnDef.header(header.getContext())
-                          : header.column.columnDef.header
-                        : null}
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                    <div
+                      onMouseDown={header.getResizeHandler()}
+                      onTouchStart={header.getResizeHandler()}
+                      className={`absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none ${
+                        header.column.getIsResizing()
+                          ? "bg-primary"
+                          : "bg-transparent group-hover:bg-border"
+                      }`}
+                    />
                   </TableHead>
                 ))}
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              // Skeleton loading rows
-              Array.from({ length: 8 }).map((_, i) => (
+          {isLoading ? (
+            <TableBody>
+              {Array.from({ length: 8 }).map((_, i) => (
                 <TableRow key={`skeleton-${i}`} className="border-b border-border">
                   <TableCell className="w-8" />
                   <TableCell><Skeleton className="h-4 w-32" /></TableCell>
@@ -252,25 +279,36 @@ export function LogTable({ logs, isLoading = false, onLoadMore }: LogTableProps)
                   <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-64" /></TableCell>
                 </TableRow>
-              ))
-            ) : table.getRowModel().rows.length === 0 ? (
+              ))}
+            </TableBody>
+          ) : rows.length === 0 ? (
+            <TableBody>
               <TableRow>
                 <TableCell colSpan={columns.length + 1} className="text-center py-12 text-muted-foreground">
                   No logs found
                 </TableCell>
               </TableRow>
-            ) : (
-              table.getRowModel().rows.map((row) => {
+            </TableBody>
+          ) : (
+            <>
+              {paddingTop > 0 && (
+                <tbody><tr><td style={{ height: paddingTop }} /></tr></tbody>
+              )}
+              {virtualRows.map((virtualRow) => {
+                const row = rows[virtualRow.index];
                 const isExpanded = expandedRows.has(row.id);
                 const log = row.original;
                 return (
-                  <>
+                  <tbody
+                    key={row.id}
+                    ref={rowVirtualizer.measureElement}
+                    data-index={virtualRow.index}
+                  >
                     <TableRow
-                      key={row.id}
                       onClick={() => toggleRow(row.id)}
                       className="cursor-pointer border-b border-border"
                     >
-                      <TableCell className="w-8 px-2">
+                      <TableCell className="w-8 px-2" style={{ width: 32 }}>
                         {isExpanded ? (
                           <ChevronDown className="h-4 w-4 text-muted-foreground" />
                         ) : (
@@ -278,17 +316,17 @@ export function LogTable({ logs, isLoading = false, onLoadMore }: LogTableProps)
                         )}
                       </TableCell>
                       {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id} className="whitespace-nowrap">
-                          {cell.column.columnDef.cell
-                            ? typeof cell.column.columnDef.cell === 'function'
-                              ? cell.column.columnDef.cell(cell.getContext())
-                              : cell.column.columnDef.cell
-                            : null}
+                        <TableCell
+                          key={cell.id}
+                          className="whitespace-nowrap overflow-hidden"
+                          style={{ width: cell.column.getSize() }}
+                        >
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </TableCell>
                       ))}
                     </TableRow>
                     {isExpanded && (
-                      <TableRow key={`${row.id}-expanded`} className="border-b border-border hover:bg-transparent">
+                      <TableRow className="border-b border-border hover:bg-transparent">
                         <TableCell colSpan={columns.length + 1} className="p-0">
                           <div className="animate-fade-in bg-muted/30 px-6 py-4 border-t border-border">
                             {/* Field grid */}
@@ -344,11 +382,14 @@ export function LogTable({ logs, isLoading = false, onLoadMore }: LogTableProps)
                         </TableCell>
                       </TableRow>
                     )}
-                  </>
+                  </tbody>
                 );
-              })
-            )}
-          </TableBody>
+              })}
+              {paddingBottom > 0 && (
+                <tbody><tr><td style={{ height: paddingBottom }} /></tr></tbody>
+              )}
+            </>
+          )}
         </Table>
         {loadingMore && (
           <div className="flex justify-center items-center gap-2 py-4">

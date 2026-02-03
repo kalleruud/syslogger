@@ -36,6 +36,8 @@ function SortIcon({ column }: { column: { getIsSorted: () => false | "asc" | "de
 export const columns: ColumnDef<SyslogMessage>[] = [
   {
     accessorKey: "timestamp",
+    size: 190,
+    minSize: 120,
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -58,6 +60,8 @@ export const columns: ColumnDef<SyslogMessage>[] = [
   },
   {
     accessorKey: "severity",
+    size: 110,
+    minSize: 80,
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -80,6 +84,8 @@ export const columns: ColumnDef<SyslogMessage>[] = [
   },
   {
     accessorKey: "hostname",
+    size: 140,
+    minSize: 80,
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -97,6 +103,8 @@ export const columns: ColumnDef<SyslogMessage>[] = [
   },
   {
     accessorKey: "appname",
+    size: 140,
+    minSize: 80,
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -114,11 +122,13 @@ export const columns: ColumnDef<SyslogMessage>[] = [
   },
   {
     accessorKey: "message",
+    size: 500,
+    minSize: 100,
     header: "Message",
     cell: ({ row }) => {
       const message = row.getValue("message") as string;
       return (
-        <div className="max-w-md truncate font-mono text-xs text-muted-foreground">
+        <div className="truncate font-mono text-xs text-muted-foreground">
           {message}
         </div>
       );

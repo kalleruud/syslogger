@@ -1,29 +1,10 @@
-import { WebSocketServer, WebSocket } from 'ws';
-import { Server } from 'http';
+import type { Server } from 'bun';
 import { SyslogMessage, WebSocketMessage } from './types.js';
 
-let wss: WebSocketServer;
-const clients = new Set<WebSocket>();
+let server: Server;
 
-export function initWebSocket(httpServer: Server): WebSocketServer {
-  wss = new WebSocketServer({ server: httpServer });
-
-  wss.on('connection', (ws: WebSocket) => {
-    console.log('WebSocket client connected');
-    clients.add(ws);
-
-    ws.on('close', () => {
-      console.log('WebSocket client disconnected');
-      clients.delete(ws);
-    });
-
-    ws.on('error', (error) => {
-      console.error('WebSocket error:', error);
-      clients.delete(ws);
-    });
-  });
-
-  return wss;
+export function setServer(s: Server): void {
+  server = s;
 }
 
 export function broadcastLog(log: SyslogMessage): void {
@@ -32,15 +13,5 @@ export function broadcastLog(log: SyslogMessage): void {
     data: log,
   };
 
-  const json = JSON.stringify(message);
-
-  clients.forEach((client) => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(json);
-    }
-  });
-}
-
-export function getClients(): Set<WebSocket> {
-  return clients;
+  server.publish("logs", JSON.stringify(message));
 }
