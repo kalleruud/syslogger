@@ -1,4 +1,4 @@
-import { initDatabase, getLogs, closeDatabase } from './database.js';
+import { initDatabase, getLogs, getLogCount, getUniqueAppnames, closeDatabase } from './database.js';
 import { startSyslogReceiver } from './syslog-receiver.js';
 import { setServer } from './websocket.js';
 import { startCleanupTask } from './cleanup.js';
@@ -33,6 +33,25 @@ function getContentType(filePath: string): string {
   return types[ext] || 'application/octet-stream';
 }
 
+function parseQueryParams(url: URL) {
+  const limit = parseInt(url.searchParams.get('limit') || '100', 10);
+  const offset = parseInt(url.searchParams.get('offset') || '0', 10);
+  const search = url.searchParams.get('search') || undefined;
+  const hostname = url.searchParams.get('hostname') || undefined;
+
+  const severityParam = url.searchParams.get('severity');
+  const severities = severityParam
+    ? severityParam.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n))
+    : undefined;
+
+  const appnameParam = url.searchParams.get('appname');
+  const appnames = appnameParam
+    ? appnameParam.split(',').map(s => s.trim()).filter(s => s.length > 0)
+    : undefined;
+
+  return { limit, offset, search, hostname, severities, appnames };
+}
+
 const currentDir = import.meta.dir || process.cwd();
 const frontendPath = path.join(currentDir, '../../frontend/dist');
 
@@ -56,25 +75,44 @@ const server = Bun.serve({
       return new Response(null, { status: 200, headers });
     }
 
-    // API endpoint for initial log fetch
-    if (url.pathname.startsWith('/api/logs')) {
-      const limit = parseInt(url.searchParams.get('limit') || '100', 10);
-      const offset = parseInt(url.searchParams.get('offset') || '0', 10);
-      const severity_min = url.searchParams.get('severity_min');
-      const severity_max = url.searchParams.get('severity_max');
-      const hostname = url.searchParams.get('hostname');
-      const search = url.searchParams.get('search');
-
+    // API: unique appnames
+    if (url.pathname === '/api/appnames') {
       try {
-        const logs = getLogs({
-          limit,
-          offset,
-          severityMin: severity_min ? parseInt(severity_min, 10) : undefined,
-          severityMax: severity_max ? parseInt(severity_max, 10) : undefined,
-          hostname: hostname || undefined,
-          search: search || undefined,
+        const appnames = getUniqueAppnames();
+        return new Response(JSON.stringify(appnames), {
+          headers: { ...headers, 'Content-Type': 'application/json' },
         });
+      } catch (error) {
+        console.error('Error fetching appnames:', error);
+        return new Response(JSON.stringify({ error: 'Failed to fetch appnames' }), {
+          status: 500,
+          headers: { ...headers, 'Content-Type': 'application/json' },
+        });
+      }
+    }
 
+    // API: log count
+    if (url.pathname === '/api/logs/count') {
+      try {
+        const { search, hostname, severities, appnames } = parseQueryParams(url);
+        const count = getLogCount({ search, hostname, severities, appnames });
+        return new Response(JSON.stringify({ count }), {
+          headers: { ...headers, 'Content-Type': 'application/json' },
+        });
+      } catch (error) {
+        console.error('Error fetching log count:', error);
+        return new Response(JSON.stringify({ error: 'Failed to fetch count' }), {
+          status: 500,
+          headers: { ...headers, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
+    // API: logs
+    if (url.pathname === '/api/logs') {
+      try {
+        const { limit, offset, search, hostname, severities, appnames } = parseQueryParams(url);
+        const logs = getLogs({ limit, offset, search, hostname, severities, appnames });
         return new Response(JSON.stringify(logs), {
           headers: { ...headers, 'Content-Type': 'application/json' },
         });

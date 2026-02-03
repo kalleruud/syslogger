@@ -3,60 +3,38 @@
 @tailwind utilities;
 
 :root {
-  --primary: 220 90% 56%;
-  --primary-foreground: 210 40% 98%;
-  --secondary: 217.2 32.6% 17.5%;
-  --secondary-foreground: 210 40% 98%;
+  --primary: 142 70% 45%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 220 10% 14%;
+  --secondary-foreground: 0 0% 85%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 210 40% 98%;
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 16% 47%;
-  --accent: 217.2 91.2% 59.8%;
-  --accent-foreground: 210 40% 98%;
-  --foreground: 210 40% 96%;
-  --background: 222.2 84% 5%;
-  --card: 222.2 84% 5%;
-  --card-foreground: 210 40% 96%;
-  --input: 217.2 32.6% 17.5%;
-  --ring: 217.2 91.2% 59.8%;
-  --border: 217.2 32.6% 17.5%;
-  --popover: 222.2 84% 5%;
-  --popover-foreground: 210 40% 96%;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    --primary: 220 90% 56%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 217.2 91.2% 59.8%;
-    --accent-foreground: 210 40% 98%;
-    --foreground: 222.2 84% 5%;
-    --background: 0 0% 100%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 5%;
-    --input: 217.2 91.2% 59.8%;
-    --ring: 217.2 91.2% 59.8%;
-    --border: 214.3 31.8% 91.4%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 5%;
-  }
+  --muted: 220 10% 14%;
+  --muted-foreground: 220 5% 50%;
+  --accent: 142 70% 45%;
+  --accent-foreground: 0 0% 98%;
+  --foreground: 120 5% 82%;
+  --background: 220 15% 6%;
+  --card: 220 15% 8%;
+  --card-foreground: 120 5% 82%;
+  --input: 220 10% 18%;
+  --ring: 142 70% 45%;
+  --border: 220 10% 18%;
+  --popover: 220 15% 8%;
+  --popover-foreground: 120 5% 82%;
 }
 
 body {
+  font-family: "SF Mono", "Cascadia Code", "Fira Code", "JetBrains Mono", ui-monospace, SFMono-Regular, "Consolas", "Liberation Mono", Menlo, Courier, monospace;
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Custom scrollbar for dark theme */
+/* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -64,12 +42,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.3);
-  border-radius: 4px;
+  background: hsl(var(--muted-foreground) / 0.2);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.5);
+  background: hsl(var(--muted-foreground) / 0.4);
 }
 
 /* Animations */
@@ -90,10 +68,23 @@ body {
   }
 }
 
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
 .animate-fade-in {
   animation: fadeIn 0.2s ease-out;
 }
 
 .animate-spin {
   animation: spin 1s linear infinite;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.2s ease-out;
 }

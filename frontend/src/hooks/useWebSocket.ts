@@ -3,11 +3,15 @@ import { SyslogMessage, WebSocketMessage } from '../types';
 
 export function useWebSocket(onLog: (log: SyslogMessage) => void) {
   const wsRef = useRef<WebSocket | null>(null);
+  const onLogRef = useRef(onLog);
   const [isConnected, setIsConnected] = useState(false);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttemptsRef = useRef(0);
   const MAX_RECONNECT_ATTEMPTS = 10;
   const RECONNECT_INTERVAL = 3000;
+
+  // Keep ref in sync so the WebSocket connection remains stable across callback changes
+  onLogRef.current = onLog;
 
   const connect = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -29,7 +33,7 @@ export function useWebSocket(onLog: (log: SyslogMessage) => void) {
         try {
           const message: WebSocketMessage = JSON.parse(event.data);
           if (message.type === 'log') {
-            onLog(message.data);
+            onLogRef.current(message.data);
           }
         } catch (error) {
           if (import.meta.env.DEV) {
@@ -61,7 +65,7 @@ export function useWebSocket(onLog: (log: SyslogMessage) => void) {
       }
       setIsConnected(false);
     }
-  }, [onLog]);
+  }, []);
 
   useEffect(() => {
     connect();

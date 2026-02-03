@@ -34,6 +34,7 @@ export function initDatabase(dbPath: string): Database {
     CREATE INDEX IF NOT EXISTS idx_timestamp ON syslogs(timestamp);
     CREATE INDEX IF NOT EXISTS idx_severity ON syslogs(severity);
     CREATE INDEX IF NOT EXISTS idx_hostname ON syslogs(hostname);
+    CREATE INDEX IF NOT EXISTS idx_appname ON syslogs(appname);
   `);
 
   return db;
@@ -71,38 +72,45 @@ export function insertLog(log: Omit<SyslogMessage, 'id' | 'created_at'>): Syslog
 export interface LogQuery {
   limit?: number;
   offset?: number;
-  severityMin?: number;
-  severityMax?: number;
+  severities?: number[];
+  appnames?: string[];
   hostname?: string;
   search?: string;
 }
 
-export function getLogs(query: LogQuery = {}): SyslogMessage[] {
-  let sql = 'SELECT * FROM syslogs WHERE 1=1';
+function buildWhereClause(query: LogQuery): { where: string; params: (string | number)[] } {
+  let where = ' WHERE 1=1';
   const params: (string | number)[] = [];
 
-  if (query.severityMin !== undefined) {
-    sql += ' AND severity >= ?';
-    params.push(query.severityMin);
+  if (query.severities && query.severities.length > 0) {
+    const placeholders = query.severities.map(() => '?').join(', ');
+    where += ` AND severity IN (${placeholders})`;
+    params.push(...query.severities);
   }
 
-  if (query.severityMax !== undefined) {
-    sql += ' AND severity <= ?';
-    params.push(query.severityMax);
+  if (query.appnames && query.appnames.length > 0) {
+    const placeholders = query.appnames.map(() => '?').join(', ');
+    where += ` AND appname IN (${placeholders})`;
+    params.push(...query.appnames);
   }
 
   if (query.hostname) {
-    sql += ' AND hostname = ?';
+    where += ' AND hostname = ?';
     params.push(query.hostname);
   }
 
   if (query.search) {
-    sql += ' AND (message LIKE ? OR appname LIKE ? OR hostname LIKE ?)';
+    where += ' AND (message LIKE ? OR appname LIKE ? OR hostname LIKE ?)';
     const searchTerm = `%${query.search}%`;
     params.push(searchTerm, searchTerm, searchTerm);
   }
 
-  sql += ' ORDER BY timestamp DESC';
+  return { where, params };
+}
+
+export function getLogs(query: LogQuery = {}): SyslogMessage[] {
+  const { where, params } = buildWhereClause(query);
+  let sql = `SELECT * FROM syslogs${where} ORDER BY timestamp DESC`;
 
   if (query.limit) {
     sql += ' LIMIT ?';
@@ -116,6 +124,20 @@ export function getLogs(query: LogQuery = {}): SyslogMessage[] {
 
   const stmt = db.prepare(sql);
   return stmt.all(...params) as SyslogMessage[];
+}
+
+export function getLogCount(query: LogQuery = {}): number {
+  const { where, params } = buildWhereClause(query);
+  const sql = `SELECT COUNT(*) as count FROM syslogs${where}`;
+  const stmt = db.prepare(sql);
+  const result = stmt.get(...params) as { count: number };
+  return result.count;
+}
+
+export function getUniqueAppnames(): string[] {
+  const stmt = db.prepare('SELECT DISTINCT appname FROM syslogs WHERE appname IS NOT NULL AND appname != "" ORDER BY appname');
+  const rows = stmt.all() as { appname: string }[];
+  return rows.map(r => r.appname);
 }
 
 export function deleteOldLogs(retentionDays: number): number {

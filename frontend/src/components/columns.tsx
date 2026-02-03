@@ -1,10 +1,8 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { SyslogMessage } from "../types";
 import { Badge } from "./ui/badge";
-import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
-import { Button } from "./ui/button";
 
-const SEVERITY_COLORS: Record<number, string> = {
+export const SEVERITY_COLORS: Record<number, string> = {
   0: "bg-red-500/15 text-red-400 border-red-500/20",       // Emergency
   1: "bg-red-500/15 text-red-400 border-red-500/20",       // Alert
   2: "bg-red-500/15 text-red-400 border-red-500/20",       // Critical
@@ -26,53 +24,28 @@ export const SEVERITY_NAMES: Record<number, string> = {
   7: "Debug",
 };
 
-function SortIcon({ column }: { column: { getIsSorted: () => false | "asc" | "desc" } }) {
-  const sorted = column.getIsSorted();
-  if (sorted === "asc") return <ArrowUp className="ml-1 h-3.5 w-3.5" />;
-  if (sorted === "desc") return <ArrowDown className="ml-1 h-3.5 w-3.5" />;
-  return <ArrowUpDown className="ml-1 h-3.5 w-3.5 opacity-50" />;
-}
-
 export const columns: ColumnDef<SyslogMessage>[] = [
   {
+    id: "timestamp",
     accessorKey: "timestamp",
     size: 190,
     minSize: 120,
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        size="sm"
-        className="-ml-3 h-8"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Timestamp
-        <SortIcon column={column} />
-      </Button>
-    ),
+    header: "Timestamp",
     cell: ({ row }) => {
       const timestamp = row.getValue("timestamp") as string;
       return (
-        <div className="text-xs font-mono text-muted-foreground">
+        <span className="text-xs text-muted-foreground">
           {new Date(timestamp).toLocaleString()}
-        </div>
+        </span>
       );
     },
   },
   {
+    id: "severity",
     accessorKey: "severity",
-    size: 110,
-    minSize: 80,
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        size="sm"
-        className="-ml-3 h-8"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Severity
-        <SortIcon column={column} />
-      </Button>
-    ),
+    size: 100,
+    minSize: 70,
+    header: "Severity",
     cell: ({ row }) => {
       const severity = row.getValue("severity") as number;
       return (
@@ -83,44 +56,64 @@ export const columns: ColumnDef<SyslogMessage>[] = [
     },
   },
   {
+    id: "hostname",
     accessorKey: "hostname",
     size: 140,
     minSize: 80,
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        size="sm"
-        className="-ml-3 h-8"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Hostname
-        <SortIcon column={column} />
-      </Button>
+    header: "Hostname",
+    cell: ({ row }) => (
+      <span className="text-foreground">{row.getValue("hostname")}</span>
     ),
-    cell: ({ row }) => {
-      return <div className="font-medium text-foreground">{row.getValue("hostname")}</div>;
-    },
   },
   {
+    id: "appname",
     accessorKey: "appname",
     size: 140,
     minSize: 80,
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        size="sm"
-        className="-ml-3 h-8"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Application
-        <SortIcon column={column} />
-      </Button>
+    header: "Application",
+    cell: ({ row }) => (
+      <span className="text-foreground">{row.getValue("appname")}</span>
     ),
+  },
+  {
+    id: "facility",
+    accessorKey: "facility",
+    size: 100,
+    minSize: 70,
+    header: "Facility",
     cell: ({ row }) => {
-      return <div className="text-foreground">{row.getValue("appname")}</div>;
+      const facility = row.getValue("facility") as number;
+      const names: Record<number, string> = {
+        0: "kern", 1: "user", 2: "mail", 3: "daemon", 4: "auth", 5: "syslog",
+        6: "lpr", 7: "news", 8: "uucp", 9: "cron", 10: "authpriv", 11: "ftp",
+        16: "local0", 17: "local1", 18: "local2", 19: "local3",
+        20: "local4", 21: "local5", 22: "local6", 23: "local7",
+      };
+      return <span className="text-muted-foreground">{names[facility] || String(facility)}</span>;
     },
   },
   {
+    id: "procid",
+    accessorKey: "procid",
+    size: 100,
+    minSize: 60,
+    header: "ProcID",
+    cell: ({ row }) => (
+      <span className="text-muted-foreground">{row.getValue("procid") || "\u2014"}</span>
+    ),
+  },
+  {
+    id: "msgid",
+    accessorKey: "msgid",
+    size: 100,
+    minSize: 60,
+    header: "MsgID",
+    cell: ({ row }) => (
+      <span className="text-muted-foreground">{row.getValue("msgid") || "\u2014"}</span>
+    ),
+  },
+  {
+    id: "message",
     accessorKey: "message",
     size: 500,
     minSize: 100,
@@ -128,9 +121,9 @@ export const columns: ColumnDef<SyslogMessage>[] = [
     cell: ({ row }) => {
       const message = row.getValue("message") as string;
       return (
-        <div className="truncate font-mono text-xs text-muted-foreground">
+        <span className="text-xs text-muted-foreground whitespace-pre-wrap break-all">
           {message}
-        </div>
+        </span>
       );
     },
   },
