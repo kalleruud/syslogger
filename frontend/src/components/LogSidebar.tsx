@@ -1,8 +1,7 @@
 import { useEffect } from "react";
 import { SyslogMessage } from "../types";
-import { SEVERITY_NAMES, SEVERITY_COLORS } from "./columns";
+import { SEVERITY_NAMES, SEVERITY_COLORS, SEVERITY_LABELS } from "./columns";
 import { X } from "lucide-react";
-import { Badge } from "./ui/badge";
 
 const FACILITY_NAMES: Record<number, string> = {
   0: "kern", 1: "user", 2: "mail", 3: "daemon", 4: "auth", 5: "syslog",
@@ -59,10 +58,12 @@ export function LogSidebar({ log, onClose }: LogSidebarProps) {
           </Field>
 
           <Field label="Severity">
-            <Badge className={SEVERITY_COLORS[log.severity] || "bg-zinc-500/15 text-zinc-400 border-zinc-500/20"}>
-              {SEVERITY_NAMES[log.severity] || `Level ${log.severity}`}
-            </Badge>
-            <span className="ml-2 text-muted-foreground">({log.severity})</span>
+            <span className={SEVERITY_COLORS[log.severity] || "text-zinc-400"}>
+              [{SEVERITY_LABELS[log.severity] || `lvl${log.severity}`}]
+            </span>
+            <span className="ml-2 text-muted-foreground">
+              {SEVERITY_NAMES[log.severity] || `Level ${log.severity}`} ({log.severity})
+            </span>
           </Field>
 
           <Field label="Facility">

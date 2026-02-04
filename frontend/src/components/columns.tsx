@@ -1,16 +1,15 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { SyslogMessage } from "../types";
-import { Badge } from "./ui/badge";
 
 export const SEVERITY_COLORS: Record<number, string> = {
-  0: "bg-red-500/15 text-red-400 border-red-500/20",       // Emergency
-  1: "bg-red-500/15 text-red-400 border-red-500/20",       // Alert
-  2: "bg-red-500/15 text-red-400 border-red-500/20",       // Critical
-  3: "bg-orange-500/15 text-orange-400 border-orange-500/20", // Error
-  4: "bg-yellow-500/15 text-yellow-400 border-yellow-500/20", // Warning
-  5: "bg-blue-500/15 text-blue-400 border-blue-500/20",    // Notice
-  6: "bg-sky-500/15 text-sky-400 border-sky-500/20",       // Info
-  7: "bg-zinc-500/15 text-zinc-400 border-zinc-500/20",    // Debug
+  0: "text-red-400",       // Emergency
+  1: "text-red-400",       // Alert
+  2: "text-red-400",       // Critical
+  3: "text-orange-400",    // Error
+  4: "text-yellow-400",    // Warning
+  5: "text-blue-400",      // Notice
+  6: "text-sky-400",       // Info
+  7: "text-zinc-400",      // Debug
 };
 
 export const SEVERITY_NAMES: Record<number, string> = {
@@ -24,6 +23,17 @@ export const SEVERITY_NAMES: Record<number, string> = {
   7: "Debug",
 };
 
+export const SEVERITY_LABELS: Record<number, string> = {
+  0: "emerg",
+  1: "alert",
+  2: "crit",
+  3: "err",
+  4: "warn",
+  5: "notice",
+  6: "info",
+  7: "debug",
+};
+
 export const columns: ColumnDef<SyslogMessage>[] = [
   {
     id: "timestamp",
@@ -34,7 +44,7 @@ export const columns: ColumnDef<SyslogMessage>[] = [
     cell: ({ row }) => {
       const timestamp = row.getValue("timestamp") as string;
       return (
-        <span className="text-xs text-muted-foreground">
+        <span className="text-xs">
           {new Date(timestamp).toLocaleString()}
         </span>
       );
@@ -43,15 +53,13 @@ export const columns: ColumnDef<SyslogMessage>[] = [
   {
     id: "severity",
     accessorKey: "severity",
-    size: 100,
-    minSize: 70,
+    size: 80,
+    minSize: 60,
     header: "Severity",
     cell: ({ row }) => {
       const severity = row.getValue("severity") as number;
       return (
-        <Badge className={SEVERITY_COLORS[severity] || "bg-zinc-500/15 text-zinc-400 border-zinc-500/20"}>
-          {SEVERITY_NAMES[severity] || `Level ${severity}`}
-        </Badge>
+        <span>[{SEVERITY_LABELS[severity] || `lvl${severity}`}]</span>
       );
     },
   },
@@ -62,7 +70,7 @@ export const columns: ColumnDef<SyslogMessage>[] = [
     minSize: 80,
     header: "Hostname",
     cell: ({ row }) => (
-      <span className="text-foreground">{row.getValue("hostname")}</span>
+      <span>{row.getValue("hostname")}</span>
     ),
   },
   {
@@ -72,7 +80,7 @@ export const columns: ColumnDef<SyslogMessage>[] = [
     minSize: 80,
     header: "Application",
     cell: ({ row }) => (
-      <span className="text-foreground">{row.getValue("appname")}</span>
+      <span>{row.getValue("appname")}</span>
     ),
   },
   {
@@ -89,7 +97,7 @@ export const columns: ColumnDef<SyslogMessage>[] = [
         16: "local0", 17: "local1", 18: "local2", 19: "local3",
         20: "local4", 21: "local5", 22: "local6", 23: "local7",
       };
-      return <span className="text-muted-foreground">{names[facility] || String(facility)}</span>;
+      return <span>{names[facility] || String(facility)}</span>;
     },
   },
   {
@@ -99,7 +107,7 @@ export const columns: ColumnDef<SyslogMessage>[] = [
     minSize: 60,
     header: "ProcID",
     cell: ({ row }) => (
-      <span className="text-muted-foreground">{row.getValue("procid") || "\u2014"}</span>
+      <span>{row.getValue("procid") || "\u2014"}</span>
     ),
   },
   {
@@ -109,7 +117,7 @@ export const columns: ColumnDef<SyslogMessage>[] = [
     minSize: 60,
     header: "MsgID",
     cell: ({ row }) => (
-      <span className="text-muted-foreground">{row.getValue("msgid") || "\u2014"}</span>
+      <span>{row.getValue("msgid") || "\u2014"}</span>
     ),
   },
   {
@@ -121,7 +129,7 @@ export const columns: ColumnDef<SyslogMessage>[] = [
     cell: ({ row }) => {
       const message = row.getValue("message") as string;
       return (
-        <span className="text-xs text-muted-foreground whitespace-pre-wrap break-all">
+        <span className="text-xs whitespace-pre-wrap break-all">
           {message}
         </span>
       );

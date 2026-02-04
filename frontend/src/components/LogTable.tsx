@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { SyslogMessage } from "../types";
-import { columns } from "./columns";
+import { columns, SEVERITY_COLORS } from "./columns";
 import { Loader2 } from "lucide-react";
 
 interface LogTableProps {
@@ -152,7 +152,7 @@ export function LogTable({
                   ref={rowVirtualizer.measureElement}
                   data-index={virtualRow.index}
                   onClick={() => onSelectLog(log)}
-                  className="absolute w-full flex items-start px-4 py-1 cursor-pointer hover:bg-muted/30 border-b border-border/30 text-xs transition-colors"
+                  className={`absolute w-full flex items-start px-4 py-1 cursor-pointer hover:bg-muted/30 border-b border-border/30 text-xs transition-colors ${SEVERITY_COLORS[log.severity] || "text-zinc-400"}`}
                   style={{
                     transform: `translateY(${virtualRow.start}px)`,
                   }}

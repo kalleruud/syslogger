@@ -1,4 +1,4 @@
-import { deleteOldLogs } from './database.js';
+import { deleteOldLogs } from "./database/database.js";
 
 export function startCleanupTask(retentionDays: number): void {
   // Run cleanup every 24 hours
@@ -9,11 +9,11 @@ export function startCleanupTask(retentionDays: number): void {
       const deleted = deleteOldLogs(retentionDays);
       console.log(`Cleanup task: deleted ${deleted} old logs`);
     } catch (error) {
-      console.error('Cleanup task error:', error);
+      console.error("Cleanup task error:", error);
     }
   }, cleanupInterval);
 
   console.log(
-    `Cleanup task started: will delete non-critical logs older than ${retentionDays} days`
+    `Cleanup task started: will delete non-critical logs older than ${retentionDays} days`,
   );
 }
