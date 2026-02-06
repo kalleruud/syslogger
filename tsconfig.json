@@ -3,7 +3,7 @@
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo",
 
     // Environment setup & latest features
-    "lib": ["ESNext"],
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "target": "ESNext",
     "module": "Preserve",
     "moduleDetection": "force",
@@ -30,14 +30,11 @@
 
     "baseUrl": ".",
     "paths": {
+      "@/*": ["./frontend/*"],
+      "@frontend/*": ["./frontend/*"],
       "@backend/*": ["./backend/*"],
       "@database/*": ["./backend/database/*"]
     }
   },
-  "files": [],
-  "include": ["backend"],
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
-  ]
+  "include": ["frontend", "backend", "vite.config.ts"]
 }
