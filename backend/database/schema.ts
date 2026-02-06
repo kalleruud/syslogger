@@ -1,4 +1,11 @@
-import { integer, text } from 'drizzle-orm/sqlite-core'
+import { relations } from 'drizzle-orm'
+import {
+  index,
+  integer,
+  primaryKey,
+  sqliteTable,
+  text,
+} from 'drizzle-orm/sqlite-core'
 import { randomUUID } from 'node:crypto'
 
 const metadata = {
@@ -11,3 +18,76 @@ const metadata = {
     .$defaultFn(() => new Date()),
   deletedAt: integer('deleted_at', { mode: 'timestamp_ms' }),
 }
+
+// Logs table - primary storage for parsed syslog messages
+export const logs = sqliteTable(
+  'logs',
+  {
+    ...metadata,
+    timestamp: text('timestamp').notNull(),
+    severity: integer('severity').notNull(),
+    facility: integer('facility'),
+    hostname: text('hostname'),
+    appname: text('appname'),
+    procid: text('procid'),
+    msgid: text('msgid'),
+    message: text('message').notNull(),
+    raw: text('raw').notNull(),
+  },
+  table => [
+    index('idx_logs_timestamp').on(table.timestamp),
+    index('idx_logs_severity').on(table.severity),
+    index('idx_logs_hostname').on(table.hostname),
+    index('idx_logs_appname').on(table.appname),
+    index('idx_logs_severity_timestamp').on(table.severity, table.timestamp),
+  ]
+)
+
+// Tags table - unique tag names for log categorization
+export const tags = sqliteTable('tags', {
+  ...metadata,
+  name: text('name').notNull().unique(),
+})
+
+// Junction table for many-to-many logs-tags relationship
+export const logsTags = sqliteTable(
+  'logs_tags',
+  {
+    logId: integer('log_id')
+      .notNull()
+      .references(() => logs.id, { onDelete: 'cascade' }),
+    tagId: integer('tag_id')
+      .notNull()
+      .references(() => tags.id, { onDelete: 'cascade' }),
+  },
+  table => [
+    primaryKey({ columns: [table.logId, table.tagId] }),
+    index('idx_logs_tags_tag_id').on(table.tagId),
+  ]
+)
+
+// Relations for Drizzle query builder
+export const logsRelations = relations(logs, ({ many }) => ({
+  logsTags: many(logsTags),
+}))
+
+export const tagsRelations = relations(tags, ({ many }) => ({
+  logsTags: many(logsTags),
+}))
+
+export const logsTagsRelations = relations(logsTags, ({ one }) => ({
+  log: one(logs, {
+    fields: [logsTags.logId],
+    references: [logs.id],
+  }),
+  tag: one(tags, {
+    fields: [logsTags.tagId],
+    references: [tags.id],
+  }),
+}))
+
+// Type exports for use in other modules
+export type Log = typeof logs.$inferSelect
+export type NewLog = typeof logs.$inferInsert
+export type Tag = typeof tags.$inferSelect
+export type NewTag = typeof tags.$inferInsert
