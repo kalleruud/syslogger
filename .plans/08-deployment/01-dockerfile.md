@@ -1,23 +1,28 @@
 # Feature: Dockerfile
 
 ## Overview
+
 Docker image definition for containerized deployment. Multi-stage build for optimal image size and build caching.
 
 ## Architecture Decision
+
 - Multi-stage build: build stage + runtime stage
 - Bun as both build tool and runtime
 - Include compiled frontend in image
 - Minimal runtime image size
 
 ## Dependencies
+
 - **Features**: 03-multi-stage-build
 - **Packages**: Docker
 
 ## Key Files
+
 - `Dockerfile` - Image definition
 - `.dockerignore` - Exclude files from build
 
 ## Implementation Notes
+
 ```dockerfile
 # Build stage
 FROM oven/bun:1 AS builder
@@ -55,6 +60,7 @@ CMD ["bun", "run", "index.js"]
 - Non-root user (optional)
 
 ## Verification
+
 1. Build image: `docker build -t syslogger .`
 2. Image size is reasonable (<200MB)
 3. Container starts correctly

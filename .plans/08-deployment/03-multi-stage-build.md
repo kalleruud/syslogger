@@ -1,22 +1,27 @@
 # Feature: Multi-stage Build
 
 ## Overview
+
 Docker multi-stage build strategy to minimize final image size and improve build caching. Separates build tools from runtime.
 
 ## Architecture Decision
+
 - Stage 1: Install dependencies
 - Stage 2: Build frontend
 - Stage 3: Build backend
 - Stage 4: Runtime with only necessary files
 
 ## Dependencies
+
 - **Features**: 01-dockerfile
 - **Packages**: Docker
 
 ## Key Files
+
 - `Dockerfile` - Multi-stage definition
 
 ## Implementation Notes
+
 ```dockerfile
 # Stage 1: Dependencies
 FROM oven/bun:1 AS deps
@@ -59,6 +64,7 @@ CMD ["bun", "run", "index.js"]
 - Security: non-root user
 
 ## Verification
+
 1. Rebuild after code change uses cache
 2. Final image contains only runtime files
 3. Image runs as non-root user

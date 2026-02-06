@@ -1,23 +1,28 @@
 # Feature: Connection Indicator
 
 ## Overview
+
 Visual indicator showing WebSocket connection status. Users know at a glance if real-time updates are working.
 
 ## Architecture Decision
+
 - Small indicator in control bar
 - Color-coded: green (connected), yellow (connecting), red (disconnected)
 - Pulse animation when connected for "live" feel
 - Tooltip with status details
 
 ## Dependencies
+
 - **Features**: 01-websocket-client
 - **Packages**: Tailwind CSS
 
 ## Key Files
+
 - `frontend/src/components/ConnectionIndicator.tsx` - Component
 - `frontend/src/hooks/useWebSocket.ts` - Status source
 
 ## Implementation Notes
+
 ```tsx
 const statusConfig = {
   connected: {
@@ -54,6 +59,7 @@ const statusConfig = {
 - Show reconnect attempt count when applicable
 
 ## Verification
+
 1. Green indicator when connected
 2. Yellow during initial connection
 3. Red when disconnected

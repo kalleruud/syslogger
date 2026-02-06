@@ -1,22 +1,27 @@
 # Feature: Facility Names
 
 ## Overview
+
 Display numeric syslog facility codes as human-readable names. Makes facility values meaningful without requiring RFC knowledge.
 
 ## Architecture Decision
+
 - Map facility numbers 0-23 to standard names
 - Show both name and number in detail panel
 - Use name in display, number in filters
 
 ## Dependencies
+
 - **Features**: 03-field-display
 - **Packages**: None
 
 ## Key Files
+
 - `frontend/src/utils/syslogFacilities.ts` - Facility mapping
 - `frontend/src/components/DetailPanel.tsx` - Usage
 
 ## Implementation Notes
+
 ```typescript
 const FACILITY_NAMES: Record<number, string> = {
   0: 'kernel',
@@ -42,7 +47,7 @@ const FACILITY_NAMES: Record<number, string> = {
   20: 'local4',
   21: 'local5',
   22: 'local6',
-  23: 'local7'
+  23: 'local7',
 }
 
 // Display: "daemon (3)" or just "daemon"
@@ -51,6 +56,7 @@ const formatFacility = (num: number) =>
 ```
 
 ## Verification
+
 1. All facility numbers 0-23 show names
 2. Unknown numbers show "unknown (N)"
 3. Format consistent in detail panel
