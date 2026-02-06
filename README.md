@@ -84,7 +84,7 @@ A full-stack syslog management system with real-time log streaming, filtering, a
                  │
                  ▼
 ┌───────────────────────────────────────────┐
-│    Backend (Bun/TypeScript)               │
+│    Backend (Bun/TypeScript).              │
 │  ┌─────────────────────────────────────┐  │
 │  │ • Syslog Receiver (UDP 5140)        │  │
 │  │ • Syslog Parser (RFC 5424/3164)     │  │
@@ -99,12 +99,13 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 ┌───────────────────────────────────────────┐
 │    Frontend (React + Vite)                │
 │  ┌─────────────────────────────────────┐  │
-│  │ • Minimal terminal-style SPA        │  │
+│  │ • Minimal terminal-style UI         │  │
 │  │ • Top bar: search, filters, columns │  │
 │  │ • Fixed-width character log table   │  │
 │  │ • Click-to-inspect detail panel     │  │
 │  │ • WebSocket Client (auto-reconnect) │  │
 │  │ • TanStack Table + Virtual Scroll   │  │
+│  │ • URL-synced filter state           │  │
 │  └─────────────────────────────────────┘  │
 └───────────────────────────────────────────┘
 ```
