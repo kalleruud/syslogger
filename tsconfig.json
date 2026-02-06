@@ -24,7 +24,13 @@
     // Some stricter flags (disabled by default)
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noPropertyAccessFromIndexSignature": true
+    "noPropertyAccessFromIndexSignature": true,
+
+    "baseUrl": ".",
+    "paths": {
+      "@backend/*": ["./backend/*"],
+      "@database/*": ["./backend/database/*"]
+    }
   },
   "files": [],
   "include": ["backend"],
