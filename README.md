@@ -11,6 +11,14 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 - **Docker-friendly Parsing**: Handle containerized logs without hostname field
 - **Automatic Severity Detection**: Fallback regex-based severity extraction from message text
 - **Complete Field Extraction**: Facility, severity, timestamp, hostname, appname, procid, msgid, and message
+- **Automatic Tag Extraction**: Text within square brackets (e.g., `[ERROR]`, `[DB]`) is extracted as tags
+
+### Tags
+- **Automatic Extraction**: Tags are extracted from text within square brackets (e.g., `[ERROR]`, `[REQUEST]`)
+- **Normalized Storage**: Tags are stored lowercase and trimmed of whitespace
+- **Many-to-Many Relationship**: A log can have multiple tags, and a tag can appear on multiple logs
+- **Deduplication**: Tags are never duplicated; new logs are related to existing tags
+- **Examples**: `Connection [TIMEOUT] from [DB]` extracts tags: `timeout`, `db`
 
 ### Database & Storage
 - **SQLite with Drizzle ORM**: Type-safe database operations with zero runtime overhead
@@ -18,6 +26,7 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 - **Performance Indexes**: Optimized queries with indexes on timestamp, severity, hostname, and appname
 - **WAL Mode**: Write-Ahead Logging for better concurrency
 - **Raw Message Storage**: Original syslog messages preserved for debugging
+- **Tag Tables**: Separate `tags` table with junction table for efficient many-to-many relationships
 
 ### Real-time Features
 - **WebSocket Streaming**: Instant log delivery to all connected clients using bun websockets
@@ -29,6 +38,7 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 - **Full-text Search**: Search across message, appname, and hostname fields (300ms debounce)
 - **Severity Multi-select**: Filter by any combination of severity levels (0-7)
 - **Application Multi-select**: Filter by dynamically-loaded application names
+- **Tag Multi-select**: Filter by dynamically-loaded tags extracted from log messages
 - **Hostname Filtering**: Filter by exact hostname match
 - **URL Parameter Persistence**: Filters saved in URL for bookmarking and sharing
 - **Browser History Support**: Back/forward navigation works with filters
@@ -48,6 +58,7 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 - **Click-to-inspect**: Click any row to open detailed view
 - **Full Field Display**: All syslog fields with human-readable labels
 - **Facility Names**: Numeric facilities shown as readable names (kernel, user, mail, daemon, etc.)
+- **Tag Display**: Shows all extracted tags as badges
 - **Raw Message View**: Original unparsed syslog message
 - **Keyboard Support**: Press Escape to close sidebar
 
@@ -167,7 +178,17 @@ Fetch logs with optional filtering and pagination.
 - `severity` - Comma-separated severity levels (e.g., `0,1,2,3`)
 - `hostname` - Filter by exact hostname
 - `appname` - Comma-separated application names (e.g., `nginx,sshd`)
+- `tags` - Comma-separated tags (e.g., `error,timeout,db`)
 - `search` - Full-text search in message, appname, and hostname
+
+### GET /api/tags
+
+Get list of unique tags extracted from log messages.
+
+**Response:**
+```json
+["db", "error", "request", "timeout", "warning"]
+```
 
 
 ## Performance Considerations
