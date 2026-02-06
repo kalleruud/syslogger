@@ -4,47 +4,115 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 
 ## Features
 
-- **Real-time Syslog Reception**: Listen for syslog messages via UDP on port 5140
-- **RFC 5424 & RFC 3164 Support**: Parse both modern and legacy syslog formats
-- **WebSocket Streaming**: Real-time log updates to connected clients
-- **SQLite Persistence**: Durable log storage with automatic retention policies
-- **Advanced Filtering**: Filter by hostname, severity, facility, and full-text search
-- **Data Table**: Sortable columns, responsive UI with shadcn components
-- **Log Retention**: Auto-delete non-critical logs after 30 days (configurable)
-- **Docker Ready**: Single container deployment with docker-compose
+### Syslog Reception & Parsing
+- **Real-time UDP Reception**: Listen for syslog messages on port 5140 (configurable)
+- **RFC 5424 Support**: Parse modern structured syslog format
+- **RFC 3164 Support**: Parse legacy BSD syslog format
+- **Docker-friendly Parsing**: Handle containerized logs without hostname field
+- **Automatic Severity Detection**: Fallback regex-based severity extraction from message text
+- **Complete Field Extraction**: Facility, severity, timestamp, hostname, appname, procid, msgid, and message
+
+### Database & Storage
+- **SQLite with Drizzle ORM**: Type-safe database operations with zero runtime overhead
+- **Automatic Migrations**: Database schema managed via Drizzle-kit
+- **Performance Indexes**: Optimized queries with indexes on timestamp, severity, hostname, and appname
+- **WAL Mode**: Write-Ahead Logging for better concurrency
+- **Raw Message Storage**: Original syslog messages preserved for debugging
+
+### Real-time Features
+- **WebSocket Streaming**: Instant log delivery to all connected clients using bun websockets
+- **Auto-reconnect**: Exponential backoff reconnection (up to 10 attempts)
+- **Connection Status Indicator**: Visual feedback with pulse animation
+- **Client-side Filtering**: Real-time logs respect active filter settings
+
+### Filtering & Search
+- **Full-text Search**: Search across message, appname, and hostname fields (300ms debounce)
+- **Severity Multi-select**: Filter by any combination of severity levels (0-7)
+- **Application Multi-select**: Filter by dynamically-loaded application names
+- **Hostname Filtering**: Filter by exact hostname match
+- **URL Parameter Persistence**: Filters saved in URL for bookmarking and sharing
+- **Browser History Support**: Back/forward navigation works with filters
+
+### Data Table UI
+- **Virtual Scrolling**: Efficient rendering of large datasets with @tanstack/react-virtual
+- **8 Configurable Columns**: Timestamp, Severity, Hostname, Application, Facility, ProcID, MsgID, Message
+- **Column Visibility Toggle**: Show/hide columns via popover menu
+- **Sortable Columns**: Click headers to sort ascending/descending
+- **Resizable Columns**: Drag column borders to resize
+- **Severity Color Coding**: Visual distinction by log level (red/orange/yellow/blue)
+- **Infinite Scroll**: Load older logs automatically when scrolling up
+- **Auto-scroll Toggle**: Optional automatic scrolling for new logs
+- **Total Entry Count**: Display of total matching logs
+
+### Log Detail Sidebar
+- **Click-to-inspect**: Click any row to open detailed view
+- **Full Field Display**: All syslog fields with human-readable labels
+- **Facility Names**: Numeric facilities shown as readable names (kernel, user, mail, daemon, etc.)
+- **Raw Message View**: Original unparsed syslog message
+- **Keyboard Support**: Press Escape to close sidebar
+
+### Log Retention
+- **Automatic Cleanup**: Daily cleanup job removes old logs
+- **Severity-based Retention**: Critical logs (0-4) kept indefinitely
+- **Configurable Period**: Non-critical logs deleted after N days (default: 30)
+
+### Deployment
+- **Docker Ready**: Multi-stage build with docker-compose
+- **Static File Serving**: Backend serves compiled frontend
+- **SPA Routing**: Proper handling of client-side routes
+- **CORS Support**: Configurable cross-origin requests
+- **Graceful Shutdown**: Clean database and socket cleanup
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────┐
-│         Syslog Devices (UDP)                │
-└────────────────┬────────────────────────────┘
+┌───────────────────────────────────────────┐
+│         Syslog Devices (UDP)              │
+└────────────────┬──────────────────────────┘
                  │
                  ▼
-┌─────────────────────────────────────────────┐
-│    Backend (Bun/TypeScript)                 │
-│  ┌─────────────────────────────────────┐   │
-│  │ • Syslog Receiver (UDP 5140)        │   │
-│  │ • Syslog Parser (RFC 5424/3164)     │   │
-│  │ • SQLite Database                   │   │
-│  │ • WebSocket Server                  │   │
-│  │ • Log Retention Cleanup              │   │
-│  │ • Static File Server (HTTP 3000)    │   │
-│  └─────────────────────────────────────┘   │
-└────────────────┬────────────────────────────┘
+┌───────────────────────────────────────────┐
+│    Backend (Bun/TypeScript)               │
+│  ┌─────────────────────────────────────┐  │
+│  │ • Syslog Receiver (UDP 5140)        │  │
+│  │ • Syslog Parser (RFC 5424/3164)     │  │
+│  │ • Bun SQLite + Drizzle ORM          │  │
+│  │ • WebSocket Server (Pub/Sub)        │  │
+│  │ • Log Retention Cleanup             │  │
+│  │ • Serving React bundle on endpoint  │  │
+│  └─────────────────────────────────────┘  │
+└────────────────┬──────────────────────────┘
                  │
                  ▼
-┌─────────────────────────────────────────────┐
-│    Frontend (React + Vite)                  │
-│  ┌─────────────────────────────────────┐   │
-│  │ • WebSocket Client                  │   │
-│  │ • Data Table with TanStack Table    │   │
-│  │ • shadcn UI Components              │   │
-│  │ • Filtering & Sorting               │   │
-│  │ • Real-time Updates                 │   │
-│  └─────────────────────────────────────┘   │
-└─────────────────────────────────────────────┘
+┌───────────────────────────────────────────┐
+│    Frontend (React + Vite)                │
+│  ┌─────────────────────────────────────┐  │
+│  │ • WebSocket Client (auto-reconnect) │  │
+│  │ • TanStack Table + Virtual Scroll   │  │
+│  │ • shadcn UI Components              │  │
+│  │ • Multi-select Filters              │  │
+│  │ • URL-synced Filter State           │  │
+│  │ • Log Detail Sidebar                │  │
+│  └─────────────────────────────────────┘  │
+└───────────────────────────────────────────┘
 ```
+
+## Technology Stack
+
+### Backend
+- **Bun** - Fast TypeScript runtime
+- **TypeScript** - Type-safe development
+- **Drizzle ORM** - Type-safe SQL with zero overhead
+- **SQLite** - Embedded database with WAL mode
+
+### Frontend
+- **React 18** - UI framework
+- **Vite** - Build tool and dev server
+- **TanStack Table** - Headless table library
+- **TanStack Virtual** - Virtual scrolling
+- **Tailwind CSS** - Utility-first styling
+- **shadcn/ui** - Component library
+- **Lucide React** - Icon library
 
 ## Setup
 
@@ -53,50 +121,6 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 - Node.js 18+ and npm/yarn
 - Bun runtime (for backend development)
 - Docker (optional, for containerized deployment)
-
-### Local Development
-
-1. **Install Backend Dependencies**
-   ```bash
-   cd backend
-   bun install
-   cd ..
-   ```
-
-2. **Install Frontend Dependencies**
-   ```bash
-   cd frontend
-   npm install
-   cd ..
-   ```
-
-3. **Start Backend**
-   ```bash
-   cd backend
-   bun run dev
-   ```
-
-4. **Start Frontend (in another terminal)**
-   ```bash
-   cd frontend
-   npm run dev
-   ```
-
-The frontend will be available at `http://localhost:5173` (Vite dev server) with API proxy to backend.
-
-### Production Build
-
-1. **Build Frontend**
-   ```bash
-   cd frontend
-   npm run build
-   ```
-
-2. **Start Backend with Static Files**
-   ```bash
-   cd backend
-   bun start
-   ```
 
 The server will serve the compiled frontend from `frontend/dist` at `http://localhost:3000`.
 
@@ -127,9 +151,8 @@ Environment variables can be set in `backend/.env`:
 
 ```env
 SYSLOG_PORT=5140           # Syslog UDP listen port
-HTTP_PORT=3000             # Web server port
+HTTP_PORT=3000             # React web ui server port
 DB_PATH=./data/logs.db     # SQLite database path
-RETENTION_DAYS=30          # Keep non-critical logs for N days
 ```
 
 ## API Endpoints
@@ -141,155 +164,18 @@ Fetch logs with optional filtering and pagination.
 **Query Parameters:**
 - `limit` (default: 100) - Maximum number of logs to return
 - `offset` (default: 0) - Skip first N logs
-- `severity_min` - Filter by minimum severity level (0-7)
-- `severity_max` - Filter by maximum severity level (0-7)
+- `severity` - Comma-separated severity levels (e.g., `0,1,2,3`)
 - `hostname` - Filter by exact hostname
+- `appname` - Comma-separated application names (e.g., `nginx,sshd`)
 - `search` - Full-text search in message, appname, and hostname
 
-**Example:**
-```bash
-curl "http://localhost:3000/api/logs?limit=50&severity_min=0&severity_max=3"
-```
-
-### WebSocket /
-
-Connect via WebSocket to receive real-time log updates.
-
-**Message Format:**
-```json
-{
-  "type": "log",
-  "data": {
-    "id": 1,
-    "timestamp": "2026-01-29T12:00:00Z",
-    "facility": 16,
-    "severity": 3,
-    "hostname": "server-01",
-    "appname": "systemd",
-    "procid": "1234",
-    "msgid": "-",
-    "message": "Service started successfully",
-    "raw": "<131>1 2026-01-29T12:00:00Z server-01 systemd 1234 - - Service started successfully"
-  }
-}
-```
-
-## Testing
-
-### Send Test Syslog Message
-
-```bash
-# RFC 5424 format (modern)
-echo "<34>1 2026-01-29T12:00:00Z hostname app 123 - - Test message" | nc -u localhost 5140
-
-# RFC 3164 format (legacy)
-echo "<34>Jan 29 12:00:00 hostname app[123]: Test message" | nc -u localhost 5140
-```
-
-### Verify Web Interface
-
-1. Open `http://localhost:3000` in your browser
-2. Send test syslog messages from a terminal
-3. Verify messages appear in real-time on the web interface
-4. Test filtering by hostname, severity, and search text
-5. Test sorting by clicking on column headers
-
-## Syslog Severity Levels
-
-| Level | Name        | Condition       |
-|-------|-------------|-----------------|
-| 0     | Emergency   | System unusable |
-| 1     | Alert       | Immediate action |
-| 2     | Critical    | Critical        |
-| 3     | Error       | Error           |
-| 4     | Warning     | Warning         |
-| 5     | Notice      | Normal but significant |
-| 6     | Info        | Informational   |
-| 7     | Debug       | Debug           |
-
-## Log Retention Policy
-
-- **Critical logs** (severity 0-4): Kept indefinitely
-- **Non-critical logs** (severity 5-7): Deleted after 30 days (configurable)
-- Cleanup runs automatically once per day
-
-## Troubleshooting
-
-### No logs appearing in UI
-
-1. Check WebSocket connection status (green indicator in top-right)
-2. Verify logs are being received: `docker-compose logs syslogger`
-3. Check if syslog port is accessible: `netstat -un | grep 5140`
-4. Send test message: `echo "<34>Jan 29 12:00:00 localhost test: test" | nc -u localhost 5140`
-
-### Database locked error
-
-This usually indicates another process is accessing the database. The WAL (Write-Ahead Logging) mode helps with concurrency, but restarting the container may be needed.
-
-### Frontend not loading
-
-- Check if backend is running: `http://localhost:3000/api/logs`
-- Verify frontend build: `npm run build` in frontend directory
-- Check browser console for JavaScript errors
-
-## Project Structure
-
-```
-syslogger/
-├── backend/
-│   ├── src/
-│   │   ├── index.ts              # Main server
-│   │   ├── syslog-receiver.ts    # Syslog parsing & reception
-│   │   ├── database.ts           # SQLite operations
-│   │   ├── websocket.ts          # WebSocket broadcasting
-│   │   ├── cleanup.ts            # Log retention cleanup
-│   │   └── types.ts              # Type definitions
-│   ├── package.json
-│   ├── tsconfig.json
-│   └── Dockerfile
-├── frontend/
-│   ├── src/
-│   │   ├── App.tsx               # Main component
-│   │   ├── main.tsx              # React entry point
-│   │   ├── index.css             # Tailwind styles
-│   │   ├── types.ts              # Type definitions
-│   │   ├── components/
-│   │   │   ├── LogTable.tsx      # Data table component
-│   │   │   ├── columns.tsx       # Table column definitions
-│   │   │   └── ui/               # shadcn UI components
-│   │   ├── hooks/
-│   │   │   └── useWebSocket.ts   # WebSocket connection hook
-│   │   └── lib/
-│   │       └── utils.ts          # Utility functions
-│   ├── package.json
-│   ├── tsconfig.json
-│   ├── vite.config.ts
-│   ├── tailwind.config.js
-│   └── index.html
-├── docker-compose.yml
-├── .gitignore
-└── README.md
-```
 
 ## Performance Considerations
 
-- **Database Indexing**: Indexes on timestamp, severity, and hostname for fast queries
-- **WebSocket Broadcasting**: Efficient JSON serialization for minimal overhead
-- **Frontend Rendering**: TanStack Table handles large datasets efficiently
+- **Virtual Scrolling**: Renders only visible rows, handles 100k+ logs efficiently
+- **Database Indexing**: Indexes on timestamp, severity, hostname, and appname for fast queries
+- **Request Deduplication**: Prevents display of stale API responses during rapid filtering
+- **Debounced Search**: 300ms delay prevents excessive API calls while typing
+- **WebSocket Pub/Sub**: Efficient broadcasting to all connected clients
+- **Scroll Position Preservation**: Maintains position when loading older logs
 - **Log Retention**: Automatic cleanup prevents unbounded database growth
-
-## Security Notes
-
-- Change default ports if deploying to production
-- Consider firewall rules to restrict syslog access
-- Use HTTPS/WSS in production (configure reverse proxy)
-- Implement authentication if exposing to untrusted networks
-- Monitor database storage to prevent disk exhaustion
-
-## License
-
-MIT
-
-## Contributing
-
-Contributions are welcome! Please open issues or pull requests for bugs and features.
