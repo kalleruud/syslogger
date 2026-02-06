@@ -1,5 +1,9 @@
-import fs from 'node:fs'
 import path from 'node:path'
+import { runMigrations } from './database/db.js'
+
+// Run database migrations before any other database operations
+runMigrations()
+
 import { startCleanupTask } from './cleanup.js'
 import {
   closeDatabase,
@@ -10,9 +14,9 @@ import {
 import { startSyslogReceiver } from './syslog-receiver.js'
 import { setServer } from './websocket.js'
 
-const SYSLOG_PORT = Number.parseInt(process.env.SYSLOG_PORT || '5140', 10)
-const HTTP_PORT = Number.parseInt(process.env.HTTP_PORT || '3000', 10)
-const RETENTION_DAYS = Number.parseInt(process.env.RETENTION_DAYS || '30', 10)
+const SYSLOG_PORT = parseInt(Bun.env.SYSLOG_PORT ?? '5140', 10)
+const HTTP_PORT = parseInt(Bun.env.HTTP_PORT ?? '3000', 10)
+const RETENTION_DAYS = parseInt(Bun.env.RETENTION_DAYS ?? '30', 10)
 
 function getContentType(filePath: string): string {
   const ext = path.extname(filePath).toLowerCase()
@@ -59,7 +63,7 @@ const frontendPath = path.join(currentDir, '../../frontend/dist')
 const server = Bun.serve({
   port: HTTP_PORT,
   hostname: '0.0.0.0',
-  fetch(req, server) {
+  async fetch(req, server) {
     // Try WebSocket upgrade first
     if (server.upgrade(req)) return undefined
 
@@ -80,18 +84,10 @@ const server = Bun.serve({
     if (url.pathname === '/api/appnames') {
       try {
         const appnames = getUniqueAppnames()
-        return new Response(JSON.stringify(appnames), {
-          headers: { ...headers, 'Content-Type': 'application/json' },
-        })
+        return Response.json(appnames, { headers })
       } catch (error) {
         console.error('Error fetching appnames:', error)
-        return new Response(
-          JSON.stringify({ error: 'Failed to fetch appnames' }),
-          {
-            status: 500,
-            headers: { ...headers, 'Content-Type': 'application/json' },
-          }
-        )
+        return Response.json({ error: 'Failed to fetch appnames' }, { status: 500, headers })
       }
     }
 
@@ -100,18 +96,10 @@ const server = Bun.serve({
       try {
         const { search, hostname, severities, appnames } = parseQueryParams(url)
         const count = getLogCount({ search, hostname, severities, appnames })
-        return new Response(JSON.stringify({ count }), {
-          headers: { ...headers, 'Content-Type': 'application/json' },
-        })
+        return Response.json({ count }, { headers })
       } catch (error) {
         console.error('Error fetching log count:', error)
-        return new Response(
-          JSON.stringify({ error: 'Failed to fetch count' }),
-          {
-            status: 500,
-            headers: { ...headers, 'Content-Type': 'application/json' },
-          }
-        )
+        return Response.json({ error: 'Failed to fetch count' }, { status: 500, headers })
       }
     }
 
@@ -128,52 +116,35 @@ const server = Bun.serve({
           severities,
           appnames,
         })
-        return new Response(JSON.stringify(logs), {
-          headers: { ...headers, 'Content-Type': 'application/json' },
-        })
+        return Response.json(logs, { headers })
       } catch (error) {
         console.error('Error fetching logs:', error)
-        return new Response(JSON.stringify({ error: 'Failed to fetch logs' }), {
-          status: 500,
-          headers: { ...headers, 'Content-Type': 'application/json' },
-        })
+        return Response.json({ error: 'Failed to fetch logs' }, { status: 500, headers })
       }
     }
 
-    // Serve static files from frontend/dist
-    let filePath = url.pathname === '/' ? '/index.html' : url.pathname
-
+    // Serve static files from frontend/dist using Bun.file (faster than node:fs)
+    const filePath = url.pathname === '/' ? '/index.html' : url.pathname
     const fullPath = path.join(frontendPath, filePath)
+    const file = Bun.file(fullPath)
 
-    try {
-      const stat = fs.statSync(fullPath)
-      if (stat.isFile()) {
-        const content = fs.readFileSync(fullPath)
-        const contentType = getContentType(fullPath)
-        return new Response(content, {
-          headers: { ...headers, 'Content-Type': contentType },
-        })
-      }
-    } catch (e) {
-      // File not found, fall through to SPA routing
+    if (await file.exists()) {
+      return new Response(file, {
+        headers: { ...headers, 'Content-Type': file.type || getContentType(fullPath) },
+      })
     }
 
     // SPA routing: serve index.html for unmatched routes
-    try {
-      const indexPath = path.join(frontendPath, 'index.html')
-      if (fs.existsSync(indexPath)) {
-        const content = fs.readFileSync(indexPath)
-        return new Response(content, {
-          headers: { ...headers, 'Content-Type': 'text/html' },
-        })
-      }
-    } catch (e) {
-      // Fall through to 404
+    const indexFile = Bun.file(path.join(frontendPath, 'index.html'))
+    if (await indexFile.exists()) {
+      return new Response(indexFile, {
+        headers: { ...headers, 'Content-Type': 'text/html' },
+      })
     }
 
-    return new Response(JSON.stringify({ error: 'Not found' }), {
+    return Response.json({ error: 'Not found' }, {
       status: 404,
-      headers: { ...headers, 'Content-Type': 'application/json' },
+      headers,
     })
   },
   websocket: {

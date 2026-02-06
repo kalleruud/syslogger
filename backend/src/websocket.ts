@@ -1,10 +1,10 @@
-import type { Server } from 'bun';
-import { SyslogMessage, WebSocketMessage } from './types.js';
+import type { Server } from 'bun'
+import { SyslogMessage, WebSocketMessage } from './types.js'
 
-let server: Server;
+let server: Server<unknown>
 
-export function setServer(s: Server): void {
-  server = s;
+export function setServer(s: Server<unknown>): void {
+  server = s
 }
 
 export function broadcastLog(log: SyslogMessage): void {
