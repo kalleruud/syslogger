@@ -5,7 +5,9 @@
     "target": "ES2023",
     "lib": ["ES2023"],
     "types": ["node"],
-    "composite": true
+    "composite": true,
+    "noEmit": false,
+    "emitDeclarationOnly": true
   },
   "include": ["vite.config.ts"]
 }
