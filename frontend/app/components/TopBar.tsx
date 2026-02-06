@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react"
+import type { ComponentProps } from 'react'
 
 type TopBarProps = {
   // TODO: make this more flexible and reusable
