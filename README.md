@@ -1,6 +1,6 @@
 # Syslogger - Real-time Syslog Management System
 
-A full-stack syslog management system with real-time log streaming, filtering, and analysis. Built with Bun/TypeScript backend and React frontend.
+A full-stack syslog management system with real-time log streaming, filtering, and analysis. Features a minimal, terminal-inspired single-page interface. Built with Bun/TypeScript backend and React frontend.
 
 ## Features
 
@@ -43,24 +43,25 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 - **URL Parameter Persistence**: Filters saved in URL for bookmarking and sharing
 - **Browser History Support**: Back/forward navigation works with filters
 
-### Data Table UI
-- **Virtual Scrolling**: Efficient rendering of large datasets with @tanstack/react-virtual
+### User Interface
+- **Single Page Application**: Minimal, terminal-inspired design on a single page
+- **Top Control Bar**: Search input, filter dropdowns, and column visibility toggle in one row
+- **Terminal-style Log Table**: Fixed-width character columns with no gaps or margins between cells
 - **8 Configurable Columns**: Timestamp, Severity, Hostname, Application, Facility, ProcID, MsgID, Message
-- **Column Visibility Toggle**: Show/hide columns via popover menu
-- **Sortable Columns**: Click headers to sort ascending/descending
-- **Resizable Columns**: Drag column borders to resize
+- **Column Visibility Toggle**: Show/hide columns via popover menu in the top bar
 - **Severity Color Coding**: Visual distinction by log level (red/orange/yellow/blue)
+- **Virtual Scrolling**: Efficient rendering of large datasets with @tanstack/react-virtual
 - **Infinite Scroll**: Load older logs automatically when scrolling up
 - **Auto-scroll Toggle**: Optional automatic scrolling for new logs
-- **Total Entry Count**: Display of total matching logs
 
-### Log Detail Sidebar
-- **Click-to-inspect**: Click any row to open detailed view
+### Log Detail Panel
+- **Click-to-inspect**: Click any row to open the detail panel below the top bar
+- **Non-blocking**: Log table remains fully interactable while the detail panel is open
 - **Full Field Display**: All syslog fields with human-readable labels
 - **Facility Names**: Numeric facilities shown as readable names (kernel, user, mail, daemon, etc.)
 - **Tag Display**: Shows all extracted tags as badges
 - **Raw Message View**: Original unparsed syslog message
-- **Keyboard Support**: Press Escape to close sidebar
+- **Keyboard Support**: Press Escape to close the panel
 
 ### Log Retention
 - **Automatic Cleanup**: Daily cleanup job removes old logs
@@ -98,12 +99,12 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 ┌───────────────────────────────────────────┐
 │    Frontend (React + Vite)                │
 │  ┌─────────────────────────────────────┐  │
+│  │ • Minimal terminal-style SPA        │  │
+│  │ • Top bar: search, filters, columns │  │
+│  │ • Fixed-width character log table   │  │
+│  │ • Click-to-inspect detail panel     │  │
 │  │ • WebSocket Client (auto-reconnect) │  │
 │  │ • TanStack Table + Virtual Scroll   │  │
-│  │ • shadcn UI Components              │  │
-│  │ • Multi-select Filters              │  │
-│  │ • URL-synced Filter State           │  │
-│  │ • Log Detail Sidebar                │  │
 │  └─────────────────────────────────────┘  │
 └───────────────────────────────────────────┘
 ```
