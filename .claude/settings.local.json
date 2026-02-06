@@ -3,7 +3,9 @@
     "allow": [
       "Bash(git add:*)",
       "Bash(bun run dev)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(bunx drizzle-kit generate:*)",
+      "Bash(bunx tsc:*)"
     ]
   }
 }
