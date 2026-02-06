@@ -13,29 +13,6 @@ export default defineConfig({
     }),
     tailwindcss(),
   ],
-  test: {
-    globals: true,
-    environment: 'node',
-    include: ['**/*.test.ts*', '**/*.spec.ts*'],
-    exclude: ['node_modules/**', 'dist/**', '.**'],
-    env: {
-      SECRET: 'test',
-      NODE_ENV: 'test',
-    },
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'lcov'],
-      reportsDirectory: './coverage',
-      include: ['backend/**/*.ts'],
-      exclude: [
-        'node_modules/**',
-        'dist/**',
-        '**/*.spec.ts',
-        '**/*.test.ts',
-        '**/*.d.ts',
-      ],
-    },
-  },
   resolve: {
     alias: {
       '@frontend': path.resolve(__dirname, './frontend'),

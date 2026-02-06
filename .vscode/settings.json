@@ -1,0 +1,10 @@
+{
+  "editor.tabSize": 2,
+  "json.schemaDownload.trustedDomains": {
+    "https://shadcn.com": true
+  },
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "files.associations": {
+    "*.css": "tailwindcss"
+  }
+}

@@ -5,6 +5,7 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 ## Features
 
 ### Syslog Reception & Parsing
+
 - **Real-time UDP Reception**: Listen for syslog messages on port 5140 (configurable)
 - **RFC 5424 Support**: Parse modern structured syslog format
 - **RFC 3164 Support**: Parse legacy BSD syslog format
@@ -14,6 +15,7 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 - **Automatic Tag Extraction**: Text within square brackets (e.g., `[ERROR]`, `[DB]`) is extracted as tags
 
 ### Tags
+
 - **Automatic Extraction**: Tags are extracted from text within square brackets (e.g., `[ERROR]`, `[REQUEST]`)
 - **Normalized Storage**: Tags are stored lowercase and trimmed of whitespace
 - **Many-to-Many Relationship**: A log can have multiple tags, and a tag can appear on multiple logs
@@ -21,6 +23,7 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 - **Examples**: `Connection [TIMEOUT] from [DB]` extracts tags: `timeout`, `db`
 
 ### Database & Storage
+
 - **SQLite with Drizzle ORM**: Type-safe database operations with zero runtime overhead
 - **Automatic Migrations**: Database schema managed via Drizzle-kit
 - **Performance Indexes**: Optimized queries with indexes on timestamp, severity, hostname, and appname
@@ -29,12 +32,14 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 - **Tag Tables**: Separate `tags` table with junction table for efficient many-to-many relationships
 
 ### Real-time Features
+
 - **WebSocket Streaming**: Instant log delivery to all connected clients using bun websockets
 - **Auto-reconnect**: Exponential backoff reconnection (up to 10 attempts)
 - **Connection Status Indicator**: Visual feedback with pulse animation
 - **Client-side Filtering**: Real-time logs respect active filter settings
 
 ### Filtering & Search
+
 - **Full-text Search**: Search across message, appname, and hostname fields (300ms debounce)
 - **Severity Multi-select**: Filter by any combination of severity levels (0-7)
 - **Application Multi-select**: Filter by dynamically-loaded application names
@@ -44,6 +49,7 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 - **Browser History Support**: Back/forward navigation works with filters
 
 ### User Interface
+
 - **Single Page Application**: Minimal, terminal-inspired design on a single page
 - **Top Control Bar**: Search input, filter dropdowns, column visibility toggle, and settings button in one row
 - **Terminal-style Log Table**: Fixed-width character columns with no gaps or margins between cells
@@ -56,6 +62,7 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 - **Auto-scroll Toggle**: Optional automatic scrolling for new logs
 
 ### Log Detail Panel
+
 - **Click-to-inspect**: Click any row to open the detail panel below the top bar
 - **Non-blocking**: Log table remains fully interactable while the detail panel is open
 - **Full Field Display**: All syslog fields with human-readable labels
@@ -65,12 +72,14 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 - **Keyboard Support**: Press Escape to close the panel
 
 ### Log Retention
+
 - **Automatic Cleanup**: Daily cleanup job removes old logs
 - **Per-Severity Retention**: Configure retention period (in days) for each severity level independently
 - **Settings Popup**: Adjust retention days per severity via the settings button in the UI
 - **Persistent Configuration**: Settings stored in `config.json` and persist across restarts
 
 ### Deployment
+
 - **Docker Ready**: Multi-stage build with docker-compose
 - **Static File Serving**: Backend serves compiled frontend
 - **SPA Routing**: Proper handling of client-side routes
@@ -117,12 +126,14 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 ## Technology Stack
 
 ### Backend
+
 - **Bun** - Fast TypeScript runtime
 - **TypeScript** - Type-safe development
 - **Drizzle ORM** - Type-safe SQL with zero overhead
 - **SQLite** - Embedded database with WAL mode
 
 ### Frontend
+
 - **React 18** - UI framework
 - **Vite** - Build tool and dev server
 - **TanStack Table** - Headless table library
@@ -144,6 +155,7 @@ The server will serve the compiled frontend from `frontend/dist` at `http://loca
 ## Docker Deployment
 
 1. **Build and Start Container**
+
    ```bash
    docker-compose up --build
    ```
@@ -153,6 +165,7 @@ The server will serve the compiled frontend from `frontend/dist` at `http://loca
    - Syslog Port: UDP `localhost:5140`
 
 3. **View Logs**
+
    ```bash
    docker-compose logs -f syslogger
    ```
@@ -181,14 +194,14 @@ Retention settings are stored in `backend/config.json` and can be configured via
 ```json
 {
   "retention": {
-    "0": null,    // Emergency - keep forever (null = no expiry)
-    "1": null,    // Alert - keep forever
-    "2": null,    // Critical - keep forever
-    "3": 90,      // Error - 90 days
-    "4": 60,      // Warning - 60 days
-    "5": 30,      // Notice - 30 days
-    "6": 14,      // Info - 14 days
-    "7": 7        // Debug - 7 days
+    "0": null, // Emergency - keep forever (null = no expiry)
+    "1": null, // Alert - keep forever
+    "2": null, // Critical - keep forever
+    "3": 90, // Error - 90 days
+    "4": 60, // Warning - 60 days
+    "5": 30, // Notice - 30 days
+    "6": 14, // Info - 14 days
+    "7": 7 // Debug - 7 days
   }
 }
 ```
@@ -202,6 +215,7 @@ Set a severity to `null` to keep logs of that level indefinitely.
 Fetch logs with optional filtering and pagination.
 
 **Query Parameters:**
+
 - `limit` (default: 100) - Maximum number of logs to return
 - `offset` (default: 0) - Skip first N logs
 - `severity` - Comma-separated severity levels (e.g., `0,1,2,3`)
@@ -215,6 +229,7 @@ Fetch logs with optional filtering and pagination.
 Get list of unique tags extracted from log messages.
 
 **Response:**
+
 ```json
 ["db", "error", "request", "timeout", "warning"]
 ```
@@ -224,6 +239,7 @@ Get list of unique tags extracted from log messages.
 Get current application settings including retention configuration.
 
 **Response:**
+
 ```json
 {
   "retention": {
@@ -244,6 +260,7 @@ Get current application settings including retention configuration.
 Update application settings. Saves to `config.json`.
 
 **Request Body:**
+
 ```json
 {
   "retention": {
@@ -260,10 +277,10 @@ Update application settings. Saves to `config.json`.
 ```
 
 **Response:**
+
 ```json
 { "success": true }
 ```
-
 
 ## Performance Considerations
 

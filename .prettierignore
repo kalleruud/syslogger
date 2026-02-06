@@ -1,0 +1,4 @@
+frontend/app/components/ui
+.agents
+node_modules
+dist

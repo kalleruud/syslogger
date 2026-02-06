@@ -1,5 +1,3 @@
-
-
 const metadata = {
   id: text().primaryKey().$defaultFn(randomUUID),
   updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).$onUpdateFn(
