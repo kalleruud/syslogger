@@ -1,6 +1,6 @@
+import { Database } from 'bun:sqlite'
 import path from 'node:path'
 import * as schema from '../database/schema'
-import { Database } from 'bun:sqlite'
 
 const isTesting = process.env.NODE_ENV === 'test'
 
