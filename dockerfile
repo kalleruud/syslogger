@@ -1,25 +1,24 @@
-FROM node:24-alpine AS builder
+FROM oven/bun:alpine AS builder
 WORKDIR /app
 
-COPY package*.json .
-RUN npm install
+COPY package.json bun.lock* ./
+RUN bun install --frozen-lockfile
 
 COPY . .
-RUN npm run build
+RUN bun run build
 
-FROM node:24-alpine AS runner
+FROM oven/bun:alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
-COPY package*.json .
-RUN npm install --omit=dev
+COPY package.json bun.lock* ./
+RUN bun install --frozen-lockfile --production
 
 COPY --from=builder /app/dist ./dist
 COPY drizzle.config.ts .
 COPY drizzle ./drizzle
-RUN mkdir -p data && chown -R node:node data
+RUN mkdir -p data && chown -R bun:bun data
 
 VOLUME ["/app/data"]
-EXPOSE 6996
 
-ENTRYPOINT ["npm", "start"]
+ENTRYPOINT ["bun", "start"]
