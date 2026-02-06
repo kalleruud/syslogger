@@ -45,10 +45,11 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 
 ### User Interface
 - **Single Page Application**: Minimal, terminal-inspired design on a single page
-- **Top Control Bar**: Search input, filter dropdowns, and column visibility toggle in one row
+- **Top Control Bar**: Search input, filter dropdowns, column visibility toggle, and settings button in one row
 - **Terminal-style Log Table**: Fixed-width character columns with no gaps or margins between cells
 - **8 Configurable Columns**: Timestamp, Severity, Hostname, Application, Facility, ProcID, MsgID, Message
 - **Column Visibility Toggle**: Show/hide columns via popover menu in the top bar
+- **Settings Button**: Opens a popup to configure retention settings per severity level
 - **Severity Color Coding**: Visual distinction by log level (red/orange/yellow/blue)
 - **Virtual Scrolling**: Efficient rendering of large datasets with @tanstack/react-virtual
 - **Infinite Scroll**: Load older logs automatically when scrolling up
@@ -65,8 +66,9 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 
 ### Log Retention
 - **Automatic Cleanup**: Daily cleanup job removes old logs
-- **Severity-based Retention**: Critical logs (0-4) kept indefinitely
-- **Configurable Period**: Non-critical logs deleted after N days (default: 30)
+- **Per-Severity Retention**: Configure retention period (in days) for each severity level independently
+- **Settings Popup**: Adjust retention days per severity via the settings button in the UI
+- **Persistent Configuration**: Settings stored in `config.json` and persist across restarts
 
 ### Deployment
 - **Docker Ready**: Multi-stage build with docker-compose
@@ -91,6 +93,7 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 │  │ • Bun SQLite + Drizzle ORM          │  │
 │  │ • WebSocket Server (Pub/Sub)        │  │
 │  │ • Log Retention Cleanup             │  │
+│  │ • Settings API (config.json)        │  │
 │  │ • Serving React bundle on endpoint  │  │
 │  └─────────────────────────────────────┘  │
 └────────────────┬──────────────────────────┘
@@ -101,11 +104,11 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 │  ┌─────────────────────────────────────┐  │
 │  │ • Minimal terminal-style UI         │  │
 │  │ • Top bar: search, filters, columns │  │
+│  │ • Settings popup for retention      │  │
 │  │ • Fixed-width character log table   │  │
 │  │ • Click-to-inspect detail panel     │  │
 │  │ • WebSocket Client (auto-reconnect) │  │
 │  │ • TanStack Table + Virtual Scroll   │  │
-│  │ • URL-synced filter state           │  │
 │  └─────────────────────────────────────┘  │
 └───────────────────────────────────────────┘
 ```
@@ -160,6 +163,8 @@ The server will serve the compiled frontend from `frontend/dist` at `http://loca
 
 ## Configuration
 
+### Environment Variables
+
 Environment variables can be set in `backend/.env`:
 
 ```env
@@ -167,6 +172,27 @@ SYSLOG_PORT=5140           # Syslog UDP listen port
 HTTP_PORT=3000             # React web ui server port
 DB_PATH=./data/logs.db     # SQLite database path
 ```
+
+### Retention Settings
+
+Retention settings are stored in `backend/config.json` and can be configured via the settings popup in the UI:
+
+```json
+{
+  "retention": {
+    "0": null,    // Emergency - keep forever (null = no expiry)
+    "1": null,    // Alert - keep forever
+    "2": null,    // Critical - keep forever
+    "3": 90,      // Error - 90 days
+    "4": 60,      // Warning - 60 days
+    "5": 30,      // Notice - 30 days
+    "6": 14,      // Info - 14 days
+    "7": 7        // Debug - 7 days
+  }
+}
+```
+
+Set a severity to `null` to keep logs of that level indefinitely.
 
 ## API Endpoints
 
@@ -190,6 +216,51 @@ Get list of unique tags extracted from log messages.
 **Response:**
 ```json
 ["db", "error", "request", "timeout", "warning"]
+```
+
+### GET /api/settings
+
+Get current application settings including retention configuration.
+
+**Response:**
+```json
+{
+  "retention": {
+    "0": null,
+    "1": null,
+    "2": null,
+    "3": 90,
+    "4": 60,
+    "5": 30,
+    "6": 14,
+    "7": 7
+  }
+}
+```
+
+### PUT /api/settings
+
+Update application settings. Saves to `config.json`.
+
+**Request Body:**
+```json
+{
+  "retention": {
+    "0": null,
+    "1": null,
+    "2": null,
+    "3": 90,
+    "4": 60,
+    "5": 30,
+    "6": 14,
+    "7": 7
+  }
+}
+```
+
+**Response:**
+```json
+{ "success": true }
 ```
 
 
