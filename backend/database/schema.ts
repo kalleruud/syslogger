@@ -1,3 +1,6 @@
+import { integer, text } from 'drizzle-orm/sqlite-core'
+import { randomUUID } from 'node:crypto'
+
 const metadata = {
   id: text().primaryKey().$defaultFn(randomUUID),
   updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).$onUpdateFn(

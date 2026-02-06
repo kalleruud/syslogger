@@ -5,7 +5,8 @@
     "target": "ESNext",
     "module": "Preserve",
     "moduleDetection": "force",
-    "allowJs": false,
+    "jsx": "react-jsx",
+    "allowJs": true,
 
     // Bundler mode
     "moduleResolution": "bundler",
@@ -26,9 +27,9 @@
     "noPropertyAccessFromIndexSignature": true
   },
   "files": [],
+  "include": ["backend"],
   "references": [
     { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" },
-    { "path": "./tsconfig.bun.json" }
+    { "path": "./tsconfig.node.json" }
   ]
 }
