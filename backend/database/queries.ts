@@ -1,6 +1,6 @@
 import { and, desc, eq, inArray, like, sql } from 'drizzle-orm'
 import db from './database'
-import { type Log, logs, logsTags, type NewLog, type NewTag, tags } from './schema'
+import { type Log, logs, logsTags, type NewLog, tags } from './schema'
 
 export interface LogFilters {
   severity?: number[]
@@ -92,14 +92,14 @@ export async function getLogById(id: number): Promise<LogWithTags | null> {
 
   if (result.length === 0) return null
 
-  const [logWithTags] = await loadTagsForLogs(result, [id])
-  return logWithTags
+  const logsWithTags = await loadTagsForLogs(result, [id])
+  return logsWithTags[0] ?? null
 }
 
 // Insert a new log entry
 export async function insertLog(log: NewLog): Promise<Log> {
   const result = await db.insert(logs).values(log).returning()
-  return result[0]
+  return result[0]!
 }
 
 // Insert a log with tags (creates tags if they don't exist)
@@ -154,18 +154,18 @@ export async function getAllTags(): Promise<{ id: number; name: string }[]> {
 // Get or create a tag by name
 export async function getOrCreateTag(
   name: string
-): Promise<NewTag & { id: number }> {
+): Promise<{ id: number; name: string }> {
   const normalized = name.toLowerCase().trim()
 
   await db.insert(tags).values({ name: normalized }).onConflictDoNothing()
 
   const result = await db
-    .select()
+    .select({ id: tags.id, name: tags.name })
     .from(tags)
     .where(eq(tags.name, normalized))
     .limit(1)
 
-  return result[0]
+  return result[0]!
 }
 
 // Add tags to a log

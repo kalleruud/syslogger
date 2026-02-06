@@ -1,4 +1,4 @@
-import { relations } from 'drizzle-orm'
+import { relations, sql } from 'drizzle-orm'
 import {
   index,
   integer,
@@ -6,24 +6,12 @@ import {
   sqliteTable,
   text,
 } from 'drizzle-orm/sqlite-core'
-import { randomUUID } from 'node:crypto'
-
-const metadata = {
-  id: text().primaryKey().$defaultFn(randomUUID),
-  updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).$onUpdateFn(
-    () => new Date()
-  ),
-  createdAt: integer('created_at', { mode: 'timestamp_ms' })
-    .notNull()
-    .$defaultFn(() => new Date()),
-  deletedAt: integer('deleted_at', { mode: 'timestamp_ms' }),
-}
 
 // Logs table - primary storage for parsed syslog messages
 export const logs = sqliteTable(
   'logs',
   {
-    ...metadata,
+    id: integer('id').primaryKey({ autoIncrement: true }),
     timestamp: text('timestamp').notNull(),
     severity: integer('severity').notNull(),
     facility: integer('facility'),
@@ -33,6 +21,7 @@ export const logs = sqliteTable(
     msgid: text('msgid'),
     message: text('message').notNull(),
     raw: text('raw').notNull(),
+    createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
   },
   table => [
     index('idx_logs_timestamp').on(table.timestamp),
@@ -45,8 +34,9 @@ export const logs = sqliteTable(
 
 // Tags table - unique tag names for log categorization
 export const tags = sqliteTable('tags', {
-  ...metadata,
+  id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull().unique(),
+  createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
 })
 
 // Junction table for many-to-many logs-tags relationship
