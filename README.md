@@ -109,6 +109,7 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 │  │ • Click-to-inspect detail panel     │  │
 │  │ • WebSocket Client (auto-reconnect) │  │
 │  │ • TanStack Table + Virtual Scroll   │  │
+│  │ • URL-synced filter state           │  │
 │  └─────────────────────────────────────┘  │
 └───────────────────────────────────────────┘
 ```
