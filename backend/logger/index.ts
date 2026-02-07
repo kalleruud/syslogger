@@ -49,17 +49,25 @@ async function log(
     }
   } catch (error) {
     // Fall back to console to avoid infinite loops
-    console.error('[syslogger]', appname, message, error)
+    console.error('[CRITICAL] Failed to insert log into database:', error)
   }
 }
 
 export const logger = {
-  debug: (appname: string, message: string, tags?: string[]) =>
-    log(7, appname, message, tags),
-  info: (appname: string, message: string, tags?: string[]) =>
-    log(6, appname, message, tags),
-  warn: (appname: string, message: string, tags?: string[]) =>
-    log(4, appname, message, tags),
-  error: (appname: string, message: string, tags?: string[]) =>
-    log(3, appname, message, tags),
+  debug: (appname: string, message: string, tags?: string[]) => {
+    console.debug('[DEBUG]', appname, message)
+    return log(7, appname, message, tags)
+  },
+  info: (appname: string, message: string, tags?: string[]) => {
+    console.info('[INFO]', appname, message)
+    return log(6, appname, message, tags)
+  },
+  warn: (appname: string, message: string, tags?: string[]) => {
+    console.warn('[WARN]', appname, message)
+    return log(4, appname, message, tags)
+  },
+  error: (appname: string, message: string, tags?: string[]) => {
+    console.error('[ERROR]', appname, message)
+    return log(3, appname, message, tags)
+  },
 }
