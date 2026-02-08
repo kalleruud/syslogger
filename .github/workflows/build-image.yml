@@ -6,16 +6,16 @@ on:
     branches:
       - main
     paths:
-      - "backend/**"
-      - "frontend/**"
-      - "drizzle/**"
-      - "dockerfile"
-      - "drizzle.config.ts"
-      - "vite.config.ts"
-      - "package.json"
-      - "index.html"
-      - "tsconfig*.json"
-      - ".github/workflows/build-ghcr.yml"
+      - 'backend/**'
+      - 'frontend/**'
+      - 'drizzle/**'
+      - 'dockerfile'
+      - 'drizzle.config.ts'
+      - 'vite.config.ts'
+      - 'package.json'
+      - 'index.html'
+      - 'tsconfig*.json'
+      - '.github/workflows/build-ghcr.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

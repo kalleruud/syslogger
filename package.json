@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:backend": "bun --watch backend/index.ts",
+    "dev:all": "bun run dev:backend & bun run dev",
     "build": "tsc -b && vite build",
+    "start": "NODE_ENV=production bun backend/index.ts",
     "check": "tsc -b --noEmit && eslint . && prettier --check .",
     "preview": "vite preview"
   },

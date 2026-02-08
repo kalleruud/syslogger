@@ -31,8 +31,16 @@ async function log(
   const allTags = ['internal', ...(tags ?? [])]
 
   try {
-    const result = await insertLogWithTags(logEntry, allTags)
-    // TODO: Broadcast log to all connected WebSocket clients
+    const logWithTags = await insertLogWithTags(logEntry, allTags)
+    // Broadcast log to all connected WebSocket clients
+    // Import dynamically to avoid circular dependency issues
+    import('../server/websocket')
+      .then(({ wsManager }) => {
+        wsManager.broadcastLog(logWithTags)
+      })
+      .catch(() => {
+        // WebSocket not available (likely during startup), ignore
+      })
   } catch (error) {
     // Fall back to console to avoid infinite loops
     console.error('[CRITICAL] Failed to insert log into database:', error)
