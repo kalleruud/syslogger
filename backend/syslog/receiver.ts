@@ -89,8 +89,8 @@ class SyslogReceiver {
 
   private handleIncomingData(buffer: Buffer): void {
     const message = buffer.toString('utf-8')
-    logger.debug('syslog', message)
-    this.processMessage(message)
+    console.debug(message.trimEnd())
+    this.processMessage(message.trimEnd())
   }
 
   private handleUdpError(error: Error): void {
@@ -98,15 +98,10 @@ class SyslogReceiver {
   }
 
   private processMessage(message: string): void {
-    const trimmedMessage = message.trim()
-
-    if (isEmptyMessage(message)) {
-      return
-    }
-
+    if (isEmptyMessage(message.trim())) return
     this.incrementMessageCount()
     this.logProgressIfNeeded()
-    this.parseAndStore(trimmedMessage)
+    this.parseAndStore(message)
   }
 
   private incrementMessageCount(): void {
