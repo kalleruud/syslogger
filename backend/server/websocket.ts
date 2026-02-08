@@ -7,70 +7,145 @@ export interface WSData {
   connectedAt: Date
 }
 
+const WS_ID_PREFIX = 'ws-'
+const WS_CLOSE_CODE_NORMAL = 1000
+const WS_CLOSE_REASON = 'Server shutting down'
+
+const MESSAGE_TYPE = {
+  PING: 'ping',
+  LOG: 'log',
+} as const
+
+const generateConnectionId = (counter: number): string => {
+  return `${WS_ID_PREFIX}${counter}`
+}
+
+const createPingMessage = () => ({
+  type: MESSAGE_TYPE.PING,
+})
+
+const createLogMessage = (log: LogWithTags) => ({
+  type: MESSAGE_TYPE.LOG,
+  data: log,
+})
+
+const serializeMessage = (message: object): string => {
+  return JSON.stringify(message)
+}
+
 class WebSocketManager {
-  private connections = new Set<ServerWebSocket<WSData>>()
-  private nextId = 1
+  private readonly connections = new Set<ServerWebSocket<WSData>>()
+  private connectionIdCounter = 1
 
-  connect(ws: ServerWebSocket<WSData>) {
-    ws.data.id = `ws-${this.nextId++}`
+  private initializeConnection(ws: ServerWebSocket<WSData>): void {
+    ws.data.id = generateConnectionId(this.connectionIdCounter++)
     ws.data.connectedAt = new Date()
+  }
+
+  private logConnectionEstablished(connectionId: string): void {
+    logger.info(
+      'ws',
+      `Client connected: ${connectionId} (total: ${this.connections.size})`
+    )
+  }
+
+  private sendInitialPing(ws: ServerWebSocket<WSData>): void {
+    this.sendToClient(ws, createPingMessage())
+  }
+
+  connect(ws: ServerWebSocket<WSData>): void {
+    this.initializeConnection(ws)
     this.connections.add(ws)
-    logger.info(
-      'ws',
-      `Client connected: ${ws.data.id} (total: ${this.connections.size})`
-    )
-    this.send(ws, { type: 'ping' })
+    this.logConnectionEstablished(ws.data.id)
+    this.sendInitialPing(ws)
   }
 
-  disconnect(ws: ServerWebSocket<WSData>) {
+  private logConnectionClosed(connectionId: string): void {
+    logger.info(
+      'ws',
+      `Client disconnected: ${connectionId} (total: ${this.connections.size})`
+    )
+  }
+
+  disconnect(ws: ServerWebSocket<WSData>): void {
     this.connections.delete(ws)
-    logger.info(
-      'ws',
-      `Client disconnected: ${ws.data.id} (total: ${this.connections.size})`
-    )
+    this.logConnectionClosed(ws.data.id)
   }
 
-  broadcastLog(log: LogWithTags) {
-    this.broadcast(JSON.stringify({ type: 'log', data: log }))
+  broadcastLog(log: LogWithTags): void {
+    const message = createLogMessage(log)
+    this.broadcastMessage(serializeMessage(message))
   }
 
-  private broadcast(json: string) {
-    for (const ws of this.connections) {
-      try {
-        ws.send(json)
-      } catch {
-        this.connections.delete(ws)
-      }
+  private broadcastMessage(serializedMessage: string): void {
+    for (const connection of this.connections) {
+      this.sendSerializedMessage(connection, serializedMessage)
     }
   }
 
-  private send(ws: ServerWebSocket<WSData>, msg: object) {
+  private sendSerializedMessage(
+    ws: ServerWebSocket<WSData>,
+    message: string
+  ): void {
     try {
-      ws.send(JSON.stringify(msg))
+      ws.send(message)
     } catch {
-      this.connections.delete(ws)
+      this.removeFailedConnection(ws)
     }
   }
 
-  async closeAll() {
-    logger.info('ws', `Closing ${this.connections.size} connections`)
-    for (const ws of this.connections) {
-      try {
-        ws.close(1000, 'Server shutting down')
-      } catch {
-        // Ignore
-      }
+  private sendToClient(ws: ServerWebSocket<WSData>, message: object): void {
+    const serialized = serializeMessage(message)
+    this.sendSerializedMessage(ws, serialized)
+  }
+
+  private removeFailedConnection(ws: ServerWebSocket<WSData>): void {
+    this.connections.delete(ws)
+  }
+
+  private closeConnection(ws: ServerWebSocket<WSData>): void {
+    try {
+      ws.close(WS_CLOSE_CODE_NORMAL, WS_CLOSE_REASON)
+    } catch {
+      // Connection already closed or error during close - safe to ignore
     }
+  }
+
+  async closeAll(): Promise<void> {
+    logger.info('ws', `Closing ${this.connections.size} connections`)
+
+    for (const connection of this.connections) {
+      this.closeConnection(connection)
+    }
+
     this.connections.clear()
   }
 }
 
 export const wsManager = new WebSocketManager()
 
+const handleWebSocketOpen = (ws: ServerWebSocket<WSData>): void => {
+  wsManager.connect(ws)
+}
+
+const handleWebSocketMessage = (): void => {
+  // No client messages expected in this implementation
+}
+
+const handleWebSocketClose = (ws: ServerWebSocket<WSData>): void => {
+  wsManager.disconnect(ws)
+}
+
+const handleWebSocketError = (
+  ws: ServerWebSocket<WSData>,
+  error: Error
+): void => {
+  logger.error('ws', `Error for ${ws.data.id}: ${error.message}`)
+}
+
 export const createWebSocketHandler = () => ({
-  open: (ws: ServerWebSocket<WSData>) => wsManager.connect(ws),
-  message: () => {},
-  close: (ws: ServerWebSocket<WSData>) => wsManager.disconnect(ws),
-  error: (ws: ServerWebSocket<WSData>, error: Error) =>
-    logger.error('ws', `Error for ${ws.data.id}: ${error.message}`),
+  open: handleWebSocketOpen,
+  message: handleWebSocketMessage,
+  close: handleWebSocketClose,
+  error: handleWebSocketError,
 })

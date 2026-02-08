@@ -1,7 +1,30 @@
 import { insertLogWithTags } from '@database/queries'
 import type { NewLog } from '@database/schema'
 
-const FACILITY = 16 // local0
+const FACILITY_LOCAL0 = 16
+const HOSTNAME = 'syslogger'
+const INTERNAL_TAG = 'internal'
+const MULTIPLIER_FOR_PRIORITY = 8
+
+const SEVERITY = {
+  DEBUG: 7,
+  INFO: 6,
+  WARNING: 4,
+  ERROR: 3,
+} as const
+
+const calculatePriority = (severity: number): number => {
+  return FACILITY_LOCAL0 * MULTIPLIER_FOR_PRIORITY + severity
+}
+
+const formatRawSyslogMessage = (
+  priority: number,
+  timestamp: string,
+  appname: string,
+  message: string
+): string => {
+  return `<${priority}>1 ${timestamp} ${HOSTNAME} ${appname} - - - ${message}`
+}
 
 const createLogEntry = (
   severity: number,
@@ -9,54 +32,73 @@ const createLogEntry = (
   message: string
 ): NewLog => {
   const timestamp = new Date().toISOString()
-  const priority = FACILITY * 8 + severity
+  const priority = calculatePriority(severity)
+
   return {
     timestamp,
     severity,
-    facility: FACILITY,
-    hostname: 'syslogger',
+    facility: FACILITY_LOCAL0,
+    hostname: HOSTNAME,
     appname,
     message,
-    raw: `<${priority}>1 ${timestamp} syslogger ${appname} - - - ${message}`,
+    raw: formatRawSyslogMessage(priority, timestamp, appname, message),
   }
 }
 
-const log = async (
+const combineTagsWithInternal = (tags?: string[]): string[] => {
+  return [INTERNAL_TAG, ...(tags ?? [])]
+}
+
+const broadcastLogToWebSocket = async (
+  log: Awaited<ReturnType<typeof insertLogWithTags>>
+): Promise<void> => {
+  try {
+    const { wsManager } = await import('../server/websocket')
+    wsManager.broadcastLog(log)
+  } catch {
+    // Silently fail if WebSocket module is unavailable
+  }
+}
+
+const persistLog = async (
   severity: number,
   appname: string,
   message: string,
   tags?: string[]
-) => {
+): Promise<void> => {
   try {
-    const saved = await insertLogWithTags(
-      createLogEntry(severity, appname, message),
-      ['internal', ...(tags ?? [])]
-    )
-    import('../server/websocket')
-      .then(({ wsManager }) => wsManager.broadcastLog(saved))
-      .catch(() => {})
+    const logEntry = createLogEntry(severity, appname, message)
+    const allTags = combineTagsWithInternal(tags)
+    const savedLog = await insertLogWithTags(logEntry, allTags)
+    await broadcastLogToWebSocket(savedLog)
   } catch (error) {
     console.error('[CRITICAL] Failed to log:', error)
   }
 }
 
+const writeToConsole = (
+  level: string,
+  appname: string,
+  message: string
+): void => {
+  console[level.toLowerCase() as 'debug' | 'info' | 'warn' | 'error'](
+    `[${level}] ${appname}:`,
+    message
+  )
+}
+
+const createLogFunction = (severity: number, level: string) => {
+  return (appname: string, message: string, tags?: string[]): void => {
+    writeToConsole(level, appname, message)
+    void persistLog(severity, appname, message, tags)
+  }
+}
+
 const logger = {
-  debug: (app: string, msg: string, tags?: string[]) => (
-    console.debug(`[DEBUG] ${app}:`, msg),
-    log(7, app, msg, tags)
-  ),
-  info: (app: string, msg: string, tags?: string[]) => (
-    console.info(`[INFO] ${app}:`, msg),
-    log(6, app, msg, tags)
-  ),
-  warn: (app: string, msg: string, tags?: string[]) => (
-    console.warn(`[WARN] ${app}:`, msg),
-    log(4, app, msg, tags)
-  ),
-  error: (app: string, msg: string, tags?: string[]) => (
-    console.error(`[ERROR] ${app}:`, msg),
-    log(3, app, msg, tags)
-  ),
+  debug: createLogFunction(SEVERITY.DEBUG, 'DEBUG'),
+  info: createLogFunction(SEVERITY.INFO, 'INFO'),
+  warn: createLogFunction(SEVERITY.WARNING, 'WARN'),
+  error: createLogFunction(SEVERITY.ERROR, 'ERROR'),
 }
 
 export default logger
