@@ -7,8 +7,8 @@ import { createWebSocketHandler, type WSData } from './server/websocket'
 import { getSyslogReceiver } from './syslog/receiver'
 
 // Configuration
-const HTTP_PORT = parseInt(process.env['HTTP_PORT'] ?? '3000', 10)
-const SYSLOG_PORT = parseInt(process.env['SYSLOG_PORT'] ?? '5140', 10)
+const HTTP_PORT = Number.parseInt(process.env['HTTP_PORT'] ?? '3000', 10)
+const SYSLOG_PORT = Number.parseInt(process.env['SYSLOG_PORT'] ?? '5140', 10)
 const PUBLIC_DIR = resolve(import.meta.dir, '../dist')
 
 /**
@@ -111,4 +111,4 @@ async function startServer() {
 }
 
 // Start the server
-startServer()
+await startServer()
