@@ -2,6 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+# IMPORTANT RULES
+
+- Always use the [clean-code skill](.agents/skills/clean-code/SKILL.md) when writing code.
+- Always write comprehensive logs on the backend using the logger from `backend/managers/log.manager.ts`.
+
 ## Project Overview
 
 Syslogger is a real-time syslog management system with a Bun/TypeScript backend and React frontend. It receives syslog messages via UDP, parses them (RFC 5424/3164), stores them in SQLite, and streams them to connected clients via WebSocket.
