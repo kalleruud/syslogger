@@ -8,118 +8,47 @@ import {
 } from '@database/queries'
 import logger from '../managers/log.manager'
 import { getSyslogReceiver } from '../syslog/receiver'
-import { addCorsHeaders } from './cors'
+import { addCors } from './cors'
 
-/**
- * Handle API routes
- */
-export async function handleApiRoute(
-  pathname: string,
+const json = (data: unknown, status = 200) =>
+  addCors(
+    new Response(JSON.stringify(data), {
+      status,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  )
+
+const parseFilters = (params: URLSearchParams): LogFilters => ({
+  severity: params.get('severity')?.split(',').map(Number),
+  hostname: params.get('hostname') ?? undefined,
+  appname: params.get('appname') ?? undefined,
+  search: params.get('search') ?? undefined,
+  tagIds: params.get('tagIds')?.split(',').map(Number),
+  limit: params.get('limit') ? Number(params.get('limit')) : undefined,
+  offset: params.get('offset') ? Number(params.get('offset')) : undefined,
+})
+
+export const handleApiRoute = async (
+  path: string,
   url: URL
-): Promise<Response> {
+): Promise<Response> => {
   try {
-    // GET /api/logs - Get logs with filters
-    if (pathname === '/api/logs' && url.searchParams) {
-      const filters: LogFilters = {}
-
-      // Parse severity filter (comma-separated)
-      const severityParam = url.searchParams.get('severity')
-      if (severityParam) {
-        filters.severity = severityParam
-          .split(',')
-          .map(s => Number.parseInt(s, 10))
-      }
-
-      // Parse other filters
-      if (url.searchParams.get('hostname')) {
-        filters.hostname = url.searchParams.get('hostname')!
-      }
-      if (url.searchParams.get('appname')) {
-        filters.appname = url.searchParams.get('appname')!
-      }
-      if (url.searchParams.get('search')) {
-        filters.search = url.searchParams.get('search')!
-      }
-
-      // Parse tag IDs filter (comma-separated)
-      const tagIdsParam = url.searchParams.get('tagIds')
-      if (tagIdsParam) {
-        filters.tagIds = tagIdsParam
-          .split(',')
-          .map(id => Number.parseInt(id, 10))
-      }
-
-      // Parse pagination
-      const limitParam = url.searchParams.get('limit')
-      const offsetParam = url.searchParams.get('offset')
-      if (limitParam) {
-        filters.limit = Number.parseInt(limitParam, 10)
-      }
-      if (offsetParam) {
-        filters.offset = Number.parseInt(offsetParam, 10)
-      }
-
-      const result = await getLogs(filters)
-      return jsonResponse(result)
-    }
-
-    // GET /api/logs/:id - Get single log by ID
-    if (pathname.startsWith('/api/logs/')) {
-      const id = Number.parseInt(pathname.replace('/api/logs/', ''), 10)
-      if (Number.isNaN(id)) {
-        return jsonResponse({ error: 'Invalid log ID' }, 400)
-      }
-
+    if (path === '/api/logs')
+      return json(await getLogs(parseFilters(url.searchParams)))
+    if (path.startsWith('/api/logs/')) {
+      const id = Number(path.replace('/api/logs/', ''))
+      if (Number.isNaN(id)) return json({ error: 'Invalid ID' }, 400)
       const log = await getLogById(id)
-      if (!log) {
-        return jsonResponse({ error: 'Log not found' }, 404)
-      }
-
-      return jsonResponse(log)
+      return log ? json(log) : json({ error: 'Not found' }, 404)
     }
-
-    // GET /api/tags - Get all tags
-    if (pathname === '/api/tags') {
-      const tags = await getAllTags()
-      return jsonResponse(tags)
-    }
-
-    // GET /api/filters/hostnames - Get unique hostnames
-    if (pathname === '/api/filters/hostnames') {
-      const hostnames = await getUniqueHostnames()
-      return jsonResponse(hostnames)
-    }
-
-    // GET /api/filters/appnames - Get unique app names
-    if (pathname === '/api/filters/appnames') {
-      const appnames = await getUniqueAppnames()
-      return jsonResponse(appnames)
-    }
-
-    // GET /api/stats - Get server statistics
-    if (pathname === '/api/stats') {
-      const receiver = getSyslogReceiver()
-      const stats = receiver.getStats()
-      return jsonResponse(stats)
-    }
-
-    // 404 for unknown API routes
-    return jsonResponse({ error: 'Not found' }, 404)
+    if (path === '/api/tags') return json(await getAllTags())
+    if (path === '/api/filters/hostnames')
+      return json(await getUniqueHostnames())
+    if (path === '/api/filters/appnames') return json(await getUniqueAppnames())
+    if (path === '/api/stats') return json(getSyslogReceiver().getStats())
+    return json({ error: 'Not found' }, 404)
   } catch (error) {
-    logger.error('http-server', `API error for ${pathname}: ${error}`)
-    return jsonResponse({ error: 'Internal server error' }, 500)
+    logger.error('api', `Error for ${path}: ${error}`)
+    return json({ error: 'Server error' }, 500)
   }
-}
-
-/**
- * Create JSON response with CORS headers
- */
-function jsonResponse(data: unknown, status: number = 200): Response {
-  const response = new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
-  return addCorsHeaders(response)
 }

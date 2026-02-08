@@ -1,190 +1,91 @@
-import { insertLogWithTags, type LogWithTags } from '@database/queries'
+import { insertLogWithTags } from '@database/queries'
 import type { NewLog } from '@database/schema'
 import logger from '../managers/log.manager'
 import { wsManager } from '../server/websocket'
 import { parseSyslogMessage } from './parsers'
+import type { ParsedLog } from './types'
 
-/**
- * UDP Syslog Receiver
- * Listens for syslog messages on a UDP port and processes them
- */
-export class SyslogReceiver {
+const getSeverityTags = (severity: number) => {
+  if (severity <= 2) return ['critical']
+  if (severity === 3) return ['error']
+  if (severity === 4) return ['warning']
+  return []
+}
+
+class SyslogReceiver {
   private socket: { close: () => void } | null = null
-  private readonly port: number
   private messageCount = 0
 
-  constructor(port: number = 5140) {
-    this.port = port
+  constructor(private readonly port: number = 5140) {}
+
+  async start() {
+    this.socket = await Bun.udpSocket({
+      port: this.port,
+      hostname: '0.0.0.0',
+      socket: {
+        data: (_, buffer) => this.handleMessage(buffer.toString('utf-8')),
+        error: (_, error) =>
+          logger.error('syslog', `UDP error: ${error.message}`),
+        drain: () => {},
+      },
+    })
+    logger.info('syslog', `UDP receiver started on 0.0.0.0:${this.port}`)
   }
 
-  /**
-   * Start the UDP receiver
-   */
-  async start(): Promise<void> {
-    try {
-      this.socket = await Bun.udpSocket({
-        port: this.port,
-        hostname: '0.0.0.0',
+  private handleMessage(message: string) {
+    const trimmed = message.trim()
+    if (!trimmed) return
 
-        socket: {
-          data: (_, buffer, port, address) => {
-            this.handleMessage(buffer, address, port)
-          },
+    this.messageCount++
+    if (this.messageCount % 100 === 0) {
+      logger.debug('syslog', `Processed ${this.messageCount} messages`)
+    }
 
-          error: (_, error) => {
-            logger.error(
-              'syslog-receiver',
-              `UDP socket error: ${error.message}`
-            )
-          },
-
-          drain: () => {
-            // Called when socket is ready to send more data (not typically used for receiving)
-          },
-        },
-      })
-
-      logger.info(
-        'syslog-receiver',
-        `UDP syslog receiver started on 0.0.0.0:${this.port}`
-      )
-    } catch (error) {
-      logger.error(
-        'syslog-receiver',
-        `Failed to start UDP receiver on port ${this.port}: ${error}`
-      )
-      throw error
+    const result = parseSyslogMessage(trimmed)
+    if (result.success && result.log) {
+      this.storeAndBroadcast(result.log, result.parserUsed)
     }
   }
 
-  /**
-   * Handle incoming syslog message
-   */
-  private handleMessage(buffer: Buffer, address: string, port: number): void {
+  private async storeAndBroadcast(log: ParsedLog, parser?: string) {
     try {
-      this.messageCount++
-
-      // Convert buffer to string (assume UTF-8)
-      const message = buffer.toString('utf-8').trim()
-
-      if (!message) {
-        return
-      }
-
-      // Log every 100 messages for monitoring
-      if (this.messageCount % 100 === 0) {
-        logger.debug(
-          'syslog-receiver',
-          `Processed ${this.messageCount} messages (last from ${address}:${port})`
-        )
-      }
-
-      // Parse the message
-      const parseResult = parseSyslogMessage(message)
-
-      if (!parseResult.success || !parseResult.log) {
-        logger.warn(
-          'syslog-receiver',
-          `Failed to parse message from ${address}:${port}: ${parseResult.error ?? 'Unknown error'}`
-        )
-        return
-      }
-
-      // Store in database and broadcast
-      this.storeAndBroadcast(parseResult.log, parseResult.parserUsed)
+      const tags = [
+        ...(parser ? [parser] : []),
+        ...getSeverityTags(log.severity),
+      ]
+      const saved = await insertLogWithTags(log as NewLog, tags)
+      wsManager.broadcastLog(saved)
     } catch (error) {
-      logger.error(
-        'syslog-receiver',
-        `Error handling message from ${address}:${port}: ${error}`
-      )
+      logger.error('syslog', `Failed to store log: ${error}`)
     }
   }
 
-  /**
-   * Store log in database and broadcast to WebSocket clients
-   */
-  private async storeAndBroadcast(
-    parsedLog: import('./types').ParsedLog,
-    parserUsed?: string
-  ): Promise<void> {
-    try {
-      // Convert to database format
-      const dbLog: NewLog = {
-        timestamp: parsedLog.timestamp,
-        severity: parsedLog.severity,
-        facility: parsedLog.facility,
-        hostname: parsedLog.hostname,
-        appname: parsedLog.appname,
-        procid: parsedLog.procid,
-        msgid: parsedLog.msgid,
-        message: parsedLog.message,
-        raw: parsedLog.raw,
-      }
-
-      // Add tags based on parser used and severity
-      const tags: string[] = []
-      if (parserUsed) {
-        tags.push(parserUsed)
-      }
-
-      // Add severity-based tags
-      if (parsedLog.severity <= 2) {
-        tags.push('critical')
-      } else if (parsedLog.severity === 3) {
-        tags.push('error')
-      } else if (parsedLog.severity === 4) {
-        tags.push('warning')
-      }
-
-      // Insert into database
-      const logWithTags: LogWithTags = await insertLogWithTags(dbLog, tags)
-
-      // Broadcast to connected WebSocket clients
-      wsManager.broadcastLog(logWithTags)
-    } catch (error) {
-      logger.error('syslog-receiver', `Failed to store/broadcast log: ${error}`)
-    }
-  }
-
-  /**
-   * Stop the UDP receiver
-   */
-  async stop(): Promise<void> {
+  async stop() {
     if (this.socket) {
-      logger.info(
-        'syslog-receiver',
-        `Stopping UDP receiver (processed ${this.messageCount} messages)`
-      )
+      logger.info('syslog', `Stopping receiver (${this.messageCount} messages)`)
       this.socket.close()
       this.socket = null
     }
   }
 
-  /**
-   * Get receiver statistics
-   */
   getStats() {
     return {
       port: this.port,
       messageCount: this.messageCount,
-      isRunning: this.socket !== null,
+      isRunning: !!this.socket,
     }
   }
 }
 
-// Singleton instance
-let receiverInstance: SyslogReceiver | null = null
+let instance: SyslogReceiver | null = null
 
-/**
- * Get or create the syslog receiver instance
- */
-export function getSyslogReceiver(port?: number): SyslogReceiver {
-  if (!receiverInstance) {
+export const getSyslogReceiver = (port?: number) => {
+  if (!instance) {
     const defaultPort = Number.parseInt(
       process.env['SYSLOG_PORT'] ?? '5140',
       10
     )
-    receiverInstance = new SyslogReceiver(port ?? defaultPort)
+    instance = new SyslogReceiver(port ?? defaultPort)
   }
-  return receiverInstance
+  return instance
 }

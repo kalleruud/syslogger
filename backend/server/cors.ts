@@ -1,58 +1,23 @@
-/**
- * CORS middleware for development
- * Only enabled when NODE_ENV !== 'production'
- */
+const isDev = process.env['NODE_ENV'] !== 'production'
 
-const isDevelopment = process.env['NODE_ENV'] !== 'production'
-
-/**
- * Get CORS headers for response
- */
-export function getCorsHeaders(): Record<string, string> {
-  if (!isDevelopment) {
-    return {}
-  }
-
-  return {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Max-Age': '86400', // 24 hours
-  }
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 }
 
-/**
- * Handle CORS preflight requests
- */
-export function handleCorsPreflightRequest(): Response {
-  if (!isDevelopment) {
-    return new Response('Method Not Allowed', { status: 405 })
-  }
+export const handlePreflight = () =>
+  isDev
+    ? new Response(null, { status: 204, headers: corsHeaders })
+    : new Response('Not Allowed', { status: 405 })
 
-  return new Response(null, {
-    status: 204,
-    headers: getCorsHeaders(),
-  })
-}
-
-/**
- * Add CORS headers to a response
- */
-export function addCorsHeaders(response: Response): Response {
-  if (!isDevelopment) {
-    return response
-  }
-
-  const headers = new Headers(response.headers)
-  const corsHeaders = getCorsHeaders()
-
-  for (const [key, value] of Object.entries(corsHeaders)) {
-    headers.set(key, String(value))
-  }
-
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
+export const addCors = (res: Response) => {
+  if (!isDev) return res
+  const headers = new Headers(res.headers)
+  for (const [k, v] of Object.entries(corsHeaders)) headers.set(k, v)
+  return new Response(res.body, {
+    status: res.status,
+    statusText: res.statusText,
     headers,
   })
 }

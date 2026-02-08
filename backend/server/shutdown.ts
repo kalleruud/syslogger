@@ -2,88 +2,41 @@ import logger from '../managers/log.manager'
 import { getSyslogReceiver } from '../syslog/receiver'
 import { wsManager } from './websocket'
 
-/**
- * Graceful shutdown handler
- * Ensures all connections and resources are properly closed
- */
-export class ShutdownManager {
-  private isShuttingDown = false
+class ShutdownManager {
+  private shuttingDown = false
   private server: { stop?: () => Promise<void> } | null = null
-  private readonly shutdownTimeout = 5000 // 5 seconds
 
-  /**
-   * Set the HTTP server instance
-   */
-  setServer(server: { stop?: () => Promise<void> }): void {
+  setServer(server: { stop?: () => Promise<void> }) {
     this.server = server
   }
 
-  /**
-   * Register shutdown handlers for SIGINT and SIGTERM
-   */
-  registerHandlers(): void {
-    process.on('SIGINT', () => this.handleShutdown('SIGINT'))
-    process.on('SIGTERM', () => this.handleShutdown('SIGTERM'))
+  registerHandlers() {
+    const shutdown = (signal: string) => this.handleShutdown(signal)
+    process.on('SIGINT', () => shutdown('SIGINT'))
+    process.on('SIGTERM', () => shutdown('SIGTERM'))
   }
 
-  /**
-   * Handle shutdown signal
-   */
-  private async handleShutdown(signal: string): Promise<void> {
-    if (this.isShuttingDown) {
-      logger.warn('shutdown', 'Already shutting down, please wait...')
-      return
-    }
+  private async handleShutdown(signal: string) {
+    if (this.shuttingDown) return
+    this.shuttingDown = true
+    logger.info('shutdown', `Received ${signal}, shutting down...`)
 
-    this.isShuttingDown = true
-    logger.info('shutdown', `Received ${signal}, starting graceful shutdown...`)
-
-    // Set timeout for forced shutdown
-    const forceShutdownTimer = setTimeout(() => {
-      logger.error('shutdown', 'Graceful shutdown timeout, forcing exit')
-      process.exit(1)
-    }, this.shutdownTimeout)
+    const timeout = setTimeout(() => process.exit(1), 5000)
 
     try {
-      // 1. Stop accepting new syslog messages
-      logger.info('shutdown', 'Stopping UDP syslog receiver...')
-      const receiver = getSyslogReceiver()
-      await receiver.stop()
-
-      // 2. Close WebSocket connections
-      logger.info('shutdown', 'Closing WebSocket connections...')
+      await getSyslogReceiver().stop()
       await wsManager.closeAll()
-
-      // 3. Stop HTTP server (if available)
-      if (this.server && typeof this.server.stop === 'function') {
-        logger.info('shutdown', 'Stopping HTTP server...')
-        await this.server.stop()
-      }
-
-      // 4. Close database connection
-      logger.info('shutdown', 'Closing database connection...')
-      // Drizzle with Bun SQLite doesn't need explicit close, but we'll flush any pending writes
+      if (this.server?.stop) await this.server.stop()
       await new Promise(resolve => setTimeout(resolve, 100))
-
-      // Clear timeout
-      clearTimeout(forceShutdownTimer)
-
+      clearTimeout(timeout)
       logger.info('shutdown', 'Graceful shutdown complete')
       process.exit(0)
     } catch (error) {
-      logger.error('shutdown', `Error during shutdown: ${error}`)
-      clearTimeout(forceShutdownTimer)
+      logger.error('shutdown', `Error: ${error}`)
+      clearTimeout(timeout)
       process.exit(1)
     }
   }
-
-  /**
-   * Trigger shutdown programmatically
-   */
-  async shutdown(): Promise<void> {
-    await this.handleShutdown('MANUAL')
-  }
 }
 
-// Singleton instance
 export const shutdownManager = new ShutdownManager()
