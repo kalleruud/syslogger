@@ -4,18 +4,6 @@ import type { NewLog } from '@database/schema'
 const HOSTNAME = 'syslogger'
 const FACILITY = 16 // local0
 
-type BroadcastFn = (log: unknown) => void
-
-let broadcastFn: BroadcastFn | null = null
-
-/**
- * Set the broadcast function for WebSocket integration.
- * When set, all logged messages will be broadcast to connected clients.
- */
-export function setBroadcast(fn: BroadcastFn): void {
-  broadcastFn = fn
-}
-
 /**
  * Internal logging function that writes to the database.
  * Falls back to console.error on database failures to avoid infinite loops.
@@ -44,9 +32,8 @@ async function log(
 
   try {
     const result = await insertLogWithTags(logEntry, allTags)
-    if (broadcastFn) {
-      broadcastFn(result)
-    }
+    // TODO: Broadcast log to all connected WebSocket clients
+    
   } catch (error) {
     // Fall back to console to avoid infinite loops
     console.error('[CRITICAL] Failed to insert log into database:', error)
