@@ -33,14 +33,13 @@ async function log(
   try {
     const result = await insertLogWithTags(logEntry, allTags)
     // TODO: Broadcast log to all connected WebSocket clients
-    
   } catch (error) {
     // Fall back to console to avoid infinite loops
     console.error('[CRITICAL] Failed to insert log into database:', error)
   }
 }
 
-export const logger = {
+const logger = {
   debug: (appname: string, message: string, tags?: string[]) => {
     console.debug('[DEBUG]', appname, message)
     return log(7, appname, message, tags)
@@ -58,3 +57,5 @@ export const logger = {
     return log(3, appname, message, tags)
   },
 }
+
+export default logger
