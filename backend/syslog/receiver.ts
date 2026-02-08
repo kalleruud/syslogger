@@ -89,6 +89,7 @@ class SyslogReceiver {
 
   private handleIncomingData(buffer: Buffer): void {
     const message = buffer.toString('utf-8')
+    logger.debug('syslog', message)
     this.processMessage(message)
   }
 
@@ -185,6 +186,6 @@ const createReceiverInstance = (port?: number): SyslogReceiver => {
 }
 
 export const getSyslogReceiver = (port?: number): SyslogReceiver => {
-  singletonInstance ??= createReceiverInstance(port);
+  singletonInstance ??= createReceiverInstance(port)
   return singletonInstance
 }
