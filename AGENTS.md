@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # IMPORTANT RULES
 
 - Always use the [clean-code skill](.agents/skills/clean-code/SKILL.md) when writing code.
+- Follow existing project structure, e.g. using managers on the backend.
 - Always write comprehensive logs on the backend using the logger from `backend/managers/log.manager.ts`.
 
 ## Project Overview
