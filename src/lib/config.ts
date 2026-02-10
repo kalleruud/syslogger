@@ -1,12 +1,16 @@
-import { env } from 'node:process'
-
-export const config = {
-  development: env.NODE_ENV !== 'production',
-  port: env.PORT || 3000,
+const config = {
+  development: process.env.NODE_ENV !== 'production',
+  port: Number.parseInt(process.env.SYSLOGGER_PORT ?? '3791'),
+  syslog: {
+    port: Number.parseInt(process.env.SYSLOGGER_SYSLOG_PORT ?? '5140'),
+    protocol: process.env.SYSLOGGER_SYSLOG_PROTOCOL || 'udp',
+  },
   database: {
-    url: env.DATABASE_URL || './dev.db',
+    url: process.env.SYSLOGGER_DB_URL || './dev.db',
   },
   cors: {
-    origin: env.CORS_ORIGIN || '*',
+    origin: process.env.SYSLOGGER_CORS_ORIGIN || '*',
   },
-}
+} as const
+
+export default config

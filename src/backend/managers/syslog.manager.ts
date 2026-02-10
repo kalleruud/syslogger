@@ -3,6 +3,7 @@ import { parseSyslogMessage } from '@/backend/parsers'
 import { insertLogWithTags } from '@/database/queries'
 import type { NewLog } from '@/database/schema'
 import { wsManager } from '../websocket'
+import config from '@/lib/config'
 
 const DEFAULT_SYSLOG_PORT = 5140
 const HOSTNAME = '0.0.0.0'
@@ -192,19 +193,11 @@ class SyslogReceiver {
 
 let singletonInstance: SyslogReceiver | null = null
 
-const getDefaultPort = (): number => {
-  return Number.parseInt(
-    process.env['SYSLOG_PORT'] ?? String(DEFAULT_SYSLOG_PORT),
-    10
-  )
+const createReceiverInstance = (): SyslogReceiver => {
+  return new SyslogReceiver(config.syslog.port)
 }
 
-const createReceiverInstance = (port?: number): SyslogReceiver => {
-  const portToUse = port ?? getDefaultPort()
-  return new SyslogReceiver(portToUse)
-}
-
-export const getSyslogReceiver = (port?: number): SyslogReceiver => {
-  singletonInstance ??= createReceiverInstance(port)
+export const getSyslogReceiver = (): SyslogReceiver => {
+  singletonInstance ??= createReceiverInstance()
   return singletonInstance
 }

@@ -1,13 +1,14 @@
 import * as schema from '@/database/schema'
+import config from '@/lib/config'
 import { Database } from 'bun:sqlite'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { migrate } from 'drizzle-orm/bun-sqlite/migrator'
 import path from 'node:path'
 
-const isTesting = process.env.NODE_ENV === 'test'
-
-const db_url = 'data/db.sqlite'
-const database = new Database(isTesting ? ':memory:' : db_url, { create: true })
+const database = new Database(
+  config.testing ? ':memory:' : config.database.url,
+  { create: true }
+)
 
 // Enable WAL mode for concurrent read/write performance
 database.run('PRAGMA journal_mode = WAL;')
