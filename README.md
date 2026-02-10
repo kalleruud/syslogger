@@ -2,7 +2,7 @@
 
 A full-stack syslog management system with real-time log streaming, filtering, and analysis. Features a minimal, terminal-inspired single-page interface. Built with Bun/TypeScript backend and React frontend.
 
-> **Development Status**: Core backend infrastructure complete (UDP receiver, parsers, database with tag support). Frontend UI and API routes in progress.
+> **Development Status**: Core backend complete (UDP receiver, parsers, database, WebSocket streaming, REST API). Basic frontend UI implemented with real-time log display. Advanced filtering and UI features in progress.
 
 ## Features
 
@@ -35,9 +35,9 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 
 ### Real-time Features
 
-- [ ] **WebSocket Streaming**: Instant log delivery to all connected clients using bun websockets
-- [ ] **Auto-reconnect**: Exponential backoff reconnection (up to 10 attempts)
-- [ ] **Connection Status Indicator**: Visual feedback with pulse animation
+- [x] **WebSocket Streaming**: Instant log delivery to all connected clients using bun websockets
+- [x] **Auto-reconnect**: Exponential backoff reconnection (up to 10 attempts)
+- [x] **Connection Status Indicator**: Visual feedback with pulse animation
 - [ ] **Client-side Filtering**: Real-time logs respect active filter settings
 
 ### Filtering & Search
@@ -52,9 +52,9 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 
 ### User Interface
 
-- [ ] **Single Page Application**: Minimal, terminal-inspired design on a single page
+- [x] **Single Page Application**: Minimal, terminal-inspired design on a single page
 - [ ] **Top Control Bar**: Search input, filter dropdowns, column visibility toggle, and settings button in one row
-- [ ] **Terminal-style Log Table**: Fixed-width character columns with no gaps or margins between cells
+- [x] **Terminal-style Log Table**: Fixed-width character columns with no gaps or margins between cells
 - [ ] **Column Visibility Toggle**: Show/hide columns via popover menu in the top bar
 - [ ] **Settings Button**: Opens a popup to configure retention settings per severity level
 - [ ] **Severity Color Coding**: Visual distinction by log level (red/orange/yellow/blue)
@@ -106,14 +106,18 @@ syslogger/
 │   │   ├── utils/
 │   │   │   ├── api.ts              # API response helpers
 │   │   │   └── shutdown.ts         # Graceful shutdown
-│   │   └── websocket.ts            # WebSocket handlers (WIP)
+│   │   └── websocket.ts            # WebSocket handlers
 │   ├── database/
 │   │   ├── schema.ts          # Drizzle schema (logs, tags, logs_tags)
 │   │   ├── database.ts        # SQLite connection with WAL mode
 │   │   └── queries.ts         # Type-safe database queries
 │   ├── frontend/
 │   │   ├── frontend.tsx       # React entry point
-│   │   ├── App.tsx            # Main app component (WIP)
+│   │   ├── App.tsx            # Main app component
+│   │   ├── views/
+│   │   │   └── LogsView.tsx   # Main logs display component
+│   │   ├── hooks/
+│   │   │   └── useWebSocket.ts # WebSocket hook with auto-reconnect
 │   │   └── components/ui/     # shadcn/ui components
 │   └── lib/
 │       ├── config.ts          # Configuration management
@@ -144,10 +148,10 @@ syslogger/
 │  │ ✅ SQLite + Drizzle ORM + WAL       │  │
 │  │ ✅ Tag extraction & storage         │  │
 │  │ ✅ Advanced query functions         │  │
-│  │ 🚧 WebSocket Server (Pub/Sub)       │  │
-│  │ 🚧 REST API routes                  │  │
-│  │ 🚧 Settings API (config.json)       │  │
-│  │ 🚧 Log Retention Cleanup            │  │
+│  │ ✅ WebSocket Server (Pub/Sub)       │  │
+│  │ ✅ REST API routes                  │  │
+│  │ ❌ Settings API (config.json)       │  │
+│  │ ❌ Log Retention Cleanup            │  │
 │  │ ✅ Bun.serve for fullstack          │  │
 │  └─────────────────────────────────────┘  │
 └────────────────┬──────────────────────────┘
@@ -156,13 +160,13 @@ syslogger/
 ┌───────────────────────────────────────────┐
 │    Frontend (React 19 + Bun)              │
 │  ┌─────────────────────────────────────┐  │
-│  │ 🚧 Minimal terminal-style UI        │  │
-│  │ 🚧 Top bar: search, filters, etc    │  │
-│  │ 🚧 Settings popup for retention     │  │
-│  │ 🚧 Log table with virtual scroll    │  │
-│  │ 🚧 Click-to-inspect detail panel    │  │
-│  │ 🚧 WebSocket Client (auto-reconnect)│  │
-│  │ 🚧 URL-synced filter state          │  │
+│  │ ✅ Minimal terminal-style UI        │  │
+│  │ ❌ Top bar: search, filters, etc    │  │
+│  │ ❌ Settings popup for retention     │  │
+│  │ 🚧 Log table with virtual scroll    |  │
+│  │ ❌ Click-to-inspect detail panel    │  │
+│  │ ✅ WebSocket Client (auto-reconnect)│  │
+│  │ ❌ URL-synced filter state          │  │
 │  └─────────────────────────────────────┘  │
 └───────────────────────────────────────────┘
 
@@ -211,8 +215,6 @@ Set a severity to `null` to keep logs of that level indefinitely.
 
 ## API Endpoints
 
-The following REST API endpoints are planned but not yet implemented:
-
 ### GET /api/logs
 
 Fetch logs with optional filtering and pagination.
@@ -227,11 +229,18 @@ Fetch logs with optional filtering and pagination.
 - `tags` - Comma-separated tags (e.g., `error,timeout,db`)
 - `search` - Full-text search in message, appname, and hostname
 
-**Note**: Database query functions for these filters are already implemented in `src/database/queries.ts`.
+**Status**: ✅ Implemented
 
-### WebSocket /ws
+### WebSocket /
 
-Real-time log streaming to connected clients (in progress).
+Real-time log streaming to connected clients via WebSocket.
+
+**Messages:**
+
+- `{"type": "ping"}` - Keepalive ping from server
+- `{"type": "log", "data": {...}}` - New log message broadcast
+
+**Status**: ✅ Implemented with auto-reconnect
 
 ## Implementation Details
 
@@ -244,6 +253,8 @@ Real-time log streaming to connected clients (in progress).
 - **Advanced Queries**: Full filtering, pagination, and full-text search capability
 - **Database Indexes**: Optimized queries with composite indexes
 - **Type Safety**: Full TypeScript coverage with Drizzle ORM
+- **WebSocket Broadcasting**: Real-time log streaming to all connected clients
+- **REST API**: `/api/logs` endpoint with filtering and pagination support
 
 ### Planned Performance Optimizations
 

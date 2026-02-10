@@ -1,4 +1,5 @@
 import logger from '@/backend/managers/log.manager'
+import { wsManager } from '@/backend/websocket'
 import { insertLogWithTags } from '@/database/queries'
 import config from '@/lib/config'
 import parseSyslog from '../parsers/parser'
@@ -22,12 +23,13 @@ async function handleData(
   console.debug(message)
   const parsed = parseSyslog(message)
 
-  await insertLogWithTags(
+  const logWithTags = await insertLogWithTags(
     parsed.log,
     parsed.tags.map(t => t.name)
   )
 
-  // TODO: Broadcast to clients
+  // Broadcast new log to all connected WebSocket clients
+  wsManager.broadcastLog(logWithTags)
 }
 
 async function handleError(_socket: Bun.udp.Socket<'buffer'>, error: Error) {
