@@ -6,15 +6,12 @@ on:
     branches:
       - main
     paths:
-      - 'backend/**'
-      - 'frontend/**'
+      - 'src/**'
       - 'drizzle/**'
       - 'dockerfile'
       - 'drizzle.config.ts'
-      - 'vite.config.ts'
       - 'package.json'
-      - 'index.html'
-      - 'tsconfig*.json'
+      - 'tsconfig.json'
       - '.github/workflows/build-ghcr.yml'
 
 concurrency:
