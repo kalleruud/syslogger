@@ -2,34 +2,36 @@
 
 A full-stack syslog management system with real-time log streaming, filtering, and analysis. Features a minimal, terminal-inspired single-page interface. Built with Bun/TypeScript backend and React frontend.
 
+> **Development Status**: Core backend infrastructure complete (UDP receiver, parsers, database with tag support). Frontend UI and API routes in progress.
+
 ## Features
 
 ### Syslog Reception & Parsing
 
-- [ ] **Real-time UDP Reception**: Listen for syslog messages on port 5140 (configurable)
-- [ ] **RFC 5424 Support**: Parse modern structured syslog format
-- [ ] **RFC 3164 Support**: Parse legacy BSD syslog format
-- [ ] **Docker-friendly Parsing**: Handle containerized logs without hostname field
-- [ ] **Automatic Severity Detection**: Fallback regex-based severity extraction from message text
-- [ ] **Complete Field Extraction**: Facility, severity, timestamp, hostname, appname, procid, msgid, and message
-- [ ] **Automatic Tag Extraction**: Text within square brackets (e.g., `[ERROR]`, `[DB]`) is extracted as tags
+- [x] **Real-time UDP Reception**: Listen for syslog messages on port 5140 (configurable)
+- [x] **RFC 5424 Support**: Parse modern structured syslog format
+- [x] **RFC 3164 Support**: Parse legacy BSD syslog format
+- [x] **Docker-friendly Parsing**: Handle containerized logs without hostname field
+- [x] **Automatic Severity Detection**: Fallback regex-based severity extraction from message text
+- [x] **Complete Field Extraction**: Facility, severity, timestamp, hostname, appname, procid, msgid, and message
+- [x] **Automatic Tag Extraction**: Text within square brackets (e.g., `[ERROR]`, `[DB]`) is extracted as tags
 
 ### Tags
 
-- [ ] **Automatic Extraction**: Tags are extracted from text within square brackets (e.g., `[ERROR]`, `[REQUEST]`)
-- [ ] **Normalized Storage**: Tags are stored lowercase and trimmed of whitespace
-- [ ] **Many-to-Many Relationship**: A log can have multiple tags, and a tag can appear on multiple logs
-- [ ] **Deduplication**: Tags are never duplicated; new logs are related to existing tags
-- [ ] **Examples**: `Connection [TIMEOUT] from [DB]` extracts tags: `timeout`, `db`
+- [x] **Automatic Extraction**: Tags are extracted from text within square brackets (e.g., `[ERROR]`, `[REQUEST]`)
+- [x] **Normalized Storage**: Tags are stored lowercase and trimmed of whitespace
+- [x] **Many-to-Many Relationship**: A log can have multiple tags, and a tag can appear on multiple logs
+- [x] **Deduplication**: Tags are never duplicated; new logs are related to existing tags
+- [x] **Examples**: `Connection [TIMEOUT] from [DB]` extracts tags: `timeout`, `db`
 
 ### Database & Storage
 
-- [ ] **SQLite with Drizzle ORM**: Type-safe database operations with zero runtime overhead
-- [ ] **Automatic Migrations**: Database schema managed via Drizzle-kit
-- [ ] **Performance Indexes**: Optimized queries with indexes on timestamp, severity, hostname, and appname
-- [ ] **WAL Mode**: Write-Ahead Logging for better concurrency
-- [ ] **Raw Message Storage**: Original syslog messages preserved for debugging
-- [ ] **Tag Tables**: Separate `tags` table with junction table for efficient many-to-many relationships
+- [x] **SQLite with Drizzle ORM**: Type-safe database operations with zero runtime overhead
+- [x] **Automatic Migrations**: Database schema managed via Drizzle-kit
+- [x] **Performance Indexes**: Optimized queries with indexes on timestamp, severity, hostname, and appname
+- [x] **WAL Mode**: Write-Ahead Logging for better concurrency
+- [x] **Raw Message Storage**: Original syslog messages preserved for debugging
+- [x] **Tag Tables**: Separate `tags` table with junction table for efficient many-to-many relationships
 
 ### Real-time Features
 
@@ -80,11 +82,52 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 
 ### Deployment
 
-- [ ] **Docker Ready**: Multi-stage build with docker-compose
-- [ ] **Static File Serving**: Backend serves compiled frontend
-- [ ] **SPA Routing**: Proper handling of client-side routes
-- [ ] **CORS Support**: Configurable cross-origin requests
-- [ ] **Graceful Shutdown**: Clean database and socket cleanup
+- [x] **Docker Ready**: Multi-stage build with docker-compose
+- [x] **Static File Serving**: Backend serves compiled frontend
+- [x] **SPA Routing**: Proper handling of client-side routes
+- [x] **CORS Support**: Configurable cross-origin requests
+- [x] **Graceful Shutdown**: Clean database and socket cleanup
+
+## Project Structure
+
+```
+syslogger/
+├── src/
+│   ├── syslogger.ts           # Main entry point
+│   ├── backend/
+│   │   ├── index.ts           # Bun.serve configuration
+│   │   ├── managers/
+│   │   │   ├── syslog.manager.ts   # UDP socket handler
+│   │   │   └── log.manager.ts      # Internal logging
+│   │   ├── parsers/
+│   │   │   ├── parser.ts           # Main parser orchestrator
+│   │   │   ├── base.parser.ts      # RFC 5424/3164 parser
+│   │   │   ├── docker.parser.ts    # Docker log parser
+│   │   │   └── fallback.parser.ts  # Severity extraction fallback
+│   │   ├── utils/
+│   │   │   ├── api.ts              # API response helpers
+│   │   │   └── shutdown.ts         # Graceful shutdown
+│   │   └── websocket.ts            # WebSocket handlers (WIP)
+│   ├── database/
+│   │   ├── schema.ts          # Drizzle schema (logs, tags, logs_tags)
+│   │   ├── database.ts        # SQLite connection with WAL mode
+│   │   └── queries.ts         # Type-safe database queries
+│   ├── frontend/
+│   │   ├── frontend.tsx       # React entry point
+│   │   ├── App.tsx            # Main app component (WIP)
+│   │   └── components/ui/     # shadcn/ui components
+│   └── lib/
+│       ├── config.ts          # Configuration management
+│       ├── facilities.ts      # Syslog facility mappings
+│       ├── severities.ts      # Syslog severity mappings
+│       └── utils.ts           # Shared utilities
+├── data/
+│   └── syslogger.db           # SQLite database (WAL mode)
+├── drizzle/                   # Generated migrations
+├── public/
+│   └── index.html             # HTML entry point
+└── package.json
+```
 
 ## Architecture
 
@@ -95,32 +138,36 @@ A full-stack syslog management system with real-time log streaming, filtering, a
                  │
                  ▼
 ┌───────────────────────────────────────────┐
-│    Backend (Bun/TypeScript).              │
+│    Backend (Bun/TypeScript)               │
 │  ┌─────────────────────────────────────┐  │
-│  │ • Syslog Receiver (UDP 5140)        │  │
-│  │ • Syslog Parser (RFC 5424/3164)     │  │
-│  │ • Bun SQLite + Drizzle ORM          │  │
-│  │ • WebSocket Server (Pub/Sub)        │  │
-│  │ • Log Retention Cleanup             │  │
-│  │ • Settings API (config.json)        │  │
-│  │ • Serving React bundle on endpoint  │  │
+│  │ ✅ Syslog Receiver (UDP 5140)       │  │
+│  │ ✅ Syslog Parser (RFC 5424/3164)    │  │
+│  │ ✅ SQLite + Drizzle ORM + WAL       │  │
+│  │ ✅ Tag extraction & storage         │  │
+│  │ ✅ Advanced query functions         │  │
+│  │ 🚧 WebSocket Server (Pub/Sub)       │  │
+│  │ 🚧 REST API routes                  │  │
+│  │ 🚧 Settings API (config.json)       │  │
+│  │ 🚧 Log Retention Cleanup            │  │
+│  │ ✅ Bun.serve for fullstack          │  │
 │  └─────────────────────────────────────┘  │
 └────────────────┬──────────────────────────┘
                  │
                  ▼
 ┌───────────────────────────────────────────┐
-│    Frontend (React + Vite)                │
+│    Frontend (React 19 + Bun)              │
 │  ┌─────────────────────────────────────┐  │
-│  │ • Minimal terminal-style UI         │  │
-│  │ • Top bar: search, filters, columns │  │
-│  │ • Settings popup for retention      │  │
-│  │ • Fixed-width character log table   │  │
-│  │ • Click-to-inspect detail panel     │  │
-│  │ • WebSocket Client (auto-reconnect) │  │
-│  │ • Virtual Scroll                    │  │
-│  │ • URL-synced filter state           │  │
+│  │ 🚧 Minimal terminal-style UI        │  │
+│  │ 🚧 Top bar: search, filters, etc    │  │
+│  │ 🚧 Settings popup for retention     │  │
+│  │ 🚧 Log table with virtual scroll    │  │
+│  │ 🚧 Click-to-inspect detail panel    │  │
+│  │ 🚧 WebSocket Client (auto-reconnect)│  │
+│  │ 🚧 URL-synced filter state          │  │
 │  └─────────────────────────────────────┘  │
 └───────────────────────────────────────────┘
+
+Legend: ✅ Complete | 🚧 In Progress | ❌ Not Started
 ```
 
 ## Technology Stack
@@ -134,62 +181,15 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 
 ### Frontend
 
-- **React 18** - UI framework
-- **Vite** - Build tool and dev server
-- **TanStack Table** - Headless table library
-- **TanStack Virtual** - Virtual scrolling
-- **Tailwind CSS** - Utility-first styling
+- **React 19** - UI framework with React Compiler
+- **Bun** - Build tool with HMR (replaces Vite)
+- **Tailwind CSS 4** - Utility-first styling
 - **shadcn/ui** - Component library
 - **Lucide React** - Icon library
 
-## Setup
-
-### Prerequisites
-
-- Node.js 18+ and npm/yarn
-- Bun runtime (for backend development)
-- Docker (optional, for containerized deployment)
-
-The server will serve the compiled frontend from `frontend/dist` at `http://localhost:3000`.
-
-## Docker Deployment
-
-1. **Build and Start Container**
-
-   ```bash
-   docker-compose up --build
-   ```
-
-2. **Access the Application**
-   - Web Interface: `http://localhost:3000`
-   - Syslog Port: UDP `localhost:5140`
-
-3. **View Logs**
-
-   ```bash
-   docker-compose logs -f syslogger
-   ```
-
-4. **Stop the Container**
-   ```bash
-   docker-compose down
-   ```
-
-## Configuration
-
-### Environment Variables
-
-Environment variables can be set in `backend/.env`:
-
-```env
-SYSLOG_PORT=5140           # Syslog UDP listen port
-HTTP_PORT=3000             # React web ui server port
-DB_PATH=./data/logs.db     # SQLite database path
-```
-
 ### Retention Settings
 
-Retention settings are stored in `backend/config.json` and can be configured via the settings popup in the UI:
+Retention settings will be stored in `config.json` and configurable via the settings popup in the UI:
 
 ```json
 {
@@ -208,7 +208,11 @@ Retention settings are stored in `backend/config.json` and can be configured via
 
 Set a severity to `null` to keep logs of that level indefinitely.
 
+> **Note**: Retention cleanup is not yet implemented.
+
 ## API Endpoints
+
+The following REST API endpoints are planned but not yet implemented:
 
 ### GET /api/logs
 
@@ -224,70 +228,36 @@ Fetch logs with optional filtering and pagination.
 - `tags` - Comma-separated tags (e.g., `error,timeout,db`)
 - `search` - Full-text search in message, appname, and hostname
 
-### GET /api/tags
+**Note**: Database query functions for these filters are already implemented in `src/database/queries.ts`.
 
-Get list of unique tags extracted from log messages.
+### WebSocket /ws
 
-**Response:**
+Real-time log streaming to connected clients (in progress).
 
-```json
-["db", "error", "request", "timeout", "warning"]
-```
+## Implementation Details
 
-### GET /api/settings
+### Current Backend Features
 
-Get current application settings including retention configuration.
+- **UDP Syslog Reception**: Receives and processes syslog messages on configurable port
+- **Multi-format Parsing**: Supports RFC 5424, RFC 3164, and Docker log formats
+- **Tag Extraction**: Automatically extracts tags from `[BRACKETED]` text in messages
+- **SQLite with WAL**: Write-Ahead Logging enabled for better concurrency
+- **Advanced Queries**: Full filtering, pagination, and full-text search capability
+- **Database Indexes**: Optimized queries with composite indexes
+- **Type Safety**: Full TypeScript coverage with Drizzle ORM
 
-**Response:**
+### Planned Performance Optimizations
 
-```json
-{
-  "retention": {
-    "0": null,
-    "1": null,
-    "2": null,
-    "3": 90,
-    "4": 60,
-    "5": 30,
-    "6": 14,
-    "7": 7
-  }
-}
-```
+- **Virtual Scrolling**: Render only visible rows for 100k+ logs
+- **Request Deduplication**: Prevent stale API responses during rapid filtering
+- **Debounced Search**: 300ms delay to reduce excessive API calls
+- **WebSocket Pub/Sub**: Efficient real-time broadcasting
+- **Log Retention**: Automatic cleanup to prevent unbounded growth
 
-### PUT /api/settings
+## Contributing
 
-Update application settings. Saves to `config.json`.
+This project follows [Clean Code principles](.agents/skills/clean-code/SKILL.md) and uses comprehensive logging via `src/backend/managers/log.manager.ts`.
 
-**Request Body:**
+## License
 
-```json
-{
-  "retention": {
-    "0": null,
-    "1": null,
-    "2": null,
-    "3": 90,
-    "4": 60,
-    "5": 30,
-    "6": 14,
-    "7": 7
-  }
-}
-```
-
-**Response:**
-
-```json
-{ "success": true }
-```
-
-## Performance Considerations
-
-- **Virtual Scrolling**: Renders only visible rows, handles 100k+ logs efficiently
-- **Database Indexing**: Indexes on timestamp, severity, hostname, and appname for fast queries
-- **Request Deduplication**: Prevents display of stale API responses during rapid filtering
-- **Debounced Search**: 300ms delay prevents excessive API calls while typing
-- **WebSocket Pub/Sub**: Efficient broadcasting to all connected clients
-- **Scroll Position Preservation**: Maintains position when loading older logs
-- **Log Retention**: Automatic cleanup prevents unbounded database growth
+MIT
