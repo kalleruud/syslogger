@@ -3,12 +3,15 @@ import config from '@/lib/config'
 import { Database } from 'bun:sqlite'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { migrate } from 'drizzle-orm/bun-sqlite/migrator'
+import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
 
-const database = new Database(
-  config.testing ? ':memory:' : config.database.url,
-  { create: true }
-)
+const dbDir = path.dirname(config.database.url.replace('file:', ''))
+if (!(await Bun.file(dbDir).exists())) {
+  mkdir(dbDir, { recursive: true })
+}
+
+const database = new Database(config.database.url, { create: true })
 
 // Enable WAL mode for concurrent read/write performance
 database.run('PRAGMA journal_mode = WAL;')

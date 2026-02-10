@@ -49,17 +49,6 @@ const combineTagsWithInternal = (tags?: string[]): string[] => {
   return [INTERNAL_TAG, ...(tags ?? [])]
 }
 
-const broadcastLogToWebSocket = async (
-  log: Awaited<ReturnType<typeof insertLogWithTags>>
-): Promise<void> => {
-  try {
-    const { wsManager } = await import('../server/websocket')
-    wsManager.broadcastLog(log)
-  } catch {
-    // Silently fail if WebSocket module is unavailable
-  }
-}
-
 const persistLog = async (
   severity: number,
   appname: string,
@@ -70,7 +59,7 @@ const persistLog = async (
     const logEntry = createLogEntry(severity, appname, message)
     const allTags = combineTagsWithInternal(tags)
     const savedLog = await insertLogWithTags(logEntry, allTags)
-    await broadcastLogToWebSocket(savedLog)
+    // TODO: Implement WebSocket broadcasting logic
   } catch (error) {
     console.error('[CRITICAL] Failed to log:', error)
   }

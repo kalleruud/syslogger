@@ -4,8 +4,8 @@
   "version": "0.1",
   "type": "module",
   "scripts": {
-    "dev": "bun --hot src/backend/index.ts",
-    "start": "NODE_ENV=production bun src/backend/index.ts",
+    "dev": "bun --hot src/syslogger.ts",
+    "start": "NODE_ENV=production bun src/syslogger.ts",
     "build": "bun run build.ts",
     "check": "eslint . && prettier --check ."
   },

@@ -9,7 +9,7 @@ class BunResponse extends Response {
   })
 }
 
-const server = serve({
+export const serverConfig = {
   port: config.port,
 
   routes: {
@@ -62,6 +62,4 @@ const server = serve({
       { status: 500 }
     )
   },
-})
-
-console.log(`🚀 Server running at ${server.url}`)
+} satisfies Parameters<typeof serve>[0]

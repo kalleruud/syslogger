@@ -1,3 +1,4 @@
+import config from '@/lib/config'
 import { defineConfig } from 'drizzle-kit'
 
 export default defineConfig({
@@ -6,6 +7,6 @@ export default defineConfig({
   schema: './src/database/schema.ts',
   casing: 'camelCase',
   dbCredentials: {
-    url: 'data/db.sqlite',
+    url: config.database.url,
   },
 })

@@ -1,16 +1,17 @@
 import logger from '@/backend/managers/log.manager'
-import { getSyslogReceiver } from '@/backend/managers/syslog.manager'
-import { wsManager } from '../websocket'
+// import { getSyslogReceiver } from '@/backend/managers/syslog.manager'
+// import { wsManager } from '../websocket'
 
 class ShutdownManager {
   private shuttingDown = false
-  private server: { stop?: () => Promise<void> } | null = null
+  private readonly server: ReturnType<typeof Bun.serve>
 
-  setServer(server: { stop?: () => Promise<void> }) {
+  constructor(server: ReturnType<typeof Bun.serve>) {
+    this.registerHandlers()
     this.server = server
   }
 
-  registerHandlers() {
+  private registerHandlers() {
     const shutdown = (signal: string) => this.handleShutdown(signal)
     process.on('SIGINT', () => shutdown('SIGINT'))
     process.on('SIGTERM', () => shutdown('SIGTERM'))
@@ -24,10 +25,10 @@ class ShutdownManager {
     const timeout = setTimeout(() => process.exit(1), 5000)
 
     try {
-      await getSyslogReceiver().stop()
-      await wsManager.closeAll()
+      // await getSyslogReceiver().stop()
+      // await wsManager.closeAll()
       if (this.server?.stop) await this.server.stop()
-      await new Promise(resolve => setTimeout(resolve, 100))
+      // await new Promise(resolve => setTimeout(resolve, 100))
       clearTimeout(timeout)
       logger.info('shutdown', 'Graceful shutdown complete')
       process.exit(0)
@@ -39,4 +40,9 @@ class ShutdownManager {
   }
 }
 
-export const shutdownManager = new ShutdownManager()
+const shutdownManagerInstance = null as ShutdownManager | null
+
+export const shutdownManager = (server: ReturnType<typeof Bun.serve>) => {
+  if (shutdownManagerInstance) return shutdownManagerInstance
+  return new ShutdownManager(server)
+}
