@@ -1,5 +1,4 @@
-import type { ParsedLog } from '../types'
-import { parsePriority } from '../types'
+import { parsePriority, type ParsedLog } from '../managers/syslog.manager'
 import { parseBSDTimestamp, parseTag } from './utils'
 
 export const parseDockerSyslog = (message: string): ParsedLog | null => {

@@ -2,12 +2,7 @@ import logger from '@/backend/managers/log.manager'
 import { parseSyslogMessage } from '@/backend/parsers'
 import { insertLogWithTags } from '@/database/queries'
 import type { NewLog } from '@/database/schema'
-import { wsManager } from '../websocket'
 import config from '@/lib/config'
-
-const DEFAULT_SYSLOG_PORT = 5140
-const HOSTNAME = '0.0.0.0'
-const LOG_PROGRESS_INTERVAL = 100
 
 const SEVERITY_LEVEL = {
   EMERGENCY: 0,
@@ -84,24 +79,19 @@ const isEmptyMessage = (message: string): boolean => {
   return message.trim().length === 0
 }
 
-const shouldLogProgress = (messageCount: number): boolean => {
-  return messageCount % LOG_PROGRESS_INTERVAL === 0
-}
-
 class SyslogReceiver {
   private socket: { close: () => void } | null = null
   private messageCount = 0
-
-  constructor(private readonly port: number = DEFAULT_SYSLOG_PORT) {}
+  private readonly port: number = config.syslog.port
 
   private logStartup(): void {
-    logger.info('syslog', `UDP receiver started on ${HOSTNAME}:${this.port}`)
+    logger.info('syslog', `UDP receiver started on port: ${this.port}`)
   }
 
-  async start(): Promise<void> {
+  async start(): Promise<SyslogReceiver> {
     this.socket = await Bun.udpSocket({
       port: this.port,
-      hostname: HOSTNAME,
+
       socket: {
         data: (_, buffer) => this.handleIncomingData(buffer),
         error: (_, error) => this.handleUdpError(error),
@@ -110,6 +100,7 @@ class SyslogReceiver {
     })
 
     this.logStartup()
+    return this
   }
 
   private handleIncomingData(buffer: Buffer): void {
@@ -125,18 +116,11 @@ class SyslogReceiver {
   private processMessage(message: string): void {
     if (isEmptyMessage(message.trim())) return
     this.incrementMessageCount()
-    this.logProgressIfNeeded()
     this.parseAndStore(message)
   }
 
   private incrementMessageCount(): void {
     this.messageCount++
-  }
-
-  private logProgressIfNeeded(): void {
-    if (shouldLogProgress(this.messageCount)) {
-      logger.debug('syslog', `Processed ${this.messageCount} messages`)
-    }
   }
 
   private parseAndStore(message: string): void {
@@ -156,7 +140,7 @@ class SyslogReceiver {
       const allTags = combineTagsWithParser(parserName, severityTags)
 
       const savedLog = await insertLogWithTags(log as NewLog, allTags)
-      wsManager.broadcastLog(savedLog)
+      // TODO: Broadcast to WebSocket clients
     } catch (error) {
       logger.error('syslog', `Failed to store log: ${error}`)
     }
@@ -194,7 +178,7 @@ class SyslogReceiver {
 let singletonInstance: SyslogReceiver | null = null
 
 const createReceiverInstance = (): SyslogReceiver => {
-  return new SyslogReceiver(config.syslog.port)
+  return new SyslogReceiver()
 }
 
 export const getSyslogReceiver = (): SyslogReceiver => {

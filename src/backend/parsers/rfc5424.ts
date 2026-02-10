@@ -1,5 +1,4 @@
-import type { ParsedLog } from '../types'
-import { parsePriority } from '../types'
+import { parsePriority, type ParsedLog } from '../managers/syslog.manager'
 import { parseISO8601, parseNilValue } from './utils'
 
 const RFC5424_PATTERN =

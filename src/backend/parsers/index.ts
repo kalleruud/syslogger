@@ -1,4 +1,4 @@
-import type { ParseResult } from '../types'
+import type { ParseResult } from '../managers/syslog.manager'
 import { isDockerFormat, parseDockerSyslog } from './docker'
 import { isRFC3164, parseRFC3164 } from './rfc3164'
 import { isRFC5424, parseRFC5424 } from './rfc5424'
