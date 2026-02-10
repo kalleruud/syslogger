@@ -13,7 +13,7 @@ import reactLogo from '@public/react.svg'
 
 export function App() {
   return (
-    <div className='relative z-10 container mx-auto p-8 text-center'>
+    <div className='z-10 container w-full flex-col items-center justify-center p-8 text-sm'>
       <div className='mb-8 flex items-center justify-center gap-8'>
         <img
           src={logo}
@@ -27,8 +27,8 @@ export function App() {
         />
       </div>
       <Card>
-        <CardHeader className='gap-4'>
-          <CardTitle className='text-3xl font-bold'>Bun + React</CardTitle>
+        <CardHeader>
+          <CardTitle className='text-3xl font-bold'>Kallerud stack</CardTitle>
           <CardDescription>
             Edit{' '}
             <code className='rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono'>

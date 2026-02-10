@@ -1,6 +1,6 @@
 import logger from '@/backend/managers/log.manager'
 import { getSyslogReceiver } from '@/backend/managers/syslog.manager'
-import { wsManager } from './websocket'
+import { wsManager } from '../websocket'
 
 class ShutdownManager {
   private shuttingDown = false
