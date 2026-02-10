@@ -28,7 +28,7 @@ export abstract class SyslogParser {
 
   private static readonly tagFormat = /\[(?<tag>.*?)\]/g
   private static readonly bsdFormat =
-    /(?<month>\w{3}) (?<date> ?[1-3]?\d) (?<timestamp>\d{2}:\d{2}:\d{2})/g
+    /(?<month>\w{3}) (?<date>( |[1-3])\d) (?<time>[0-2]\d:[0-5]\d:[0-5]\d)/
 
   abstract parse(rawMessage: string): ParsedLog
 
@@ -45,11 +45,13 @@ export abstract class SyslogParser {
 
   /*
    * Parses BSD timestamp format:
-   * Feb 10 17:49:11
+   * Feb 10 23:59:59
+   * Jun  1 00:00:00
    */
   protected parseBSDTimestamp(bsdTime: string): Date {
     const match = SyslogParser.bsdFormat.exec(bsdTime)
-    if (!match?.groups) throw new Error(`BSD format is incorrect: '${bsdTime}'`)
+    if (!match?.groups)
+      throw new Error(`BSD format parsing failed for: '${bsdTime}'`)
 
     const { month, date, time } = match.groups
 
@@ -102,7 +104,7 @@ export abstract class SyslogParser {
     const tags: ParsedLog['tags'] = []
     while (true) {
       const match = SyslogParser.tagFormat.exec(message)
-      if (!match?.groups?.tag) return tags
+      if (!match?.groups?.tag || match.groups.tag.trim() === '') return tags
       tags.push({ name: match.groups.tag.trim().toLowerCase() })
     }
   }

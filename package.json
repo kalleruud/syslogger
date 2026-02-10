@@ -9,7 +9,6 @@
     "build": "bun run build.ts",
     "check": "eslint . && prettier --check .",
     "db:gen": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push --force",
     "db:studio": "drizzle-kit studio"
   },
