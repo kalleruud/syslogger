@@ -127,13 +127,11 @@ export async function insertLog(log: NewLog): Promise<Log> {
   return result[0]!
 }
 
-const normalizeTagName = (tagName: string): string => {
-  return tagName.toLowerCase().trim()
-}
+const normalizeTagName = (tagName: string): string =>
+  tagName.toLowerCase().trim()
 
-const normalizeTagNames = (tagNames: string[]): string[] => {
-  return tagNames.map(normalizeTagName)
-}
+const normalizeTagNames = (tagNames: string[]): string[] =>
+  tagNames.map(normalizeTagName)
 
 const ensureTagsExist = async (tagNames: string[]): Promise<void> => {
   await db

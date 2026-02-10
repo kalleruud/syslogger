@@ -9,7 +9,7 @@ class BunResponse extends Response {
   })
 }
 
-export const serverConfig = {
+export const serverConfig: Parameters<typeof serve>[0] = {
   port: config.port,
 
   routes: {
@@ -62,4 +62,4 @@ export const serverConfig = {
       { status: 500 }
     )
   },
-} satisfies Parameters<typeof serve>[0]
+}

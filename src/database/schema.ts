@@ -1,4 +1,4 @@
-import { relations, sql } from 'drizzle-orm'
+import { relations } from 'drizzle-orm'
 import {
   index,
   integer,
@@ -21,7 +21,9 @@ export const logs = sqliteTable(
     msgid: text('msgid'),
     message: text('message').notNull(),
     raw: text('raw').notNull(),
-    createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' })
+      .notNull()
+      .$defaultFn(() => new Date()),
   },
   table => [
     index('idx_logs_timestamp').on(table.timestamp),
@@ -36,7 +38,9 @@ export const logs = sqliteTable(
 export const tags = sqliteTable('tags', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull().unique(),
-  createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' })
+    .notNull()
+    .$defaultFn(() => new Date()),
 })
 
 // Junction table for many-to-many logs-tags relationship
@@ -76,8 +80,9 @@ export const logsTagsRelations = relations(logsTags, ({ one }) => ({
   }),
 }))
 
-// Type exports for use in other modules
 export type Log = typeof logs.$inferSelect
 export type NewLog = typeof logs.$inferInsert
 export type Tag = typeof tags.$inferSelect
 export type NewTag = typeof tags.$inferInsert
+
+export type LogWithTags = Log & { tags: Tag[] }
