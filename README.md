@@ -9,8 +9,8 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 ### Syslog Reception & Parsing
 
 - [x] **Real-time UDP Reception**: Listen for syslog messages on port 5140 (configurable)
-- [x] **RFC 5424 Support**: Parse modern structured syslog format
-- [x] **RFC 3164 Support**: Parse legacy BSD syslog format
+- [ ] **RFC 5424 Support**: Parse modern structured syslog format
+- [ ] **RFC 3164 Support**: Parse legacy BSD syslog format
 - [x] **Docker-friendly Parsing**: Handle containerized logs without hostname field
 - [x] **Automatic Severity Detection**: Fallback regex-based severity extraction from message text
 - [x] **Complete Field Extraction**: Facility, severity, timestamp, hostname, appname, procid, msgid, and message
@@ -47,7 +47,7 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 - [ ] **Application Multi-select**: Filter by dynamically-loaded application names
 - [ ] **Tag Multi-select**: Filter by dynamically-loaded tags extracted from log messages
 - [ ] **Hostname Filtering**: Filter by exact hostname match
-- [ ] **URL Parameter Persistence**: Filters saved in URL for bookmarking and sharing
+- [ ] **URL Parameter Persistence**: Filters all saved in URL for bookmarking and sharing
 - [ ] **Browser History Support**: Back/forward navigation works with filters
 
 ### User Interface
@@ -55,7 +55,6 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 - [ ] **Single Page Application**: Minimal, terminal-inspired design on a single page
 - [ ] **Top Control Bar**: Search input, filter dropdowns, column visibility toggle, and settings button in one row
 - [ ] **Terminal-style Log Table**: Fixed-width character columns with no gaps or margins between cells
-- [ ] **8 Configurable Columns**: Timestamp, Severity, Hostname, Application, Facility, ProcID, MsgID, Message
 - [ ] **Column Visibility Toggle**: Show/hide columns via popover menu in the top bar
 - [ ] **Settings Button**: Opens a popup to configure retention settings per severity level
 - [ ] **Severity Color Coding**: Visual distinction by log level (red/orange/yellow/blue)
@@ -69,9 +68,9 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 - [ ] **Non-blocking**: Log table remains fully interactable while the detail panel is open
 - [ ] **Full Field Display**: All syslog fields with human-readable labels
 - [ ] **Facility Names**: Numeric facilities shown as readable names (kernel, user, mail, daemon, etc.)
-- [ ] **Tag Display**: Shows all extracted tags as badges
+- [ ] **Tag Display**: Shows all extracted tags in the detail view
 - [ ] **Raw Message View**: Original unparsed syslog message
-- [ ] **Keyboard Support**: Press Escape to close the panel
+- [ ] **Keyboard Support**: Press Escape to close the panel, cmd + k to search. Display hotkey helpers.
 
 ### Log Retention
 
