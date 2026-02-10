@@ -17,7 +17,7 @@ Syslogger is a real-time syslog management system with a Bun/TypeScript backend 
 ```bash
 # Development
 bun install              # Install dependencies
-bun dev                  # Start Vite dev server (frontend only)
+bun dev                  # Start fullstack dev server with HMR
 bun run check            # Run TypeScript, ESLint, and Prettier checks
 
 # Database
@@ -25,7 +25,8 @@ bunx drizzle-kit generate   # Generate migrations from schema changes
 bunx drizzle-kit migrate    # Apply migrations to database
 
 # Production
-bun run build            # Build frontend (tsc + vite build)
+bun run build            # Build fullstack app with Bun bundler
+bun run start:dist       # Run production build
 docker-compose up --build   # Build and run in Docker
 ```
 
@@ -33,20 +34,30 @@ docker-compose up --build   # Build and run in Docker
 
 ```
 ├── backend/
+│   ├── server.ts        # Main Bun.serve fullstack configuration
+│   ├── server/
+│   │   ├── api-routes.ts   # API route handlers for Bun.serve
+│   │   ├── websocket.ts    # WebSocket handlers
+│   │   ├── cors.ts         # CORS configuration
+│   │   └── shutdown.ts     # Graceful shutdown
 │   ├── database/
 │   │   ├── schema.ts    # Drizzle ORM schema (logs, tags, logs_tags)
 │   │   ├── database.ts  # Database connection
 │   │   └── queries.ts   # Query functions
-│   └── logger/
-│       └── index.ts     # Internal logging that writes to DB + broadcasts
+│   ├── syslog/          # Syslog receiver and parsers
+│   └── managers/
+│       └── log.manager.ts  # Internal logging that writes to DB + broadcasts
 ├── frontend/
-│   ├── App.tsx          # Root component
+│   ├── main.tsx         # React app entry point
 │   ├── views/           # Page views (LogsView)
 │   ├── components/      # React components
 │   │   ├── TopBar.tsx   # Search, filters, column toggle
 │   │   └── ui/          # shadcn/ui components
 │   └── lib/utils.ts     # Utility functions (cn)
+├── public/
+│   └── index.html       # HTML entry point (imported by Bun.serve)
 ├── drizzle/             # Generated SQL migrations
+├── dist/                # Production build output
 └── data/                # SQLite database (db.sqlite)
 ```
 
@@ -60,9 +71,11 @@ Configured in `tsconfig.json` and `vite.config.ts`:
 
 ## Key Technical Details
 
-- **Runtime**: Bun for backend, Vite for frontend dev
+- **Runtime**: Bun for backend, Bun.serve for fullstack integration
 - **Database**: SQLite with Drizzle ORM, WAL mode
 - **UI**: React 19 + TailwindCSS 4 + shadcn/ui + React Compiler
 - **Ports**: UDP 5140 (syslog), HTTP 3000 (web)
-- **Config**: `backend/.env` for env vars, `backend/config.json` for retention settings
-  . **Backend logging**: Always use the existing `logger` utility from `/backend/managers/log.manager.ts`.
+- **Config**: `.env` for env vars, `backend/config.json` for retention settings
+- **Backend logging**: Always use the existing `logger` utility from `/backend/managers/log.manager.ts`
+- **Development**: Hot Module Reloading (HMR) + console streaming enabled
+- **Production**: Ahead-of-time bundling with Bun bundler for optimal performance

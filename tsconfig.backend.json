@@ -7,11 +7,12 @@
     "types": ["bun-types"],
     "composite": true,
     "noEmit": true,
+    "allowSyntheticDefaultImports": true,
 
     "paths": {
       "@backend/*": ["./backend/*"],
       "@database/*": ["./backend/database/*"]
     }
   },
-  "include": ["backend"]
+  "include": ["backend", "public"]
 }

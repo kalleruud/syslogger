@@ -1,0 +1,67 @@
+version: '3.9'
+
+services:
+  syslogger:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    container_name: syslogger
+    restart: unless-stopped
+
+    ports:
+      # HTTP/WebSocket port for web interface and API
+      - '3000:3000'
+      # UDP port for syslog messages
+      - '5140:5140/udp'
+
+    environment:
+      - NODE_ENV=production
+      - HTTP_PORT=3000
+      - SYSLOG_PORT=5140
+
+    volumes:
+      # Persistent data storage for SQLite database
+      - syslogger-data:/app/data
+      # Optional: Mount custom config if needed
+      # - ./backend/config.json:/app/backend/config.json:ro
+
+    # Health check to ensure the service is running
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'bun',
+          '-e',
+          "fetch('http://localhost:3000/api/stats').then(r => r.ok ? process.exit(0) : process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+    # Resource limits (adjust as needed)
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+    # Logging configuration
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+volumes:
+  # Named volume for persistent data
+  syslogger-data:
+    driver: local
+
+networks:
+  default:
+    name: syslogger-network

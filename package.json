@@ -4,11 +4,12 @@
   "version": "0.1",
   "type": "module",
   "scripts": {
-    "dev": "bun --watch backend/index.ts",
-    "build": "tsc -b && vite build",
-    "start": "NODE_ENV=production bun backend/index.ts",
-    "check": "tsc -b --noEmit && eslint . && prettier --check .",
-    "preview": "vite preview"
+    "dev": "bun scripts/prepare-build.ts && bun --watch backend/server.ts",
+    "prebuild": "bun scripts/prepare-build.ts",
+    "build": "bun build --target=bun --production --outdir=dist ./backend/server.ts",
+    "start": "NODE_ENV=production bun backend/server.ts",
+    "start:dist": "NODE_ENV=production bun dist/server.js",
+    "check": "tsc -b --noEmit && eslint . && prettier --check ."
   },
   "dependencies": {
     "@base-ui/react": "^1.1.0",
