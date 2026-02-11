@@ -17,7 +17,13 @@ type ConnectionContextType =
       isConnected: false
     }
 
-const socket = new WebSocket('http://localhost:3791/ws')
+function getWebSocketUrl(): string {
+  const protocol = globalThis.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  const host = globalThis.location.host
+  return `${protocol}//${host}/ws`
+}
+
+const socket = new WebSocket(getWebSocketUrl())
 
 const ConnectionContext = createContext<ConnectionContextType | undefined>(
   undefined
@@ -49,7 +55,7 @@ export function ConnectionProvider({
     socket.addEventListener('open', handleOpen)
     socket.addEventListener('close', handleClose)
     socket.addEventListener('error', handleError)
-    
+
     return () => {
       socket.removeEventListener('open', handleOpen)
       socket.removeEventListener('close', handleClose)
