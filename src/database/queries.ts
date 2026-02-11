@@ -1,6 +1,14 @@
-import { and, desc, eq, inArray, like, sql } from 'drizzle-orm'
+import { and, desc, eq, getTableColumns, inArray, like, sql } from 'drizzle-orm'
 import db from './database'
-import { type Log, logs, logsTags, type NewLog, type Tag, tags } from './schema'
+import {
+  type Log,
+  logs,
+  logsTags,
+  type LogWithTags,
+  type NewLog,
+  type Tag,
+  tags,
+} from './schema'
 
 export interface LogFilters {
   severity?: number[]
@@ -10,10 +18,6 @@ export interface LogFilters {
   tagIds?: number[]
   limit?: number
   offset?: number
-}
-
-export interface LogWithTags extends Log {
-  tags: { id: number; name: string }[]
 }
 
 export interface PaginatedResult<T> {
@@ -105,8 +109,7 @@ export async function getLogs(
 
   const total = await countMatchingLogs(whereClause)
   const logsResult = await fetchPaginatedLogs(whereClause, limit, offset)
-  const logIds = logsResult.map(log => log.id)
-  const logsWithTags = await loadTagsForLogs(logsResult, logIds)
+  const logsWithTags = await loadTagsForLogs(logsResult)
 
   return { data: logsWithTags, total, limit, offset }
 }
@@ -117,8 +120,8 @@ export async function getLogById(id: number): Promise<LogWithTags | null> {
 
   if (result.length === 0) return null
 
-  const logsWithTags = await loadTagsForLogs(result, [id])
-  return logsWithTags[0] ?? null
+  const logsWithTags = await loadTagsForLogs(result)
+  return logsWithTags.at(0) ?? null
 }
 
 // Insert a new log entry
@@ -156,12 +159,6 @@ const createLogTagAssociations = async (
   )
 }
 
-const formatTagsForResponse = (
-  tagRecords: Tag[]
-): { id: number; name: string }[] => {
-  return tagRecords.map(tag => ({ id: tag.id, name: tag.name }))
-}
-
 // Insert a log with tags (creates tags if they don't exist)
 export async function insertLogWithTags(
   log: NewLog,
@@ -181,7 +178,7 @@ export async function insertLogWithTags(
 
   return {
     ...insertedLog,
-    tags: formatTagsForResponse(tagRecords),
+    tags: tagRecords,
   }
 }
 
@@ -262,26 +259,26 @@ export async function getUniqueAppnames(): Promise<string[]> {
   return getDistinctFieldValues(logs.appname)
 }
 
-const fetchTagAssociationsForLogs = async (logIds: number[]) => {
+async function fetchTagAssociationsForLogs(logIds: number[]) {
   return db
     .select({
+      ...getTableColumns(tags),
       logId: logsTags.logId,
-      tagId: tags.id,
-      tagName: tags.name,
     })
     .from(logsTags)
     .innerJoin(tags, eq(logsTags.tagId, tags.id))
     .where(inArray(logsTags.logId, logIds))
 }
 
-const groupTagsByLogId = (
+function groupTagsByLogId(
   associations: Awaited<ReturnType<typeof fetchTagAssociationsForLogs>>
-): Map<number, { id: number; name: string }[]> => {
-  const tagsByLogId = new Map<number, { id: number; name: string }[]>()
+): Map<number, Tag[]> {
+  const tagsByLogId = new Map<number, Tag[]>()
 
   for (const association of associations) {
     const existingTags = tagsByLogId.get(association.logId) ?? []
-    existingTags.push({ id: association.tagId, name: association.tagName })
+    const { logId, ...tag } = association
+    existingTags.push(tag)
     tagsByLogId.set(association.logId, existingTags)
   }
 
@@ -290,7 +287,7 @@ const groupTagsByLogId = (
 
 const attachTagsToLogs = (
   logsData: Log[],
-  tagsByLogId: Map<number, { id: number; name: string }[]>
+  tagsByLogId: Map<number, Tag[]>
 ): LogWithTags[] => {
   return logsData.map(log => ({
     ...log,
@@ -299,15 +296,12 @@ const attachTagsToLogs = (
 }
 
 // Helper: Load tags for a list of logs
-async function loadTagsForLogs(
-  logsData: Log[],
-  logIds: number[]
-): Promise<LogWithTags[]> {
-  if (logIds.length === 0) {
-    return logsData.map(log => ({ ...log, tags: [] }))
+async function loadTagsForLogs(logs: Log[]): Promise<LogWithTags[]> {
+  if (logs.length === 0) {
+    return logs.map(log => ({ ...log, tags: [] }))
   }
 
-  const associations = await fetchTagAssociationsForLogs(logIds)
+  const associations = await fetchTagAssociationsForLogs(logs.map(l => l.id))
   const tagsByLogId = groupTagsByLogId(associations)
-  return attachTagsToLogs(logsData, tagsByLogId)
+  return attachTagsToLogs(logs, tagsByLogId)
 }
