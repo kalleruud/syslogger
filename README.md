@@ -35,9 +35,9 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 
 ### Real-time Features
 
-- [ ] **WebSocket Streaming**: Instant log delivery to all connected clients using bun websockets
+- [x] **WebSocket Streaming**: Instant log delivery to all connected clients using bun websockets
 - [ ] **Auto-reconnect**: Exponential backoff reconnection (up to 10 attempts)
-- [ ] **Connection Status Indicator**: Visual feedback with pulse animation
+- [x] **Connection Status Indicator**: Visual feedback with pulse animation
 - [ ] **Client-side Filtering**: Real-time logs respect active filter settings
 
 ### Filtering & Search
@@ -52,10 +52,10 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 
 ### User Interface
 
-- [ ] **Single Page Application**: Minimal, terminal-inspired design on a single page
+- [x] **Single Page Application**: Minimal, terminal-inspired design on a single page
 - [ ] **Top Control Bar**: Search input, filter dropdowns, column visibility toggle, and settings button in one row
-- [ ] **Terminal-style Log Table**: Fixed-width character columns with no gaps or margins between cells
-- [ ] **Column Visibility Toggle**: Show/hide columns via popover menu in the top bar
+- [x] **Terminal-style Log Table**: Fixed-width character columns with no gaps or margins between cells
+- [ ] **Column Visibility Toggle**: Show/hide columns via multi-select dropdown
 - [ ] **Settings Button**: Opens a popup to configure retention settings per severity level
 - [ ] **Severity Color Coding**: Visual distinction by log level (red/orange/yellow/blue)
 - [ ] **Virtual Scrolling**: Efficient rendering of large datasets with @tanstack/react-virtual
@@ -74,10 +74,10 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 
 ### Log Retention
 
-- [ ] **Automatic Cleanup**: Daily cleanup job removes old logs
-- [ ] **Per-Severity Retention**: Configure retention period (in days) for each severity level independently
 - [ ] **Settings Popup**: Adjust retention days per severity via the settings button in the UI
+- [ ] **Per-Severity Retention**: Configure retention period (in days) for each severity level independently
 - [ ] **Persistent Configuration**: Settings stored in `config.json` and persist across restarts
+- [ ] **Automatic Cleanup**: Daily cleanup job removes old logs
 
 ### Deployment
 
@@ -144,10 +144,10 @@ syslogger/
 │  │ ✅ SQLite + Drizzle ORM + WAL       │  │
 │  │ ✅ Tag extraction & storage         │  │
 │  │ ✅ Advanced query functions         │  │
-│  │ 🚧 WebSocket Server (Pub/Sub)       │  │
-│  │ 🚧 REST API routes                  │  │
-│  │ 🚧 Settings API (config.json)       │  │
-│  │ 🚧 Log Retention Cleanup            │  │
+│  │ ✅ WebSocket Server (Pub/Sub)       │  │
+│  │ ❌ REST API routes                  │  │
+│  │ ❌ Settings API (config.json)       │  │
+│  │ ❌ Log Retention Cleanup            │  │
 │  │ ✅ Bun.serve for fullstack          │  │
 │  └─────────────────────────────────────┘  │
 └────────────────┬──────────────────────────┘
@@ -156,13 +156,13 @@ syslogger/
 ┌───────────────────────────────────────────┐
 │    Frontend (React 19 + Bun)              │
 │  ┌─────────────────────────────────────┐  │
-│  │ 🚧 Minimal terminal-style UI        │  │
-│  │ 🚧 Top bar: search, filters, etc    │  │
-│  │ 🚧 Settings popup for retention     │  │
+│  │ ✅ Minimal terminal-style UI        │  │
+│  │ ❌ Top bar: search, filters, etc    │  │
+│  │ ❌ Settings popup for retention     │  │
 │  │ 🚧 Log table with virtual scroll    │  │
-│  │ 🚧 Click-to-inspect detail panel    │  │
+│  │ ❌ Click-to-inspect detail panel    │  │
 │  │ 🚧 WebSocket Client (auto-reconnect)│  │
-│  │ 🚧 URL-synced filter state          │  │
+│  │ ❌ URL-synced filter state          │  │
 │  └─────────────────────────────────────┘  │
 └───────────────────────────────────────────┘
 
