@@ -86,3 +86,12 @@ export type Tag = typeof tags.$inferSelect
 export type NewTag = typeof tags.$inferInsert
 
 export type LogWithTags = Log & { tags: Tag[] }
+
+export function isLogsWithTags(data: any): data is LogWithTags {
+  if (typeof data !== 'object' || data === null) return false
+  return (
+    typeof data.id === 'number' &&
+    typeof data.timestamp === 'string' &&
+    typeof data.raw === 'string'
+  )
+}

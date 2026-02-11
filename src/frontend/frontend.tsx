@@ -9,12 +9,15 @@ import { App } from '@/frontend/App'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ConnectionProvider } from './contexts/ConnectionContext'
+import { DataProvider } from './contexts/DataContext'
 
 const elem = document.getElementById('root')!
 const app = (
   <StrictMode>
     <ConnectionProvider>
-      <App />
+      <DataProvider>
+        <App />
+      </DataProvider>
     </ConnectionProvider>
   </StrictMode>
 )

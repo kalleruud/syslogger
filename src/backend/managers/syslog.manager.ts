@@ -4,14 +4,14 @@ import config from '@/lib/config'
 import parseSyslog from '../parsers/parser'
 import { broadcastLog } from '../websocket'
 
-export const syslogSocketConfig = {
+export const syslogSocketConfig: Bun.udp.SocketOptions<'buffer'> = {
   port: config.syslog.port,
 
   socket: {
     data: handleData,
     error: handleError,
   },
-} satisfies Bun.udp.SocketOptions<'buffer'>
+}
 
 async function handleData(
   _socket: Bun.udp.Socket<'buffer'>,

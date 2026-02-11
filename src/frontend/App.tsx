@@ -1,28 +1,17 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/frontend/components/ui/card'
+import { useData } from './contexts/DataContext'
 import './index.css'
 
 export function App() {
+  const { logs, isLoading } = useData()
+
+  if (isLoading) return <p>Loading...</p>
   return (
-    <div className='z-10 container w-full flex-col items-center justify-center p-8 text-sm'>
-      <Card>
-        <CardHeader>
-          <CardTitle className='text-3xl font-bold'>Kallerud stack</CardTitle>
-          <CardDescription>
-            Edit{' '}
-            <code className='rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono'>
-              src/App.tsx
-            </code>{' '}
-            and save to test HMR
-          </CardDescription>
-        </CardHeader>
-        <CardContent></CardContent>
-      </Card>
+    <div className='text-sm'>
+      {logs.map(l => (
+        <p className='line-clamp-1' key={l.id}>
+          {l.message}
+        </p>
+      ))}
     </div>
   )
 }

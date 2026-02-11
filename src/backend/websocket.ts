@@ -1,6 +1,6 @@
 import type { LogWithTags } from '@/database/schema'
-import { broadcast } from '@/syslogger'
 import logger from './managers/log.manager'
+import { server } from '@/syslogger'
 
 export type BunSocket = Bun.ServerWebSocket<BunSocketData>
 export type BunSocketData = {
@@ -32,7 +32,7 @@ async function close(ws: BunSocket) {
 }
 
 export function broadcastLog(log: LogWithTags) {
-  const result = broadcast(LOGS_TOPIC, JSON.stringify(log), true)
+  const result = server.publish(LOGS_TOPIC, JSON.stringify(log))
   if (result <= 0) throw new Error(`Failed to send log to clients: ${result}`)
   return result
 }

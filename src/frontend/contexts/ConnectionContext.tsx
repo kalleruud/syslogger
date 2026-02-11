@@ -30,11 +30,6 @@ export function ConnectionProvider({
     ConnectionContextType['isConnected']
   >(socket.readyState === socket.OPEN)
 
-  function handleMessage(e: MessageEvent) {
-    console.log('Recieved message:', JSON.stringify(e.data, undefined, 2))
-    setIsConnected(socket.readyState === socket.OPEN)
-  }
-
   function handleOpen() {
     console.log('Connected to backend')
     setIsConnected(socket.readyState === socket.OPEN)
@@ -51,11 +46,10 @@ export function ConnectionProvider({
   }
 
   useEffect(() => {
-    socket.addEventListener('message', handleMessage)
     socket.addEventListener('open', handleOpen)
     socket.addEventListener('close', handleClose)
     socket.addEventListener('error', handleError)
-
+    
     return () => {
       socket.removeEventListener('open', handleOpen)
       socket.removeEventListener('close', handleClose)
