@@ -10,8 +10,6 @@ export type BunSocketData = {
 
 const LOGS_TOPIC = 'logs'
 
-const clients: Map<BunSocketData['id'], BunSocket> = new Map()
-
 async function message(ws: BunSocket, message: string | Buffer<ArrayBuffer>) {
   console.debug(
     'Recieved message from client:',
@@ -22,14 +20,12 @@ async function message(ws: BunSocket, message: string | Buffer<ArrayBuffer>) {
 
 async function open(ws: BunSocket) {
   logger.debug('websocket', `Connected: ${ws.data.id}`)
-  clients.set(ws.data.id, ws)
   ws.subscribe(LOGS_TOPIC)
 }
 
 async function close(ws: BunSocket) {
   logger.debug('websocket', `Disconnected: ${ws.data.id}`)
   ws.unsubscribe(LOGS_TOPIC)
-  clients.delete(ws.data.id)
 }
 
 export function broadcastLog(log: LogWithTags) {
