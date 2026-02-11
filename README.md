@@ -58,7 +58,7 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 - [ ] **Severity Color Coding**: Visual distinction by log level (red/orange/yellow/blue)
 - [ ] **Virtual Scrolling**: Efficient rendering of large datasets with @tanstack/react-virtual
 - [ ] **Infinite Scroll**: Load older logs automatically when scrolling up
-- [ ] **Auto-scroll Toggle**: Optional automatic scrolling for new logs
+- [ ] **Auto scroll**: When the screen is scrolled all the way to the bottom, auto scrolling on new incoming logs is enabled.
 
 ### Log Detail Panel
 
