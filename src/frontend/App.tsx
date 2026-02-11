@@ -1,3 +1,4 @@
+import LogRow from './components/LogRow'
 import { useData } from './contexts/DataContext'
 import './index.css'
 
@@ -6,11 +7,9 @@ export function App() {
 
   if (isLoading) return <p>Loading...</p>
   return (
-    <div className='text-sm'>
+    <div>
       {logs.map(l => (
-        <p className='line-clamp-1' key={l.id}>
-          {l.message}
-        </p>
+        <LogRow key={l.id} log={l} className='px-1' />
       ))}
     </div>
   )
