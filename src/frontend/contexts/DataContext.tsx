@@ -21,34 +21,6 @@ type DataContextType =
 
 const DataContext = createContext<DataContextType | undefined>(undefined)
 
-/**
- * Automatically converts timestamp fields to Date objects.
- * Handles: createdAt, updatedAt, deletedAt, date
- */
-export function parseDates<T extends Record<string, any>>(obj: T): T {
-  const dateFields = ['createdAt', 'updatedAt', 'deletedAt', 'date']
-  const result: any = { ...obj }
-
-  for (const field of dateFields) {
-    if (
-      field in result &&
-      result[field] !== null &&
-      result[field] !== undefined
-    ) {
-      result[field] = new Date(result[field])
-    }
-  }
-
-  return result
-}
-
-/**
- * Applies date parsing to an array of objects
- */
-export function parseDatesArray<T extends Record<string, any>>(arr: T[]): T[] {
-  return arr.map(parseDates)
-}
-
 export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
   const { socket, isConnected } = useConnection()
 

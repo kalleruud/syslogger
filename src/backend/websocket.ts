@@ -1,6 +1,7 @@
 import type { LogWithTags } from '@/database/schema'
-import logger from './managers/log.manager'
 import { server } from '@/syslogger'
+import { randomUUIDv7 } from 'bun'
+import logger from './managers/log.manager'
 
 export type BunSocket = Bun.ServerWebSocket<BunSocketData>
 export type BunSocketData = {
@@ -32,16 +33,14 @@ async function close(ws: BunSocket) {
 }
 
 export function broadcastLog(log: LogWithTags) {
-  const result = server.publish(LOGS_TOPIC, JSON.stringify(log))
-  if (result <= 0) throw new Error(`Failed to send log to clients: ${result}`)
-  return result
+  return server.publish(LOGS_TOPIC, JSON.stringify(log))
 }
 
 export const wsEndpoint: Bun.Serve.RoutesWithUpgrade<BunSocketData, string> = {
   '/ws': {
     async GET(req, server) {
       // Upgrade HTTP request to WebSocket connection
-      const success = server.upgrade(req, { data: { id: 'test' } })
+      const success = server.upgrade(req, { data: { id: randomUUIDv7() } })
 
       // Return a fallback response if upgrade fails
       if (!success) {

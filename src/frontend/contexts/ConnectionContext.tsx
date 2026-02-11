@@ -9,7 +9,7 @@ import {
 
 type ConnectionContextType =
   | {
-      socket: typeof socket
+      socket: WebSocket
       isConnected: true
     }
   | {
@@ -34,21 +34,21 @@ export function ConnectionProvider({
 }: Readonly<{ children: ReactNode }>) {
   const [isConnected, setIsConnected] = useState<
     ConnectionContextType['isConnected']
-  >(socket.readyState === socket.OPEN)
+  >(false)
 
   function handleOpen() {
     console.log('Connected to backend')
-    setIsConnected(socket.readyState === socket.OPEN)
+    setIsConnected(true)
   }
 
   function handleClose() {
     console.warn('Disconnected from backend')
-    setIsConnected(socket.readyState === socket.OPEN)
+    setIsConnected(false)
   }
 
   function handleError() {
     console.error('Failed to connect to backend')
-    setIsConnected(socket.readyState === socket.OPEN)
+    setIsConnected(false)
   }
 
   useEffect(() => {
