@@ -2,8 +2,6 @@
 
 A full-stack syslog management system with real-time log streaming, filtering, and analysis. Features a minimal, terminal-inspired single-page interface. Built with Bun/TypeScript backend and React frontend.
 
-> **Development Status**: Core backend infrastructure complete (UDP receiver, parsers, database with tag support). Frontend UI and API routes in progress.
-
 ## Features
 
 ### Syslog Reception & Parsing
