@@ -112,7 +112,7 @@ export abstract class SyslogParser {
   protected identifySeverity(tags: ParsedLog['tags']) {
     const tagSet = new Set(tags.map(t => t.name))
     for (const severity of Object.values(SEVERITIES)) {
-      if (tagSet.intersection(severity.synonyms)) return severity
+      if (tagSet.intersection(severity.synonyms).size > 0) return severity
     }
   }
 }
