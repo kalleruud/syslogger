@@ -2,13 +2,20 @@ import { wsConfig, wsEndpoint, type BunSocketData } from '@/backend/websocket'
 import config from '@/lib/config'
 import index from '@public/index.html'
 
+class BunResponse extends Response {
+  override headers: Headers = new Headers({
+    ...super.headers,
+    // 'Access-Control-Allow-Origin': config.cors.origin,
+  })
+}
+
 export const serverConfig: Bun.Serve.Options<BunSocketData> = {
   port: config.port,
 
   routes: {
     // Serve websockets
     ...wsEndpoint,
-
+    
     // Serve React
     '/': index,
   },

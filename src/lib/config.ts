@@ -7,6 +7,9 @@ const config = {
   database: {
     url: process.env.SYSLOGGER_DB_URL || './dev.db',
   },
+  cors: {
+    origin: process.env.SYSLOGGER_CORS_ORIGIN || '*',
+  },
 } as const
 
 export default config
