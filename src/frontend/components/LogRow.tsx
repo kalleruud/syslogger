@@ -1,4 +1,5 @@
 import type { LogWithTags } from '@/database/schema'
+import { getFacility } from '@/lib/facilities'
 import { getSeverity } from '@/lib/severities'
 import type { ComponentProps } from 'react'
 import { twMerge } from 'tailwind-merge'
@@ -19,8 +20,11 @@ export default function LogRow({
         className
       )}
       {...props}>
-      <div className='line-clamp-1 shrink-0 opacity-25'>{log.timestamp}</div>
-      <div className='line-clamp-1 shrink-0 opacity-50'>{log.appname}</div>
+      <div className='line-clamp-1 shrink-0'>{log.timestamp}</div>
+      <div className='line-clamp-1 shrink-0'>{log.appname}</div>
+      <div className='line-clamp-1 shrink-0'>
+        {getFacility(log.facility ?? 0).name}
+      </div>
       <div className='line-clamp-1 shrink-0 opacity-50'>
         {getSeverity(log.severity).name}
       </div>

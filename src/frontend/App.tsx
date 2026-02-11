@@ -5,7 +5,12 @@ import './index.css'
 export function App() {
   const { logs, isLoading } = useData()
 
-  if (isLoading) return <p>Loading...</p>
+  if (isLoading)
+    return (
+      <div className='flex h-dvh w-screen items-center justify-center'>
+        Loading...
+      </div>
+    )
   return (
     <div>
       {logs.map(l => (
