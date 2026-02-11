@@ -1,4 +1,3 @@
-import { APITester } from '@/frontend/APITester'
 import {
   Card,
   CardContent,
@@ -8,24 +7,9 @@ import {
 } from '@/frontend/components/ui/card'
 import './index.css'
 
-import logo from '@public/logo.svg'
-import reactLogo from '@public/react.svg'
-
 export function App() {
   return (
     <div className='z-10 container w-full flex-col items-center justify-center p-8 text-sm'>
-      <div className='mb-8 flex items-center justify-center gap-8'>
-        <img
-          src={logo}
-          alt='Bun Logo'
-          className='h-36 scale-120 p-6 transition-all duration-300 hover:drop-shadow-[0_0_2em_#646cffaa]'
-        />
-        <img
-          src={reactLogo}
-          alt='React Logo'
-          className='h-36 animate-[spin_20s_linear_infinite] p-6 transition-all duration-300 hover:drop-shadow-[0_0_2em_#61dafbaa]'
-        />
-      </div>
       <Card>
         <CardHeader>
           <CardTitle className='text-3xl font-bold'>Kallerud stack</CardTitle>
@@ -37,9 +21,7 @@ export function App() {
             and save to test HMR
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <APITester />
-        </CardContent>
+        <CardContent></CardContent>
       </Card>
     </div>
   )

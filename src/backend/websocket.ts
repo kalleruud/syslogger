@@ -1,35 +1,22 @@
-import type {
-  ClientToServerEvents,
-  ErrorResponse,
-  EventReq,
-  EventRes,
-  SuccessResponse,
-  TypedSocket,
-} from '@/lib/socket.io'
 import logger from './managers/log.manager'
 
-export default async function Connect(s: TypedSocket) {
-  logger.debug('websocket', `Connected: ${s.id}`)
-
-  s.on('disconnect', () => logger.debug('websocket', `Disconnected: ${s.id}`))
-
-  setup(s, 'health', health)
+export type BunSocket = Bun.ServerWebSocket<BunSocketData>
+export type BunSocketData = {
+  id: string
 }
 
-async function health(): Promise<SuccessResponse | ErrorResponse> {
-  return { success: true }
+const clients: Map<BunSocketData['id'], BunSocket> = new Map()
+
+export async function open(ws: BunSocket) {
+  logger.debug('websocket', `Connected: ${ws.data.id}`)
+  clients.set(ws.data.id, ws)
 }
 
-function setup<Ev extends keyof ClientToServerEvents>(
-  s: TypedSocket,
-  event: Ev,
-  handler: (s: TypedSocket, r: EventReq<Ev>) => Promise<EventRes<Ev>>
-) {
-  s.on(event, ((r: EventReq<Ev>, callback?: any) =>
-    handler(s, r)
-      .then(callback)
-      .catch(e => {
-        console.warn(e.message)
-        callback({ success: false, message: e.message } satisfies ErrorResponse)
-      })) as any)
+export async function close(ws: BunSocket) {
+  logger.debug('websocket', `Disconnected: ${ws.data.id}`)
+  clients.delete(ws.data.id)
+}
+
+export function broadcast(data: any) {
+  clients.forEach(ws => ws.send(data))
 }

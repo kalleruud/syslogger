@@ -1,42 +1,47 @@
+import { close, open, type BunSocketData } from '@/backend/websocket'
 import config from '@/lib/config'
 import index from '@public/index.html'
-import { serve } from 'bun'
 
 class BunResponse extends Response {
   override headers: Headers = new Headers({
     ...super.headers,
-    'Access-Control-Allow-Origin': config.cors.origin,
+    // 'Access-Control-Allow-Origin': config.cors.origin,
   })
 }
 
-export const serverConfig: Parameters<typeof serve>[0] = {
+export const serverConfig: Bun.Serve.Options<BunSocketData> = {
   port: config.port,
 
   routes: {
-    // Serve index.html for all unmatched routes.
-    '/*': index,
+    // Serve React
+    '/': index,
 
-    '/api/hello': {
-      async GET() {
-        return BunResponse.json({
-          message: 'Hello, world!',
-          method: 'GET',
-        })
-      },
-      async PUT() {
-        return BunResponse.json({
-          message: 'Hello, world!',
-          method: 'PUT',
-        })
+    '/ws': {
+      async GET(req, server) {
+        // Upgrade HTTP request to WebSocket connection
+        const success = server.upgrade(req, { data: { id: 'test' } })
+
+        // Return a fallback response if upgrade fails
+        if (!success) {
+          return new Response('WebSocket upgrade failed', { status: 400 })
+        }
+
+        // The connection is handled by the websocket handlers
+        return undefined
       },
     },
+  },
 
-    '/api/hello/:name': async req => {
-      const name = req.params.name
-      return BunResponse.json({
-        message: `Hello, ${name}!`,
-      })
+  websocket: {
+    data: {} as BunSocketData,
+    message(ws) {
+      console.debug(
+        'Recieved message from client:',
+        JSON.stringify(ws, undefined, 2)
+      )
     },
+    open: open,
+    close: close,
   },
 
   development: config.development && {

@@ -1,4 +1,13 @@
-import { and, desc, eq, getTableColumns, inArray, like, sql } from 'drizzle-orm'
+import {
+  and,
+  desc,
+  eq,
+  getTableColumns,
+  inArray,
+  like,
+  SQL,
+  sql,
+} from 'drizzle-orm'
 import db from './database'
 import {
   type Log,
@@ -32,7 +41,7 @@ const DEFAULT_OFFSET = 0
 const EMPTY_RESULT = { data: [], total: 0 }
 
 const buildWhereConditions = (filters: LogFilters) => {
-  const conditions = []
+  const conditions: SQL[] = []
 
   if (filters.severity?.length) {
     conditions.push(inArray(logs.severity, filters.severity))

@@ -1,7 +1,3 @@
-import type {
-  ClientToServerEvents,
-  ServerToClientEvents,
-} from '@/lib/socket.io'
 import {
   createContext,
   useContext,
@@ -10,9 +6,6 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { io, Socket } from 'socket.io-client'
-
-const AUTH_KEY = 'auth'
 
 type ConnectionContextType =
   | {
@@ -24,9 +17,7 @@ type ConnectionContextType =
       isConnected: false
     }
 
-const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io('/', {
-  auth: { token: localStorage.getItem(AUTH_KEY) },
-}).timeout(10_000)
+const socket = new WebSocket('ws://localhost:3791/ws')
 
 const ConnectionContext = createContext<ConnectionContextType | undefined>(
   undefined
@@ -37,28 +28,38 @@ export function ConnectionProvider({
 }: Readonly<{ children: ReactNode }>) {
   const [isConnected, setIsConnected] = useState<
     ConnectionContextType['isConnected']
-  >(socket.connected)
+  >(socket.readyState === socket.OPEN)
+
+  function handleMessage(e: MessageEvent) {
+    console.log('Recieved message:', JSON.stringify(e.data, undefined, 2))
+    setIsConnected(socket.readyState === socket.OPEN)
+  }
+
+  function handleOpen() {
+    console.log('Connected to backend')
+    setIsConnected(socket.readyState === socket.OPEN)
+  }
+
+  function handleClose() {
+    console.warn('Disconnected from backend')
+    setIsConnected(socket.readyState === socket.OPEN)
+  }
+
+  function handleError() {
+    console.error('Failed to connect to backend')
+    setIsConnected(socket.readyState === socket.OPEN)
+  }
 
   useEffect(() => {
-    socket.on('connect', () => {
-      console.log('Connected to backend:', socket.id)
-      setIsConnected(socket.connected)
-    })
-
-    socket.on('disconnect', () => {
-      console.warn('Disconnected from backend')
-      setIsConnected(socket.connected)
-    })
-
-    socket.on('connect_error', err => {
-      console.error(err.message)
-      setIsConnected(socket.connected)
-    })
+    socket.addEventListener('message', handleMessage)
+    socket.addEventListener('open', handleOpen)
+    socket.addEventListener('close', handleClose)
+    socket.addEventListener('error', handleError)
 
     return () => {
-      socket.off('connect')
-      socket.off('disconnect')
-      socket.off('connect_error')
+      socket.removeEventListener('open', handleOpen)
+      socket.removeEventListener('close', handleClose)
+      socket.removeEventListener('error', handleError)
     }
   }, [])
 
