@@ -4,6 +4,16 @@ import config from '@/lib/config'
 import parseSyslog from '../parsers/parser'
 import { broadcastLog } from '../websocket'
 
+/**
+ * Strips ANSI escape codes from a string.
+ * Removes color codes and other SGR (Select Graphic Rendition) sequences.
+ * Example: "\x1b[31mRED\x1b[0m" becomes "RED"
+ */
+function stripAnsiCodes(text: string): string {
+  // eslint-disable-next-line no-control-regex
+  return text.replaceAll(/\x1b\[[0-9;]*m/g, '')
+}
+
 export const syslogSocketConfig: Bun.udp.SocketOptions<'buffer'> = {
   port: config.syslog.port,
 
@@ -19,7 +29,8 @@ async function handleData(
   _port: number,
   _address: string
 ) {
-  const message = data.toString('utf-8').trimEnd()
+  const rawMessage = data.toString('utf-8').trimEnd()
+  const message = stripAnsiCodes(rawMessage)
   console.debug(message)
   const parsed = parseSyslog(message)
 
