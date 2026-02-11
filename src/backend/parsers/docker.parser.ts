@@ -3,14 +3,8 @@ import { SyslogParser, type ParsedLog } from './base.parser'
 /*
  * Example syslog messages:
  *
- * ISO 8601 format:
- * <30>Feb 10 17:52:00 media-seerr[15379]: 2026-02-10T16:52:00.008Z [debug][Jobs]: Starting scheduled job: Download Sync
- *
- * Slash-separated format:
  * <30>Feb 10 17:49:11 media-unpackerr[15379]: [INFO] 2026/02/10 17:49:11.149257 logs.go:123: [Unpackerr] Message
- *
- * BSD fallback (no embedded timestamp):
- * <30>Feb 10 17:49:11 media-unpackerr[15379]: [INFO] Some message without timestamp
+ * <30>Feb 10 17:52:00 media-seerr[15379]: 2026-02-10T16:52:00.008Z [debug][Jobs]: Starting scheduled job: Download Sync
  */
 
 export default class DockerSyslogParser extends SyslogParser {
@@ -20,8 +14,6 @@ export default class DockerSyslogParser extends SyslogParser {
 
   private static readonly isoTimestampFormat =
     /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z?/
-  private static readonly slashTimestampFormat =
-    /^\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2}(?:\.\d{6})?/
 
   public parse(rawMessage: string) {
     const parsed = this.parseParts(rawMessage)
@@ -59,16 +51,10 @@ export default class DockerSyslogParser extends SyslogParser {
 
   private extractTimestamp(bsdDate: string, message: string): string {
     const cleanedMessage = this.removeTagsAndTrim(message)
-
     const isoMatch = DockerSyslogParser.isoTimestampFormat.exec(cleanedMessage)
+
     if (isoMatch) {
       return this.parseISO8601(isoMatch[0])
-    }
-
-    const slashMatch =
-      DockerSyslogParser.slashTimestampFormat.exec(cleanedMessage)
-    if (slashMatch) {
-      return this.parseSlashTimestamp(slashMatch[0])
     }
 
     return this.parseBSDTimestamp(bsdDate).toISOString()
@@ -76,23 +62,5 @@ export default class DockerSyslogParser extends SyslogParser {
 
   private removeTagsAndTrim(message: string): string {
     return message.replace(/\[.*?\]/g, '').trim()
-  }
-
-  private parseSlashTimestamp(timestamp: string): string {
-    const match =
-      /^(?<year>\d{4})\/(?<month>\d{2})\/(?<day>\d{2}) (?<hour>\d{2}):(?<minute>\d{2}):(?<second>\d{2})(?:\.(?<micro>\d{6}))?/.exec(
-        timestamp
-      )
-
-    if (!match?.groups) {
-      throw new Error(`Slash timestamp parsing failed for: '${timestamp}'`)
-    }
-
-    const { year, month, day, hour, minute, second, micro } = match.groups
-
-    const milliseconds = micro ? Math.floor(Number.parseInt(micro) / 1000) : 0
-    const ms = milliseconds.toString().padStart(3, '0')
-
-    return `${year}-${month}-${day}T${hour}:${minute}:${second}.${ms}Z`
   }
 }
