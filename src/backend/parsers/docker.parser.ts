@@ -12,10 +12,13 @@ export default class DockerSyslogParser extends SyslogParser {
   format =
     /^<(?<pri>\d{1,3})>(?<date>\w{3} {1,2}[1-3]?\d \d{2}:\d{2}:\d{2}) (?<name>.+?)\[(?<procid>\d+?)\]: (?<message>.*)/
 
+  private static readonly isoTimestampFormat =
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z?/
+
   public parse(rawMessage: string) {
     const parsed = this.parseParts(rawMessage)
-    const timestamp = this.parseBSDTimestamp(parsed.date)?.toISOString()
     const tags = this.parseTags(parsed.message)
+    const timestamp = this.extractTimestamp(parsed.date, parsed.message)
     const priority = this.tryParsePri(parsed.pri, tags)
 
     return {
@@ -44,5 +47,20 @@ export default class DockerSyslogParser extends SyslogParser {
     if (!message) throw new Error(`Message not found!: ${rawMessage}`)
 
     return { pri, date, appname: name ?? null, procid: procid ?? null, message }
+  }
+
+  private extractTimestamp(bsdDate: string, message: string): string {
+    const cleanedMessage = this.removeTagsAndTrim(message)
+    const isoMatch = DockerSyslogParser.isoTimestampFormat.exec(cleanedMessage)
+
+    if (isoMatch) {
+      return this.parseISO8601(isoMatch[0])
+    }
+
+    return this.parseBSDTimestamp(bsdDate).toISOString()
+  }
+
+  private removeTagsAndTrim(message: string): string {
+    return message.replace(/\[.*?\]/g, '').trim()
   }
 }
