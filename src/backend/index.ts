@@ -1,4 +1,4 @@
-import { close, open, type BunSocketData } from '@/backend/websocket'
+import { wsConfig, wsEndpoint, type BunSocketData } from '@/backend/websocket'
 import config from '@/lib/config'
 import index from '@public/index.html'
 
@@ -13,36 +13,14 @@ export const serverConfig: Bun.Serve.Options<BunSocketData> = {
   port: config.port,
 
   routes: {
+    // Serve websockets
+    ...wsEndpoint,
+    
     // Serve React
     '/': index,
-
-    '/ws': {
-      async GET(req, server) {
-        // Upgrade HTTP request to WebSocket connection
-        const success = server.upgrade(req, { data: { id: 'test' } })
-
-        // Return a fallback response if upgrade fails
-        if (!success) {
-          return new Response('WebSocket upgrade failed', { status: 400 })
-        }
-
-        // The connection is handled by the websocket handlers
-        return undefined
-      },
-    },
   },
 
-  websocket: {
-    data: {} as BunSocketData,
-    message(ws) {
-      console.debug(
-        'Recieved message from client:',
-        JSON.stringify(ws, undefined, 2)
-      )
-    },
-    open: open,
-    close: close,
-  },
+  websocket: wsConfig,
 
   development: config.development && {
     // Enable browser hot reloading in development

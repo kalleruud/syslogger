@@ -17,7 +17,7 @@ type ConnectionContextType =
       isConnected: false
     }
 
-const socket = new WebSocket('ws://localhost:3791/ws')
+const socket = new WebSocket('http://localhost:3791/ws')
 
 const ConnectionContext = createContext<ConnectionContextType | undefined>(
   undefined

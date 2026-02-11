@@ -3,6 +3,7 @@ import logger from './backend/managers/log.manager'
 import { syslogSocketConfig } from './backend/managers/syslog.manager'
 
 const server = Bun.serve(serverConfig)
+export const broadcast = server.publish
 logger.info('syslogger', `Server started at ${server.url}`)
 
 const socket = await Bun.udpSocket(syslogSocketConfig)

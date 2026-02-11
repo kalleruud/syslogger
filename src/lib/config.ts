@@ -3,7 +3,6 @@ const config = {
   port: Number.parseInt(process.env.SYSLOGGER_PORT ?? '3791'),
   syslog: {
     port: Number.parseInt(process.env.SYSLOGGER_SYSLOG_PORT ?? '5140'),
-    protocol: process.env.SYSLOGGER_SYSLOG_PROTOCOL || 'udp',
   },
   database: {
     url: process.env.SYSLOGGER_DB_URL || './dev.db',

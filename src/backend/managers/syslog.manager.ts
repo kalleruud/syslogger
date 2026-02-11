@@ -2,6 +2,7 @@ import logger from '@/backend/managers/log.manager'
 import { insertLogWithTags } from '@/database/queries'
 import config from '@/lib/config'
 import parseSyslog from '../parsers/parser'
+import { broadcastLog } from '../websocket'
 
 export const syslogSocketConfig = {
   port: config.syslog.port,
@@ -22,12 +23,12 @@ async function handleData(
   console.debug(message)
   const parsed = parseSyslog(message)
 
-  await insertLogWithTags(
+  const log = await insertLogWithTags(
     parsed.log,
     parsed.tags.map(t => t.name)
   )
 
-  // TODO: Broadcast to clients
+  broadcastLog(log)
 }
 
 async function handleError(_socket: Bun.udp.Socket<'buffer'>, error: Error) {
