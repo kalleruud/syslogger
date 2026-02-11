@@ -75,9 +75,7 @@ export abstract class SyslogParser {
 
     // Docker always gives PRI 30, so we try to identify severity within message
     const severityOverride =
-      severity === SEVERITIES.information
-        ? this.identifySeverity(tags)
-        : undefined
+      severity === SEVERITIES.info ? this.identifySeverity(tags) : undefined
 
     return {
       facility: facility.level,

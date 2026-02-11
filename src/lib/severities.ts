@@ -35,9 +35,9 @@ export const SEVERITIES = {
     description: 'normal but significant condition',
     synonyms: new Set(['notice']),
   },
-  information: {
+  info: {
     level: 6,
-    name: 'information',
+    name: 'info',
     description: 'informational messages',
     synonyms: new Set(['info', 'information', 'log']),
   },

@@ -13,22 +13,51 @@ export default function LogRow({
   className,
   ...props
 }: Readonly<LogRowProps>) {
+  const severity = getSeverity(log.severity)
+  const facility = log.facility === null ? undefined : getFacility(log.facility)
+
+  const date = new Date(log.timestamp)
+
+  const severityTextStyles = [
+    'text-emergency font-black',
+    'text-alert font-bold',
+    'text-critical font-bold',
+    'text-error',
+    'text-warning',
+    'text-notice',
+    'text-info',
+    'text-debug italic',
+  ]
+
   return (
     <div
       className={twMerge(
-        'flex w-screen gap-2 text-sm select-none hover:cursor-pointer hover:bg-accent',
+        'flex w-screen gap-2 text-sm select-text hover:cursor-pointer hover:bg-accent-foreground/15',
         className
       )}
       {...props}>
-      <div className='line-clamp-1 shrink-0'>{log.timestamp}</div>
-      <div className='line-clamp-1 shrink-0'>{log.appname}</div>
       <div className='line-clamp-1 shrink-0'>
-        {getFacility(log.facility ?? 0).name}
+        {date.toLocaleString('nb-NO', { timeZone: 'Europe/Oslo' })}
       </div>
-      <div className='line-clamp-1 shrink-0 opacity-50'>
-        {getSeverity(log.severity).name}
+      <div className='line-clamp-1 shrink-0'>{log.appname}</div>
+
+      {facility && (
+        <div className='line-clamp-1 shrink-0' title={facility.descriptopn}>
+          {facility.name}
+        </div>
+      )}
+
+      <div
+        className={twMerge(
+          'line-clamp-1 shrink-0',
+          severityTextStyles[severity.level]
+        )}
+        title={severity.description}>
+        {severity.name}
       </div>
-      <div className='line-clamp-1'>{log.message}</div>
+      <div className='line-clamp-1' title={log.raw}>
+        {log.message}
+      </div>
     </div>
   )
 }

@@ -16,6 +16,10 @@ export function App() {
       {logs.map(l => (
         <LogRow key={l.id} log={l} className='px-1' />
       ))}
+      <div className='flex h-18 items-center justify-center gap-2'>
+        <div className='size-2 animate-pulse rounded-full bg-primary' />
+        Listening
+      </div>
     </div>
   )
 }
