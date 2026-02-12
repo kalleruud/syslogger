@@ -23,8 +23,6 @@ function getWebSocketUrl(): string {
   return `${protocol}//${host}/ws`
 }
 
-const socket = new WebSocket(getWebSocketUrl())
-
 const ConnectionContext = createContext<ConnectionContextType | undefined>(
   undefined
 )
@@ -32,33 +30,39 @@ const ConnectionContext = createContext<ConnectionContextType | undefined>(
 export function ConnectionProvider({
   children,
 }: Readonly<{ children: ReactNode }>) {
+  const [socket, setSocket] = useState<WebSocket | undefined>(undefined)
   const [isConnected, setIsConnected] =
     useState<ConnectionContextType['isConnected']>(false)
 
-  function handleOpen() {
-    console.log('Connected to backend')
-    setIsConnected(true)
-  }
-
-  function handleClose() {
-    console.warn('Disconnected from backend')
-    setIsConnected(false)
-  }
-
-  function handleError() {
-    console.error('Failed to connect to backend')
-    setIsConnected(false)
-  }
-
   useEffect(() => {
-    socket.addEventListener('open', handleOpen)
-    socket.addEventListener('close', handleClose)
-    socket.addEventListener('error', handleError)
+    const ws = new WebSocket(getWebSocketUrl())
+
+    function handleOpen() {
+      console.log('Connected to backend')
+      setIsConnected(true)
+    }
+
+    function handleClose() {
+      console.warn('Disconnected from backend')
+      setIsConnected(false)
+    }
+
+    function handleError() {
+      console.error('Failed to connect to backend')
+      setIsConnected(false)
+    }
+
+    ws.addEventListener('open', handleOpen)
+    ws.addEventListener('close', handleClose)
+    ws.addEventListener('error', handleError)
+
+    setSocket(ws)
 
     return () => {
-      socket.removeEventListener('open', handleOpen)
-      socket.removeEventListener('close', handleClose)
-      socket.removeEventListener('error', handleError)
+      ws.removeEventListener('open', handleOpen)
+      ws.removeEventListener('close', handleClose)
+      ws.removeEventListener('error', handleError)
+      ws.close()
     }
   }, [])
 
