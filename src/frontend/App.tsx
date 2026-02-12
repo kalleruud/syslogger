@@ -7,6 +7,7 @@ import TopBar from './components/TopBar'
 import { useData } from './contexts/DataContext'
 import { useColumnVisibility } from './hooks/useColumnVisibility'
 import './index.css'
+import AutoscrollBadge from './components/AutoscrollBadge'
 
 const ESTIMATED_ROW_HEIGHT = 24
 
@@ -153,9 +154,9 @@ export default function App() {
               })}
             </div>
 
-            {/* Live indicator at BOTTOM - outside virtual container */}
+            {/* Autoscroll when visible */}
             <div className='flex h-18 w-full items-center justify-center gap-2'>
-              <LiveIndicator />
+              <AutoscrollBadge />
             </div>
           </>
         )}
