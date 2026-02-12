@@ -1,4 +1,4 @@
-import { LoaderCircle } from 'lucide-react'
+import BrailleLoader from './components/BrailleLoader'
 import LiveIndicator from './components/LiveIndicator'
 import LogRow from './components/LogRow'
 import TopBar from './components/TopBar'
@@ -14,7 +14,7 @@ export function App() {
     return (
       <div className='flex h-dvh w-screen items-center justify-center gap-2'>
         <div className='flex items-center gap-2'>
-          <LoaderCircle className='size-4 animate-spin text-primary' />
+          <BrailleLoader className='text-primary' />
           Loading
         </div>
         <LiveIndicator />
@@ -23,7 +23,7 @@ export function App() {
   return (
     <div className='flex h-dvh flex-col'>
       <TopBar />
-      <div className='flex-1 overflow-y-auto pt-16 mt-2'>
+      <div className='mt-2 flex-1 overflow-y-auto pt-16'>
         {logs.map(l => (
           <LogRow
             key={l.id}
