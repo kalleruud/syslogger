@@ -42,7 +42,7 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
   const offsetRef = useRef(0)
   const oldestTimestampRef = useRef<string | null>(null)
 
-  // Fetch initial logs on mount - get oldest 100 logs (ASC order from DB)
+  // Fetch initial logs on mount - get newest 100 logs (DESC from DB, then reverse)
   useEffect(() => {
     async function loadInitialLogs() {
       try {
@@ -51,14 +51,16 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
         console.debug(
           `Loaded ${result.data.length} logs (total: ${result.total})`
         )
-        // Logs come in ASC order (oldest first), display as-is
-        setLogs(result.data)
+
+        // Logs come in DESC order (newest first), reverse to get oldest→newest for display
+        const reversedLogs = [...result.data].reverse()
+        setLogs(reversedLogs)
         totalRef.current = result.total
         offsetRef.current = result.data.length
 
-        // Store the FIRST (oldest) timestamp from the initial fetch
-        if (result.data.length > 0) {
-          const oldestLog = result.data[0]
+        // Store the FIRST (oldest) timestamp after reversing
+        if (reversedLogs.length > 0) {
+          const oldestLog = reversedLogs[0]
           if (oldestLog) {
             oldestTimestampRef.current = oldestLog.timestamp
             console.debug(
@@ -95,11 +97,12 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
 
       if (result.data.length > 0) {
         // PREPEND older logs to the BEGINNING (they're older, so go on top)
-        // Result comes in ASC order (oldest first), prepend as-is
-        setLogs(prevLogs => [...result.data, ...(prevLogs ?? [])])
+        // Result comes in DESC order (newest first), reverse to oldest→newest
+        const reversedNewLogs = [...result.data].reverse()
+        setLogs(prevLogs => [...reversedNewLogs, ...(prevLogs ?? [])])
 
-        // Update the oldest timestamp to the FIRST log in the new batch
-        const newOldestLog = result.data[0]
+        // Update the oldest timestamp to the FIRST log after reversing
+        const newOldestLog = reversedNewLogs[0]
         if (newOldestLog) {
           oldestTimestampRef.current = newOldestLog.timestamp
           console.debug(

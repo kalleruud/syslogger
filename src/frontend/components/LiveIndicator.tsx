@@ -4,7 +4,7 @@ import { useConnection } from '../contexts/ConnectionContext'
 export default function LiveIndicator() {
   const { isConnected } = useConnection()
   return (
-    <>
+    <div className='flex items-center justify-center gap-2'>
       <div
         className={twMerge(
           'size-2 rounded-full shadow-[0_0px_10px]',
@@ -14,6 +14,6 @@ export default function LiveIndicator() {
         )}
       />
       {isConnected ? 'Listening' : 'Disconnected'}
-    </>
+    </div>
   )
 }

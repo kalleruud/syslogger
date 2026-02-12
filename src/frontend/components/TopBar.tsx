@@ -9,7 +9,7 @@ export default function TopBar() {
         <img src={logo} alt='syslogger logo' className='h-6 w-6' />
         <h1 className='text-lg font-black'>syslogger</h1>
       </div>
-      <div className='flex items-center gap-2'>
+      <div className='flex items-center gap-4'>
         <ColumnSelector />
         <LiveIndicator />
       </div>

@@ -1,6 +1,6 @@
 import {
   and,
-  asc,
+  desc,
   eq,
   getTableColumns,
   inArray,
@@ -94,7 +94,7 @@ const fetchPaginatedLogs = async (
     .select()
     .from(logs)
     .where(whereClause)
-    .orderBy(asc(logs.timestamp))
+    .orderBy(desc(logs.timestamp))
     .limit(limit)
     .offset(offset)
 }
