@@ -13,7 +13,8 @@ const ESTIMATED_ROW_HEIGHT = 24
 export default function App() {
   const data = useData()
   const { visibleColumns } = useColumnVisibility()
-  const { isAutoscrollEnabled, setIsAutoscrollEnabled } = useAutoscroll()
+  const { isAutoscrollEnabled, setIsAutoscrollEnabled, scrollToBottomRef } =
+    useAutoscroll()
   const parentRef = useRef<HTMLDivElement>(null)
   const prevLogsLengthRef = useRef(0)
   const hasInitiallyScrolledRef = useRef(false)
@@ -31,6 +32,20 @@ export default function App() {
     estimateSize: () => ESTIMATED_ROW_HEIGHT,
     overscan: 50,
   })
+
+  // Register scroll to bottom function
+  useEffect(() => {
+    scrollToBottomRef.current = () => {
+      if (data.isLoading || data.logs.length === 0) return
+      const lastLogIndex = data.hasMore
+        ? data.logs.length
+        : data.logs.length - 1
+      rowVirtualizer.scrollToIndex(lastLogIndex, {
+        align: 'end',
+        behavior: 'smooth',
+      })
+    }
+  }, [data, rowVirtualizer, scrollToBottomRef])
 
   // Track if user is at bottom and update context
   useEffect(() => {

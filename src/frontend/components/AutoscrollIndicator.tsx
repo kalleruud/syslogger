@@ -3,21 +3,23 @@ import { useAutoscroll } from '../contexts/AutoscrollContext'
 import { Button } from './ui/button'
 
 export default function AutoscrollIndicator() {
-  const { isAutoscrollEnabled } = useAutoscroll()
+  const { isAutoscrollEnabled, scrollToBottomRef } = useAutoscroll()
+
+  const handleClick = () => {
+    scrollToBottomRef.current?.()
+  }
 
   return (
     <div className='flex items-center gap-2'>
       {isAutoscrollEnabled ? (
         <>
           <ArrowDown className='size-4 animate-bounce text-primary' />
-          <span className='text-sm font-medium text-primary'>
-            Auto-scrolling
-          </span>
+          <span className='font-medium text-primary'>Auto-scrolling</span>
         </>
       ) : (
-        <Button variant='ghost'>
+        <Button variant='ghost' size='sm' onClick={handleClick}>
           <ArrowDownToLine className='size-4 text-muted-foreground' />
-          <span className='text-sm text-muted-foreground'>Scroll to end</span>
+          <span className='text-muted-foreground'>Autoscroll</span>
         </Button>
       )}
     </div>

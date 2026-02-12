@@ -2,6 +2,7 @@ import {
   createContext,
   useContext,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react'
@@ -9,6 +10,7 @@ import {
 interface AutoscrollContextType {
   isAutoscrollEnabled: boolean
   setIsAutoscrollEnabled: (enabled: boolean) => void
+  scrollToBottomRef: React.RefObject<(() => void) | null>
 }
 
 const AutoscrollContext = createContext<AutoscrollContextType | undefined>(
@@ -19,12 +21,17 @@ export function AutoscrollProvider({
   children,
 }: Readonly<{ children: ReactNode }>) {
   const [isAutoscrollEnabled, setIsAutoscrollEnabled] = useState(true)
+  const scrollToBottomRef = useRef<(() => void) | null>(null)
 
   return (
     <AutoscrollContext.Provider
       value={useMemo(
-        () => ({ isAutoscrollEnabled, setIsAutoscrollEnabled }),
-        [isAutoscrollEnabled, setIsAutoscrollEnabled]
+        () => ({
+          isAutoscrollEnabled,
+          setIsAutoscrollEnabled,
+          scrollToBottomRef,
+        }),
+        [isAutoscrollEnabled]
       )}>
       {children}
     </AutoscrollContext.Provider>
