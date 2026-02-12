@@ -16,12 +16,14 @@ export default function App() {
   const parentRef = useRef<HTMLDivElement>(null)
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
+  // Calculate virtualizer count: add 1 for loader row when hasMore
+  const getVirtualizerCount = () => {
+    if (data.isLoading) return 0
+    return data.hasMore ? data.logs.length + 1 : data.logs.length
+  }
+
   const rowVirtualizer = useVirtualizer({
-    count: data.isLoading
-      ? 0
-      : data.hasMore
-        ? data.logs.length + 1
-        : data.logs.length,
+    count: getVirtualizerCount(),
     getScrollElement: () => parentRef.current,
     estimateSize: () => ESTIMATED_ROW_HEIGHT,
     overscan: 5,
@@ -77,6 +79,34 @@ export default function App() {
                 const isLoaderRow = virtualRow.index > logs.length - 1
                 const log = logs[virtualRow.index]
 
+                // Determine content for this row
+                let content: React.ReactNode = null
+
+                if (isLoaderRow) {
+                  content = hasMore ? (
+                    <div className='flex items-center justify-center gap-2 py-2'>
+                      <BrailleLoader className='text-primary' />
+                      <span className='text-muted-foreground'>
+                        Loading older logs...
+                      </span>
+                    </div>
+                  ) : (
+                    <div className='flex items-center justify-center py-2'>
+                      <span className='text-muted-foreground'>
+                        No older logs
+                      </span>
+                    </div>
+                  )
+                } else if (log) {
+                  content = (
+                    <LogRow
+                      log={log}
+                      visibleColumns={visibleColumns}
+                      className='px-1'
+                    />
+                  )
+                }
+
                 return (
                   <div
                     key={virtualRow.key}
@@ -88,28 +118,7 @@ export default function App() {
                       height: `${virtualRow.size}px`,
                       transform: `translateY(${virtualRow.start}px)`,
                     }}>
-                    {isLoaderRow ? (
-                      hasMore ? (
-                        <div className='flex items-center justify-center gap-2 py-2'>
-                          <BrailleLoader className='text-primary' />
-                          <span className='text-sm text-muted-foreground'>
-                            Loading older logs...
-                          </span>
-                        </div>
-                      ) : (
-                        <div className='flex items-center justify-center py-2'>
-                          <span className='text-sm text-muted-foreground'>
-                            No older logs
-                          </span>
-                        </div>
-                      )
-                    ) : log ? (
-                      <LogRow
-                        log={log}
-                        visibleColumns={visibleColumns}
-                        className='px-1'
-                      />
-                    ) : null}
+                    {content}
                   </div>
                 )
               })}
@@ -125,4 +134,3 @@ export default function App() {
     </div>
   )
 }
- 

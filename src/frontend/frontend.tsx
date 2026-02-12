@@ -5,7 +5,7 @@
  * It is included in `src/index.html`.
  */
 
-import { App } from '@/frontend/App'
+import App from '@/frontend/App'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ConnectionProvider } from './contexts/ConnectionContext'

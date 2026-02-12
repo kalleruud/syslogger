@@ -60,7 +60,7 @@ export default function LogRow({
   return (
     <div
       className={twMerge(
-        'flex w-screen gap-2 text-sm select-text hover:cursor-pointer hover:bg-accent-foreground/15',
+        'flex w-screen gap-2 select-text hover:cursor-pointer hover:bg-accent-foreground/15',
         className
       )}
       {...props}>

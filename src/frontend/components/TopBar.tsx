@@ -1,5 +1,6 @@
 import logo from '@public/logo.svg'
 import ColumnSelector from './ColumnSelector'
+import LiveIndicator from './LiveIndicator'
 
 export default function TopBar() {
   return (
@@ -8,7 +9,10 @@ export default function TopBar() {
         <img src={logo} alt='syslogger logo' className='h-6 w-6' />
         <h1 className='text-lg font-black'>syslogger</h1>
       </div>
-      <ColumnSelector />
+      <div className='flex items-center gap-2'>
+        <ColumnSelector />
+        <LiveIndicator />
+      </div>
     </div>
   )
 }

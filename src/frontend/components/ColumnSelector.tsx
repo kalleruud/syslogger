@@ -1,7 +1,6 @@
 import {
   COLUMNS,
   useColumnVisibility,
-  type ColumnKey,
 } from '@/frontend/hooks/useColumnVisibility'
 import { Columns } from 'lucide-react'
 import { Button } from './ui/button'
@@ -40,11 +39,11 @@ export default function ColumnSelector() {
                   id={`column-${column.key}`}
                   checked={visible}
                   disabled={disabled}
-                  onCheckedChange={() => toggleColumn(column.key as ColumnKey)}
+                  onCheckedChange={() => toggleColumn(column.key)}
                 />
                 <label
                   htmlFor={`column-${column.key}`}
-                  className={`flex-1 text-sm ${disabled ? 'opacity-50' : 'cursor-pointer'}`}>
+                  className={`flex-1 ${disabled ? 'opacity-50' : 'cursor-pointer'}`}>
                   {column.label}
                 </label>
               </div>
