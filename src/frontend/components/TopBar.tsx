@@ -2,7 +2,7 @@ import ColumnSelector from './ColumnSelector'
 
 export default function TopBar() {
   return (
-    <div className='absolute top-0 right-0 left-0 z-50 flex items-center justify-between border-b bg-background/50 px-4 py-4 backdrop-blur-lg'>
+    <div className='absolute top-0 right-0 left-0 z-50 flex h-16 items-center justify-between border-b bg-background/50 px-4 backdrop-blur-lg'>
       <h1 className='text-lg font-black'>syslogger</h1>
       <ColumnSelector />
     </div>

@@ -7,8 +7,10 @@ export default function LiveIndicator() {
     <>
       <div
         className={twMerge(
-          'size-2 rounded-full shadow-[0_0px_10px] shadow-primary',
-          isConnected ? 'animate-pulse bg-primary' : 'bg-destructive'
+          'size-2 rounded-full shadow-[0_0px_10px]',
+          isConnected
+            ? 'animate-pulse bg-primary shadow-primary'
+            : 'bg-destructive shadow-destructive'
         )}
       />
       {isConnected ? 'Listening' : 'Disconnected'}

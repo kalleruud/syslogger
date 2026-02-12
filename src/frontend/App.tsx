@@ -23,7 +23,7 @@ export function App() {
   return (
     <div className='flex h-dvh flex-col'>
       <TopBar />
-      <div className='flex-1 overflow-y-auto'>
+      <div className='flex-1 overflow-y-auto pt-16 mt-2'>
         {logs.map(l => (
           <LogRow
             key={l.id}
