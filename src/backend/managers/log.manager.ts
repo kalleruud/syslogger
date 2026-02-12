@@ -1,5 +1,6 @@
 import { insertLogWithTags } from '@/database/queries'
 import type { NewLog } from '@/database/schema'
+import { broadcastLog } from '../websocket'
 
 const FACILITY_LOCAL0 = 16
 const HOSTNAME = 'syslogger'
@@ -59,7 +60,7 @@ const persistLog = async (
     const logEntry = createLogEntry(severity, appname, message)
     const allTags = combineTagsWithInternal(tags)
     const savedLog = await insertLogWithTags(logEntry, allTags)
-    // TODO: Implement WebSocket broadcasting logic
+    broadcastLog(savedLog)
   } catch (error) {
     console.error('[CRITICAL] Failed to log:', error)
   }

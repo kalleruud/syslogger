@@ -1,6 +1,7 @@
 import { wsConfig, wsEndpoint, type BunSocketData } from '@/backend/websocket'
 import config from '@/lib/config'
 import index from '@public/index.html'
+import { handleGetLogs } from './routes/api'
 
 export const serverConfig: Bun.Serve.Options<BunSocketData> = {
   port: config.port,
@@ -8,6 +9,11 @@ export const serverConfig: Bun.Serve.Options<BunSocketData> = {
   routes: {
     // Serve websockets
     ...wsEndpoint,
+
+    // API routes
+    '/api/logs': {
+      GET: handleGetLogs,
+    },
 
     // Serve React
     '/': index,
