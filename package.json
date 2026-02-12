@@ -22,6 +22,7 @@
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.1",
     "lucide-react": "^0.563.0",
+    "radix-ui": "^1.4.3",
     "react": "^19",
     "react-dom": "^19",
     "shadcn": "^3.8.4",
