@@ -15,6 +15,7 @@ export interface FetchLogsParams {
   appname?: string
   search?: string
   tagIds?: number[]
+  beforeTimestamp?: string
 }
 
 /**
@@ -43,6 +44,9 @@ function buildQueryString(params: FetchLogsParams): string {
   }
   if (params.tagIds?.length) {
     searchParams.set('tags', params.tagIds.join(','))
+  }
+  if (params.beforeTimestamp) {
+    searchParams.set('beforeTimestamp', params.beforeTimestamp)
   }
 
   return searchParams.toString()

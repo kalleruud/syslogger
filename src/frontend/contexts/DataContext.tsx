@@ -40,6 +40,7 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const totalRef = useRef(0)
   const offsetRef = useRef(0)
+  const oldestTimestampRef = useRef<string | null>(null)
 
   // Fetch initial logs on mount
   useEffect(() => {
@@ -53,6 +54,18 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
         setLogs(result.data)
         totalRef.current = result.total
         offsetRef.current = result.data.length
+
+        // Store the oldest timestamp from the initial fetch
+        if (result.data.length > 0) {
+          const oldestLog = result.data.at(-1)
+          if (oldestLog) {
+            oldestTimestampRef.current = oldestLog.timestamp
+            console.debug(
+              `Oldest timestamp from initial fetch: ${oldestLog.timestamp}`
+            )
+          }
+        }
+
         setHasMore(result.data.length < result.total)
       } catch (err) {
         console.error('Failed to load initial logs:', err)
@@ -67,21 +80,36 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
 
   // Load more logs (older logs) for infinite scroll
   const loadMore = useCallback(async () => {
-    if (isLoadingMore || !hasMore) return
+    if (isLoadingMore || !hasMore || !oldestTimestampRef.current) return
 
     setIsLoadingMore(true)
     try {
-      console.debug(`Loading more logs from offset ${offsetRef.current}...`)
+      console.debug(`Loading logs older than ${oldestTimestampRef.current}...`)
       const result = await fetchLogs({
         limit: PAGE_SIZE,
-        offset: offsetRef.current,
+        offset: 0, // Always offset 0 since we're filtering by timestamp
+        beforeTimestamp: oldestTimestampRef.current,
       })
       console.debug(`Loaded ${result.data.length} more logs`)
 
-      // Append older logs to the end
-      setLogs(prevLogs => [...(prevLogs ?? []), ...result.data])
-      offsetRef.current += result.data.length
-      setHasMore(offsetRef.current < result.total)
+      if (result.data.length > 0) {
+        // Append older logs to the end
+        setLogs(prevLogs => [...(prevLogs ?? []), ...result.data])
+
+        // Update the oldest timestamp to the last log in the new batch
+        const newOldestLog = result.data.at(-1)
+        if (newOldestLog) {
+          oldestTimestampRef.current = newOldestLog.timestamp
+          console.debug(
+            `Updated oldest timestamp to: ${newOldestLog.timestamp}`
+          )
+        }
+
+        offsetRef.current += result.data.length
+      }
+
+      // If we got fewer logs than requested, there are no more
+      setHasMore(result.data.length === PAGE_SIZE)
     } catch (err) {
       console.error('Failed to load more logs:', err)
     } finally {

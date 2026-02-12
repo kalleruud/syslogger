@@ -48,6 +48,9 @@ function extractFiltersFromRequest(url: URL): LogFilters {
   const tagIds = parseNumberArrayParam(params.get('tags'))
   if (tagIds?.length) filters.tagIds = tagIds
 
+  const beforeTimestamp = params.get('beforeTimestamp')
+  if (beforeTimestamp) filters.beforeTimestamp = beforeTimestamp
+
   return filters
 }
 

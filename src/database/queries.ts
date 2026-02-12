@@ -5,6 +5,7 @@ import {
   getTableColumns,
   inArray,
   like,
+  lt,
   SQL,
   sql,
 } from 'drizzle-orm'
@@ -27,6 +28,7 @@ export interface LogFilters {
   tagIds?: number[]
   limit?: number
   offset?: number
+  beforeTimestamp?: string
 }
 
 export interface PaginatedResult<T> {
@@ -54,6 +56,9 @@ const buildWhereConditions = (filters: LogFilters) => {
   }
   if (filters.search) {
     conditions.push(like(logs.message, `%${filters.search}%`))
+  }
+  if (filters.beforeTimestamp) {
+    conditions.push(lt(logs.timestamp, filters.beforeTimestamp))
   }
 
   return conditions
