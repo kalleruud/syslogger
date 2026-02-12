@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Left brace -->
+  <path d="M24 16 C20 16 18 18 18 22 L18 28 C18 30 16 32 14 32 C16 32 18 34 18 36 L18 42 C18 46 20 48 24 48" stroke="#65d169" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  
+  <!-- Right brace -->
+  <path d="M40 16 C44 16 46 18 46 22 L46 28 C46 30 48 32 50 32 C48 32 46 34 46 36 L46 42 C46 46 44 48 40 48" stroke="#65d169" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  
+  <!-- Log lines inside -->
+  <rect x="26" y="24" width="12" height="2" rx="1" fill="#65d169" opacity="0.9"/>
+  <rect x="26" y="30" width="9" height="2" rx="1" fill="#65d169" opacity="0.7"/>
+  <rect x="26" y="36" width="10" height="2" rx="1" fill="#65d169" opacity="0.5"/>
+</svg>
