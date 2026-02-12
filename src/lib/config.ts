@@ -10,6 +10,7 @@ const config = {
   cors: {
     origin: process.env.SYSLOGGER_CORS_ORIGIN || '*',
   },
+  timezone: process.env.TZ || 'UTC',
 } as const
 
 export default config

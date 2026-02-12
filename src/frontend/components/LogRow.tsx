@@ -5,6 +5,30 @@ import { getSeverity } from '@/lib/severities'
 import type { ComponentProps } from 'react'
 import { twMerge } from 'tailwind-merge'
 
+const timezone = process.env.TZ || 'UTC'
+
+function formatLocalIso(date: Date): { datePart: string; timePart: string } {
+  const formatter = new Intl.DateTimeFormat('sv-SE', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  })
+
+  const parts = formatter.formatToParts(date)
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find(p => p.type === type)?.value ?? ''
+
+  const datePart = `${get('year')}-${get('month')}-${get('day')}`
+  const timePart = `${get('hour')}:${get('minute')}:${get('second')}`
+
+  return { datePart, timePart }
+}
+
 type LogRowProps = {
   log: LogWithTags
   visibleColumns: Set<ColumnKey>
@@ -20,6 +44,7 @@ export default function LogRow({
   const facility = log.facility === null ? undefined : getFacility(log.facility)
 
   const date = new Date(log.timestamp)
+  const { datePart, timePart } = formatLocalIso(date)
 
   const severityTextStyles = [
     'text-emergency font-black',
@@ -40,9 +65,7 @@ export default function LogRow({
       )}
       {...props}>
       {visibleColumns.has('timestamp') && (
-        <div className='line-clamp-1 shrink-0'>
-          {date.toLocaleString('en-UK', { timeZone: 'Europe/Oslo' })}
-        </div>
+        <div className='line-clamp-1 shrink-0 opacity-50'>{`${datePart} ${timePart}`}</div>
       )}
 
       {visibleColumns.has('appname') && (
