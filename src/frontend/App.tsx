@@ -10,8 +10,11 @@ export function App() {
   if (isLoading)
     return (
       <div className='flex h-dvh w-screen items-center justify-center gap-2'>
-        <LoaderCircle className='size-4 animate-spin text-primary' />
-        Loading
+        <div>
+          <LoaderCircle className='size-4 animate-spin text-primary' />
+          Loading
+        </div>
+        <LiveIndicator />
       </div>
     )
   return (

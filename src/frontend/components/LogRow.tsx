@@ -37,7 +37,7 @@ export default function LogRow({
       )}
       {...props}>
       <div className='line-clamp-1 shrink-0'>
-        {date.toLocaleString('nb-NO', { timeZone: 'Europe/Oslo' })}
+        {date.toLocaleString('en-UK', { timeZone: 'Europe/Oslo' })}
       </div>
       <div className='line-clamp-1 shrink-0'>{log.appname}</div>
 

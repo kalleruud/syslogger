@@ -32,9 +32,8 @@ const ConnectionContext = createContext<ConnectionContextType | undefined>(
 export function ConnectionProvider({
   children,
 }: Readonly<{ children: ReactNode }>) {
-  const [isConnected, setIsConnected] = useState<
-    ConnectionContextType['isConnected']
-  >(false)
+  const [isConnected, setIsConnected] =
+    useState<ConnectionContextType['isConnected']>(false)
 
   function handleOpen() {
     console.log('Connected to backend')
