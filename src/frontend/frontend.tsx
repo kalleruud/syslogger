@@ -8,6 +8,7 @@
 import App from '@/frontend/App'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { AutoscrollProvider } from './contexts/AutoscrollContext'
 import { ConnectionProvider } from './contexts/ConnectionContext'
 import { DataProvider } from './contexts/DataContext'
 
@@ -16,7 +17,9 @@ const app = (
   <StrictMode>
     <ConnectionProvider>
       <DataProvider>
-        <App />
+        <AutoscrollProvider>
+          <App />
+        </AutoscrollProvider>
       </DataProvider>
     </ConnectionProvider>
   </StrictMode>

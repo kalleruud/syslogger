@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react'
 import BrailleLoader from './components/BrailleLoader'
 import LogRow from './components/LogRow'
 import TopBar from './components/TopBar'
+import { useAutoscroll } from './contexts/AutoscrollContext'
 import { useData } from './contexts/DataContext'
 import { useColumnVisibility } from './hooks/useColumnVisibility'
 import './index.css'
@@ -12,8 +13,8 @@ const ESTIMATED_ROW_HEIGHT = 24
 export default function App() {
   const data = useData()
   const { visibleColumns } = useColumnVisibility()
+  const { isAutoscrollEnabled, setIsAutoscrollEnabled } = useAutoscroll()
   const parentRef = useRef<HTMLDivElement>(null)
-  const isAtBottomRef = useRef(true) // Track if user is scrolled to bottom
   const prevLogsLengthRef = useRef(0)
   const hasInitiallyScrolledRef = useRef(false)
 
@@ -31,7 +32,7 @@ export default function App() {
     overscan: 50,
   })
 
-  // Track if user is at bottom
+  // Track if user is at bottom and update context
   useEffect(() => {
     const container = parentRef.current
     if (!container || data.isLoading) return
@@ -41,14 +42,15 @@ export default function App() {
       const { scrollTop, scrollHeight, clientHeight } = container
       const distanceFromBottom = scrollHeight - scrollTop - clientHeight
       // Consider at bottom if within 100px
-      isAtBottomRef.current = distanceFromBottom < 100
+      const isAtBottom = distanceFromBottom < ESTIMATED_ROW_HEIGHT * 2
+      setIsAutoscrollEnabled(isAtBottom)
     }
 
     container.addEventListener('scroll', handleScroll)
     return () => container.removeEventListener('scroll', handleScroll)
-  }, [data.isLoading])
+  }, [data.isLoading, setIsAutoscrollEnabled])
 
-  // Scroll to bottom on initial load AND when new logs arrive (if at bottom)
+  // Scroll to bottom on initial load AND when new logs arrive (if autoscroll enabled)
   useEffect(() => {
     if (data.isLoading) return
     if (data.logs.length === 0) return
@@ -68,9 +70,9 @@ export default function App() {
       return
     }
 
-    // Auto-scroll on new logs only if user is at bottom
+    // Auto-scroll on new logs only if autoscroll is enabled
     const newLogsCount = data.logs?.length ?? 0
-    if (newLogsCount > prevLogsLengthRef.current && isAtBottomRef.current) {
+    if (newLogsCount > prevLogsLengthRef.current && isAutoscrollEnabled) {
       requestAnimationFrame(() => {
         rowVirtualizer.scrollToIndex(lastLogIndex, {
           align: 'end',
@@ -80,7 +82,7 @@ export default function App() {
     }
 
     prevLogsLengthRef.current = newLogsCount
-  }, [data, rowVirtualizer])
+  }, [data, rowVirtualizer, isAutoscrollEnabled])
 
   // Trigger loading more when scrolling to the TOP (loader row at index 0)
   useEffect(() => {

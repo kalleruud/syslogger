@@ -1,4 +1,5 @@
 import logo from '@public/logo.svg'
+import AutoscrollIndicator from './AutoscrollIndicator'
 import ColumnSelector from './ColumnSelector'
 import LiveIndicator from './LiveIndicator'
 
@@ -10,6 +11,7 @@ export default function TopBar() {
         <h1 className='text-lg font-black'>syslogger</h1>
       </div>
       <div className='flex items-center gap-4'>
+        <AutoscrollIndicator />
         <ColumnSelector />
         <LiveIndicator />
       </div>
