@@ -52,9 +52,9 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 - [x] **Single Page Application**: Minimal, terminal-inspired design on a single page
 - [ ] **Top Control Bar**: Search input, filter dropdowns, column visibility toggle, and settings button in one row
 - [x] **Terminal-style Log Table**: Fixed-width character columns with no gaps or margins between cells
-- [ ] **Column Visibility Toggle**: Show/hide columns via multi-select dropdown
+- [x] **Column Visibility Toggle**: Show/hide columns via multi-select dropdown
 - [ ] **Settings Button**: Opens a popup to configure retention settings per severity level
-- [ ] **Severity Color Coding**: Visual distinction by log level (red/orange/yellow/blue)
+- [x] **Severity Color Coding**: Visual distinction by log level (red/orange/yellow/blue)
 - [ ] **Virtual Scrolling**: Efficient rendering of large datasets with @tanstack/react-virtual
 - [ ] **Infinite Scroll**: Load older logs automatically when scrolling up
 - [ ] **Auto scroll**: When the screen is scrolled all the way to the bottom, auto scrolling on new incoming logs is enabled.
