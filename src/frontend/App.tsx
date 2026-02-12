@@ -7,7 +7,7 @@ import { useData } from './contexts/DataContext'
 import { useColumnVisibility } from './hooks/useColumnVisibility'
 import './index.css'
 
-const SCROLL_THRESHOLD = 100 // px from top to trigger loading more
+const SCROLL_THRESHOLD = 200 // px from top to trigger loading more
 
 export function App() {
   const { logs, isLoading, hasMore, isLoadingMore, loadMore } = useData()
@@ -15,7 +15,7 @@ export function App() {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const isLoadingRef = useRef(false)
 
-  // Handle scroll event to detect when user scrolls near the top
+  // Handle scroll event to detect when user scrolls near the TOP (to load OLDER logs)
   useEffect(() => {
     const container = scrollContainerRef.current
     if (!container || isLoading) return
@@ -25,11 +25,22 @@ export function App() {
 
       const scrollTop = container.scrollTop
 
-      // Load more when scrolling near the top
+      // Load MORE (older) logs when scrolling UP near the top
       if (scrollTop <= SCROLL_THRESHOLD) {
         isLoadingRef.current = true
+        const previousScrollHeight = container.scrollHeight
+        const previousScrollTop = container.scrollTop
+
         loadMore().finally(() => {
           isLoadingRef.current = false
+
+          // Preserve scroll position after prepending logs
+          requestAnimationFrame(() => {
+            const newScrollHeight = container.scrollHeight
+            const scrollHeightDifference =
+              newScrollHeight - previousScrollHeight
+            container.scrollTop = previousScrollTop + scrollHeightDifference
+          })
         })
       }
     }
@@ -55,7 +66,14 @@ export function App() {
       <div
         ref={scrollContainerRef}
         className='mt-2 flex-1 overflow-y-auto pt-16'>
-        {/* Loading indicator at top when fetching older logs */}
+        {/* Empty state */}
+        {logs.length === 0 && (
+          <div className='flex h-full items-center justify-center'>
+            <span className='text-muted-foreground'>No logs yet</span>
+          </div>
+        )}
+
+        {/* Loading indicator at TOP when fetching OLDER logs */}
         {isLoadingMore && (
           <div className='flex items-center justify-center gap-2 py-2'>
             <BrailleLoader className='text-primary' />
@@ -65,16 +83,14 @@ export function App() {
           </div>
         )}
 
-        {/* No more logs indicator */}
+        {/* No more OLDER logs indicator at top */}
         {!hasMore && logs.length > 0 && (
           <div className='flex items-center justify-center py-2'>
-            <span className='text-sm text-muted-foreground'>
-              No more logs to load
-            </span>
+            <span className='text-sm text-muted-foreground'>No older logs</span>
           </div>
         )}
 
-        {/* Log rows */}
+        {/* Log rows - oldest at top, newest at bottom (terminal style) */}
         {logs.map(l => (
           <LogRow
             key={l.id}
@@ -84,14 +100,7 @@ export function App() {
           />
         ))}
 
-        {/* Empty state */}
-        {logs.length === 0 && (
-          <div className='flex h-full items-center justify-center'>
-            <span className='text-muted-foreground'>No logs yet</span>
-          </div>
-        )}
-
-        {/* Live indicator at bottom */}
+        {/* Live indicator at BOTTOM (where new logs appear) */}
         <div className='flex h-18 items-center justify-center gap-2'>
           <LiveIndicator />
         </div>

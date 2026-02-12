@@ -42,7 +42,7 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
   const offsetRef = useRef(0)
   const oldestTimestampRef = useRef<string | null>(null)
 
-  // Fetch initial logs on mount
+  // Fetch initial logs on mount - get oldest 100 logs (ASC order from DB)
   useEffect(() => {
     async function loadInitialLogs() {
       try {
@@ -51,13 +51,14 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
         console.debug(
           `Loaded ${result.data.length} logs (total: ${result.total})`
         )
+        // Logs come in ASC order (oldest first), display as-is
         setLogs(result.data)
         totalRef.current = result.total
         offsetRef.current = result.data.length
 
-        // Store the oldest timestamp from the initial fetch
+        // Store the FIRST (oldest) timestamp from the initial fetch
         if (result.data.length > 0) {
-          const oldestLog = result.data.at(-1)
+          const oldestLog = result.data[0]
           if (oldestLog) {
             oldestTimestampRef.current = oldestLog.timestamp
             console.debug(
@@ -78,7 +79,7 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
     loadInitialLogs()
   }, [])
 
-  // Load more logs (older logs) for infinite scroll
+  // Load more logs (older logs) for infinite scroll - triggered when scrolling UP
   const loadMore = useCallback(async () => {
     if (isLoadingMore || !hasMore || !oldestTimestampRef.current) return
 
@@ -93,11 +94,12 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
       console.debug(`Loaded ${result.data.length} more logs`)
 
       if (result.data.length > 0) {
-        // Append older logs to the end
-        setLogs(prevLogs => [...(prevLogs ?? []), ...result.data])
+        // PREPEND older logs to the BEGINNING (they're older, so go on top)
+        // Result comes in ASC order (oldest first), prepend as-is
+        setLogs(prevLogs => [...result.data, ...(prevLogs ?? [])])
 
-        // Update the oldest timestamp to the last log in the new batch
-        const newOldestLog = result.data.at(-1)
+        // Update the oldest timestamp to the FIRST log in the new batch
+        const newOldestLog = result.data[0]
         if (newOldestLog) {
           oldestTimestampRef.current = newOldestLog.timestamp
           console.debug(
@@ -117,14 +119,14 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
     }
   }, [isLoadingMore, hasMore])
 
-  // Handle WebSocket messages - prepend new logs to the beginning
+  // Handle WebSocket messages - append new logs to the end (terminal style)
   const handleMessage = useCallback((e: MessageEvent) => {
     console.debug('Received log via WebSocket')
     try {
       const parsed = JSON.parse(e.data)
       if (!isLogsWithTags(parsed)) throw new Error('Received invalid log.')
-      // Prepend new log to the beginning (newest first)
-      setLogs(prevLogs => [parsed, ...(prevLogs ?? [])])
+      // APPEND new log to the END (newest at bottom, terminal style)
+      setLogs(prevLogs => [...(prevLogs ?? []), parsed])
       totalRef.current += 1
     } catch (err) {
       if (!Error.isError(err)) throw err
