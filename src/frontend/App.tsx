@@ -29,6 +29,21 @@ export default function App() {
     overscan: 5,
   })
 
+  // Scroll to bottom on initial load
+  useEffect(() => {
+    if (data.isLoading) return
+
+    if (data.logs.length > 0) {
+      // Scroll to bottom after initial data loads
+      requestAnimationFrame(() => {
+        rowVirtualizer.scrollToIndex(data.logs.length - 1, {
+          align: 'end',
+          behavior: 'auto',
+        })
+      })
+    }
+  }, [data, rowVirtualizer])
+
   // Trigger loading more when scrolling near the TOP (for older logs)
   useEffect(() => {
     if (data.isLoading) return
