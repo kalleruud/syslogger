@@ -35,34 +35,35 @@ export function ConnectionProvider({
     useState<ConnectionContextType['isConnected']>(false)
 
   useEffect(() => {
-    const ws = new WebSocket(getWebSocketUrl())
+    let ws: WebSocket | null = null
+    let reconnectTimeout: ReturnType<typeof setTimeout> | null = null
 
-    function handleOpen() {
-      console.log('Connected to backend')
-      setIsConnected(true)
+    function connect() {
+      ws = new WebSocket(getWebSocketUrl())
+
+      ws.addEventListener('open', () => {
+        console.log('Connected to backend')
+        setSocket(ws!)
+        setIsConnected(true)
+      })
+
+      ws.addEventListener('close', () => {
+        console.warn('Disconnected from backend')
+        setSocket(undefined)
+        setIsConnected(false)
+        reconnectTimeout = setTimeout(connect, 2000)
+      })
+
+      ws.addEventListener('error', () => {
+        console.error('Failed to connect to backend')
+      })
     }
 
-    function handleClose() {
-      console.warn('Disconnected from backend')
-      setIsConnected(false)
-    }
-
-    function handleError() {
-      console.error('Failed to connect to backend')
-      setIsConnected(false)
-    }
-
-    ws.addEventListener('open', handleOpen)
-    ws.addEventListener('close', handleClose)
-    ws.addEventListener('error', handleError)
-
-    setSocket(ws)
+    connect()
 
     return () => {
-      ws.removeEventListener('open', handleOpen)
-      ws.removeEventListener('close', handleClose)
-      ws.removeEventListener('error', handleError)
-      ws.close()
+      if (reconnectTimeout) clearTimeout(reconnectTimeout)
+      ws?.close()
     }
   }, [])
 
