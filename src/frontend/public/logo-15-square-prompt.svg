@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Rounded square -->
+  <rect x="10" y="10" width="44" height="44" rx="6" fill="#1a1a1a" stroke="#65d169" stroke-width="2.5"/>
+  
+  <!-- Terminal prompt > -->
+  <path d="M22 26 L30 32 L22 38" stroke="#65d169" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  
+  <!-- Cursor line -->
+  <line x1="34" y1="31" x2="44" y2="31" stroke="#65d169" stroke-width="2.5" stroke-linecap="round">
+    <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/>
+  </line>
+</svg>
