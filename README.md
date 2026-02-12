@@ -34,7 +34,7 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 ### Real-time Features
 
 - [x] **WebSocket Streaming**: Instant log delivery to all connected clients using bun websockets
-- [ ] **Auto-reconnect**: Exponential backoff reconnection (up to 10 attempts)
+- [x] **Auto-reconnect**: Automatic websocket reconnection
 - [x] **Connection Status Indicator**: Visual feedback with pulse animation
 
 ### Filtering & Search
