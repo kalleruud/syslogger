@@ -16,7 +16,7 @@ export default function App() {
   const parentRef = useRef<HTMLDivElement>(null)
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
-  // Calculate virtualizer count: add 1 for loader row when hasMore
+  // Calculate virtualizer count: add 1 for loader row at TOP when hasMore
   const getVirtualizerCount = () => {
     if (data.isLoading) return 0
     return data.hasMore ? data.logs.length + 1 : data.logs.length
@@ -29,14 +29,19 @@ export default function App() {
     overscan: 5,
   })
 
-  // Scroll to bottom on initial load
+  // Scroll to bottom on initial load (accounting for loader row at index 0)
   useEffect(() => {
     if (data.isLoading) return
 
     if (data.logs.length > 0) {
+      // If hasMore, logs start at index 1 (index 0 is loader), else at index 0
+      const lastLogIndex = data.hasMore
+        ? data.logs.length
+        : data.logs.length - 1
+
       // Scroll to bottom after initial data loads
       requestAnimationFrame(() => {
-        rowVirtualizer.scrollToIndex(data.logs.length - 1, {
+        rowVirtualizer.scrollToIndex(lastLogIndex, {
           align: 'end',
           behavior: 'auto',
         })
@@ -44,7 +49,7 @@ export default function App() {
     }
   }, [data, rowVirtualizer])
 
-  // Trigger loading more when scrolling near the TOP (for older logs)
+  // Trigger loading more when scrolling to the TOP (loader row at index 0)
   useEffect(() => {
     if (data.isLoading) return
 
@@ -54,6 +59,7 @@ export default function App() {
       return
     }
 
+    // When we scroll to index 0 (the loader row), trigger loading
     if (firstItem.index === 0 && data.hasMore && !data.isLoadingMore) {
       data.loadMore()
     }
@@ -91,24 +97,23 @@ export default function App() {
                 position: 'relative',
               }}>
               {rowVirtualizer.getVirtualItems().map(virtualRow => {
-                const isLoaderRow = virtualRow.index > logs.length - 1
-                const log = logs[virtualRow.index]
+                // If hasMore, index 0 is the loader row, logs start at index 1
+                // If !hasMore, all indices are logs (no loader)
+                const isLoaderRow = hasMore && virtualRow.index === 0
+                const logIndex = hasMore
+                  ? virtualRow.index - 1
+                  : virtualRow.index
+                const log = logs[logIndex]
 
                 // Determine content for this row
                 let content: React.ReactNode = null
 
                 if (isLoaderRow) {
-                  content = hasMore ? (
+                  content = (
                     <div className='flex items-center justify-center gap-2 py-2'>
                       <BrailleLoader className='text-primary' />
                       <span className='text-muted-foreground'>
                         Loading older logs...
-                      </span>
-                    </div>
-                  ) : (
-                    <div className='flex items-center justify-center py-2'>
-                      <span className='text-muted-foreground'>
-                        No older logs
                       </span>
                     </div>
                   )
@@ -119,6 +124,15 @@ export default function App() {
                       visibleColumns={visibleColumns}
                       className='px-1'
                     />
+                  )
+                } else if (!hasMore && virtualRow.index === 0) {
+                  // Show "No older logs" message at top when no more logs
+                  content = (
+                    <div className='flex items-center justify-center py-2'>
+                      <span className='text-muted-foreground'>
+                        No older logs
+                      </span>
+                    </div>
                   )
                 }
 
