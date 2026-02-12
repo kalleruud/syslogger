@@ -1,13 +1,11 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useEffect, useRef } from 'react'
 import BrailleLoader from './components/BrailleLoader'
-import LiveIndicator from './components/LiveIndicator'
 import LogRow from './components/LogRow'
 import TopBar from './components/TopBar'
 import { useData } from './contexts/DataContext'
 import { useColumnVisibility } from './hooks/useColumnVisibility'
 import './index.css'
-import AutoscrollBadge from './components/AutoscrollBadge'
 
 const ESTIMATED_ROW_HEIGHT = 24
 
@@ -15,6 +13,9 @@ export default function App() {
   const data = useData()
   const { visibleColumns } = useColumnVisibility()
   const parentRef = useRef<HTMLDivElement>(null)
+  const isAtBottomRef = useRef(true) // Track if user is scrolled to bottom
+  const prevLogsLengthRef = useRef(0)
+  const hasInitiallyScrolledRef = useRef(false)
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
   // Calculate virtualizer count: add 1 for loader row at TOP when hasMore
@@ -27,27 +28,58 @@ export default function App() {
     count: getVirtualizerCount(),
     getScrollElement: () => parentRef.current,
     estimateSize: () => ESTIMATED_ROW_HEIGHT,
-    overscan: 5,
+    overscan: 50,
   })
 
-  // Scroll to bottom on initial load (accounting for loader row at index 0)
+  // Track if user is at bottom
+  useEffect(() => {
+    const container = parentRef.current
+    if (!container || data.isLoading) return
+
+    const handleScroll = () => {
+      if (!container) return
+      const { scrollTop, scrollHeight, clientHeight } = container
+      const distanceFromBottom = scrollHeight - scrollTop - clientHeight
+      // Consider at bottom if within 100px
+      isAtBottomRef.current = distanceFromBottom < 100
+    }
+
+    container.addEventListener('scroll', handleScroll)
+    return () => container.removeEventListener('scroll', handleScroll)
+  }, [data.isLoading])
+
+  // Scroll to bottom on initial load AND when new logs arrive (if at bottom)
   useEffect(() => {
     if (data.isLoading) return
+    if (data.logs.length === 0) return
 
-    if (data.logs.length > 0) {
-      // If hasMore, logs start at index 1 (index 0 is loader), else at index 0
-      const lastLogIndex = data.hasMore
-        ? data.logs.length
-        : data.logs.length - 1
+    const lastLogIndex = data.hasMore ? data.logs.length : data.logs.length - 1
 
-      // Scroll to bottom after initial data loads
+    // Initial scroll to bottom
+    if (!hasInitiallyScrolledRef.current) {
+      hasInitiallyScrolledRef.current = true
       requestAnimationFrame(() => {
         rowVirtualizer.scrollToIndex(lastLogIndex, {
           align: 'end',
           behavior: 'auto',
         })
       })
+      prevLogsLengthRef.current = data.logs.length
+      return
     }
+
+    // Auto-scroll on new logs only if user is at bottom
+    const newLogsCount = data.logs?.length ?? 0
+    if (newLogsCount > prevLogsLengthRef.current && isAtBottomRef.current) {
+      requestAnimationFrame(() => {
+        rowVirtualizer.scrollToIndex(lastLogIndex, {
+          align: 'end',
+          behavior: 'smooth',
+        })
+      })
+    }
+
+    prevLogsLengthRef.current = newLogsCount
   }, [data, rowVirtualizer])
 
   // Trigger loading more when scrolling to the TOP (loader row at index 0)
@@ -70,11 +102,8 @@ export default function App() {
   if (data.isLoading) {
     return (
       <div className='flex h-dvh w-screen items-center justify-center gap-2'>
-        <div className='flex items-center gap-2'>
-          <BrailleLoader className='text-primary' />
-          Loading
-        </div>
-        <LiveIndicator />
+        <BrailleLoader className='text-primary' />
+        Loading
       </div>
     )
   }
@@ -90,75 +119,64 @@ export default function App() {
             <span className='text-muted-foreground'>No logs yet</span>
           </div>
         ) : (
-          <>
-            <div
-              style={{
-                height: `${rowVirtualizer.getTotalSize()}px`,
-                width: '100%',
-                position: 'relative',
-              }}>
-              {rowVirtualizer.getVirtualItems().map(virtualRow => {
-                // If hasMore, index 0 is the loader row, logs start at index 1
-                // If !hasMore, all indices are logs (no loader)
-                const isLoaderRow = hasMore && virtualRow.index === 0
-                const logIndex = hasMore
-                  ? virtualRow.index - 1
-                  : virtualRow.index
-                const log = logs[logIndex]
+          <div
+            style={{
+              height: `${rowVirtualizer.getTotalSize()}px`,
+              width: '100%',
+              position: 'relative',
+            }}>
+            {rowVirtualizer.getVirtualItems().map(virtualRow => {
+              // If hasMore, index 0 is the loader row, logs start at index 1
+              // If !hasMore, all indices are logs (no loader)
+              const isLoaderRow = hasMore && virtualRow.index === 0
+              const logIndex = hasMore ? virtualRow.index - 1 : virtualRow.index
+              const log = logs[logIndex]
 
-                // Determine content for this row
-                let content: React.ReactNode = null
+              // Determine content for this row
+              let content: React.ReactNode = null
 
-                if (isLoaderRow) {
-                  content = (
-                    <div className='flex items-center justify-center gap-2 py-2'>
-                      <BrailleLoader className='text-primary' />
-                      <span className='text-muted-foreground'>
-                        Loading older logs...
-                      </span>
-                    </div>
-                  )
-                } else if (log) {
-                  content = (
-                    <LogRow
-                      log={log}
-                      visibleColumns={visibleColumns}
-                      className='px-1'
-                    />
-                  )
-                } else if (!hasMore && virtualRow.index === 0) {
-                  // Show "No older logs" message at top when no more logs
-                  content = (
-                    <div className='flex items-center justify-center py-2'>
-                      <span className='text-muted-foreground'>
-                        No older logs
-                      </span>
-                    </div>
-                  )
-                }
-
-                return (
-                  <div
-                    key={virtualRow.key}
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: `${virtualRow.size}px`,
-                      transform: `translateY(${virtualRow.start}px)`,
-                    }}>
-                    {content}
+              if (isLoaderRow) {
+                content = (
+                  <div className='flex items-center justify-center gap-2 py-2'>
+                    <BrailleLoader className='text-primary' />
+                    <span className='text-muted-foreground'>
+                      Loading older logs...
+                    </span>
                   </div>
                 )
-              })}
-            </div>
+              } else if (log) {
+                content = (
+                  <LogRow
+                    log={log}
+                    visibleColumns={visibleColumns}
+                    className='px-1'
+                  />
+                )
+              } else if (!hasMore && virtualRow.index === 0) {
+                // Show "No older logs" message at top when no more logs
+                content = (
+                  <div className='flex items-center justify-center py-2'>
+                    <span className='text-muted-foreground'>No older logs</span>
+                  </div>
+                )
+              }
 
-            {/* Autoscroll when visible */}
-            <div className='flex h-18 w-full items-center justify-center gap-2'>
-              <AutoscrollBadge />
-            </div>
-          </>
+              return (
+                <div
+                  key={virtualRow.key}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: `${virtualRow.size}px`,
+                    transform: `translateY(${virtualRow.start}px)`,
+                  }}>
+                  {content}
+                </div>
+              )
+            })}
+          </div>
         )}
       </div>
     </div>
