@@ -91,37 +91,58 @@ syslogger/
 ├── src/
 │   ├── syslogger.ts           # Main entry point
 │   ├── backend/
-│   │   ├── index.ts           # Bun.serve configuration
+│   │   ├── index.ts           # Bun.serve fullstack configuration
+│   │   ├── websocket.ts       # WebSocket handlers
 │   │   ├── managers/
 │   │   │   ├── syslog.manager.ts   # UDP socket handler
-│   │   │   └── log.manager.ts      # Internal logging
+│   │   │   └── log.manager.ts      # Internal logging (DB + broadcasts)
 │   │   ├── parsers/
 │   │   │   ├── parser.ts           # Main parser orchestrator
 │   │   │   ├── base.parser.ts      # RFC 5424/3164 parser
 │   │   │   ├── docker.parser.ts    # Docker log parser
 │   │   │   └── fallback.parser.ts  # Severity extraction fallback
-│   │   ├── utils/
-│   │   │   ├── api.ts              # API response helpers
-│   │   │   └── shutdown.ts         # Graceful shutdown
-│   │   └── websocket.ts            # WebSocket handlers (WIP)
+│   │   ├── routes/
+│   │   │   └── api.ts              # API route handlers
+│   │   └── utils/
+│   │       ├── api.ts              # API response helpers
+│   │       └── shutdown.ts         # Graceful shutdown
 │   ├── database/
 │   │   ├── schema.ts          # Drizzle schema (logs, tags, logs_tags)
 │   │   ├── database.ts        # SQLite connection with WAL mode
 │   │   └── queries.ts         # Type-safe database queries
 │   ├── frontend/
-│   │   ├── frontend.tsx       # React entry point
-│   │   ├── App.tsx            # Main app component (WIP)
-│   │   └── components/ui/     # shadcn/ui components
-│   └── lib/
+│   │   ├── frontend.tsx       # React app entry point
+│   │   ├── App.tsx            # Main app component
+│   │   ├── components/        # React components
+│   │   │   ├── TopBar.tsx     # Search, filters, column toggle
+│   │   │   ├── LogRow.tsx     # Individual log row
+│   │   │   ├── ColumnSelector.tsx
+│   │   │   ├── LiveIndicator.tsx
+│   │   │   ├── BrailleLoader.tsx
+│   │   │   └── ui/            # shadcn/ui components
+│   │   ├── contexts/          # React contexts
+│   │   │   ├── ConnectionContext.tsx
+│   │   │   └── DataContext.tsx
+│   │   ├── hooks/
+│   │   │   └── useColumnVisibility.ts
+│   │   ├── lib/
+│   │   │   └── api.ts         # API client functions
+│   │   └── public/
+│   │       ├── index.html     # HTML entry point
+│   │       └── logo.svg
+│   └── lib/                   # Shared utilities
 │       ├── config.ts          # Configuration management
 │       ├── facilities.ts      # Syslog facility mappings
 │       ├── severities.ts      # Syslog severity mappings
-│       └── utils.ts           # Shared utilities
+│       └── utils.ts           # Shared utility functions
 ├── data/
-│   └── syslogger.db           # SQLite database (WAL mode)
+│   ├── syslogger.db           # SQLite database (WAL mode)
+│   ├── syslogger.db-shm       # Shared memory file
+│   └── syslogger.db-wal       # Write-ahead log
 ├── drizzle/                   # Generated migrations
-├── public/
-│   └── index.html             # HTML entry point
+│   ├── 0000_*.sql
+│   └── meta/
+├── dist/                      # Production build output
 └── package.json
 ```
 
@@ -185,7 +206,7 @@ Legend: ✅ Complete | 🚧 In Progress | ❌ Not Started
 
 ### Retention Settings
 
-Retention settings will be stored in `config.json` and configurable via the settings popup in the UI:
+Retention settings will be managed via `src/lib/config.ts` and configurable via the settings popup in the UI:
 
 ```json
 {
@@ -249,6 +270,24 @@ Real-time log streaming to connected clients (in progress).
 - **Debounced Search**: 300ms delay to reduce excessive API calls
 - **WebSocket Pub/Sub**: Efficient real-time broadcasting
 - **Log Retention**: Automatic cleanup to prevent unbounded growth
+
+## Development
+
+### Path Aliases
+
+Configured in `tsconfig.json`:
+
+- `@/*` → `./src/*` (points to src root)
+- `@public/*` → `./src/frontend/public/*`
+
+### Key Files
+
+- **Main entry**: `src/syslogger.ts`
+- **Backend server**: `src/backend/index.ts` (Bun.serve configuration)
+- **Frontend entry**: `src/frontend/frontend.tsx`
+- **Database schema**: `src/database/schema.ts`
+- **Syslog manager**: `src/backend/managers/syslog.manager.ts`
+- **Internal logging**: `src/backend/managers/log.manager.ts`
 
 ## Contributing
 
