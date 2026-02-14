@@ -18,6 +18,7 @@ export default function App() {
   const parentRef = useRef<HTMLDivElement>(null)
   const prevLogsLengthRef = useRef(0)
   const hasInitiallyScrolledRef = useRef(false)
+  const isInitialScrollCompleteRef = useRef(false)
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
   // Calculate virtualizer count: add 1 for loader row at TOP when hasMore
@@ -72,7 +73,7 @@ export default function App() {
 
     const lastLogIndex = data.hasMore ? data.logs.length : data.logs.length - 1
 
-    // Initial scroll to bottom
+    // Initial scroll to bottom - wait for scroll to complete before enabling loadMore
     if (!hasInitiallyScrolledRef.current) {
       hasInitiallyScrolledRef.current = true
       requestAnimationFrame(() => {
@@ -80,6 +81,11 @@ export default function App() {
           align: 'end',
           behavior: 'auto',
         })
+        // Mark scroll as complete after a short delay to ensure scrolling finished
+        setTimeout(() => {
+          isInitialScrollCompleteRef.current = true
+          console.debug('Initial scroll to bottom completed')
+        }, 100)
       })
       prevLogsLengthRef.current = data.logs.length
       return
@@ -100,8 +106,10 @@ export default function App() {
   }, [data, rowVirtualizer, isAutoscrollEnabled])
 
   // Trigger loading more when scrolling to the TOP (loader row at index 0)
+  // ONLY after the initial scroll to bottom is complete
   useEffect(() => {
     if (data.isLoading) return
+    if (!isInitialScrollCompleteRef.current) return
 
     const [firstItem] = rowVirtualizer.getVirtualItems()
 
@@ -111,6 +119,7 @@ export default function App() {
 
     // When we scroll to index 0 (the loader row), trigger loading
     if (firstItem.index === 0 && data.hasMore && !data.isLoadingMore) {
+      console.debug('User scrolled to top, loading more logs...')
       data.loadMore()
     }
   }, [data, rowVirtualizer])

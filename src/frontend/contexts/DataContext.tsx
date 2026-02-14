@@ -41,9 +41,13 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
   const totalRef = useRef(0)
   const offsetRef = useRef(0)
   const oldestTimestampRef = useRef<string | null>(null)
+  const isInitialLoadCompleteRef = useRef(false)
 
   // Fetch initial logs on mount - get newest 100 logs (DESC from DB, then reverse)
+  // Only fetch once, even if WebSocket reconnects during HMR
   useEffect(() => {
+    if (isInitialLoadCompleteRef.current) return
+
     async function loadInitialLogs() {
       try {
         console.debug('Fetching initial logs...')
@@ -70,11 +74,13 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
         }
 
         setHasMore(result.data.length < result.total)
+        isInitialLoadCompleteRef.current = true
       } catch (err) {
         console.error('Failed to load initial logs:', err)
         // Set empty array to prevent infinite loading state
         setLogs([])
         setHasMore(false)
+        isInitialLoadCompleteRef.current = true
       }
     }
 
