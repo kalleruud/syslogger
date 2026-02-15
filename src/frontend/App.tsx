@@ -19,6 +19,7 @@ export default function App() {
   const prevLogsLengthRef = useRef(0)
   const hasInitiallyScrolledRef = useRef(false)
   const isInitialScrollCompleteRef = useRef(false)
+  const previousScrollHeightRef = useRef(0)
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
   // Calculate virtualizer count: add 1 for loader row at TOP when hasMore
@@ -67,9 +68,13 @@ export default function App() {
   }, [data.isLoading, setIsAutoscrollEnabled])
 
   // Scroll to bottom on initial load AND when new logs arrive (if autoscroll enabled)
+  // Also maintain scroll position when older logs are loaded
   useEffect(() => {
     if (data.isLoading) return
     if (data.logs.length === 0) return
+
+    const container = parentRef.current
+    if (!container) return
 
     const lastLogIndex = data.hasMore ? data.logs.length : data.logs.length - 1
 
@@ -84,6 +89,7 @@ export default function App() {
         // Mark scroll as complete after a short delay to ensure scrolling finished
         setTimeout(() => {
           isInitialScrollCompleteRef.current = true
+          previousScrollHeightRef.current = container.scrollHeight
           console.debug('Initial scroll to bottom completed')
         }, 100)
       })
@@ -91,15 +97,44 @@ export default function App() {
       return
     }
 
-    // Auto-scroll on new logs only if autoscroll is enabled
     const newLogsCount = data.logs?.length ?? 0
-    if (newLogsCount > prevLogsLengthRef.current && isAutoscrollEnabled) {
-      requestAnimationFrame(() => {
-        rowVirtualizer.scrollToIndex(lastLogIndex, {
-          align: 'end',
-          behavior: 'smooth',
+    const logsAdded = newLogsCount - prevLogsLengthRef.current
+
+    // If logs were added (prepended older logs or appended new logs)
+    if (logsAdded > 0) {
+      const previousScrollHeight = previousScrollHeightRef.current
+
+      // Determine if logs were prepended (older logs) or appended (new logs)
+      // If we're not at the bottom and logs increased, they were likely prepended
+      const wasLoadingOlder = !isAutoscrollEnabled && logsAdded > 0
+
+      if (wasLoadingOlder) {
+        // Older logs were prepended - maintain scroll position
+        requestAnimationFrame(() => {
+          const newScrollHeight = container.scrollHeight
+          const heightDifference = newScrollHeight - previousScrollHeight
+
+          // Adjust scroll position to maintain visual position
+          container.scrollTop += heightDifference
+          previousScrollHeightRef.current = newScrollHeight
+
+          console.debug(
+            `Adjusted scroll by ${heightDifference}px after loading older logs`
+          )
         })
-      })
+      } else if (isAutoscrollEnabled) {
+        // New logs appended and autoscroll is enabled - scroll to bottom
+        requestAnimationFrame(() => {
+          rowVirtualizer.scrollToIndex(lastLogIndex, {
+            align: 'end',
+            behavior: 'smooth',
+          })
+          previousScrollHeightRef.current = container.scrollHeight
+        })
+      } else {
+        // Update scroll height reference even if not scrolling
+        previousScrollHeightRef.current = container.scrollHeight
+      }
     }
 
     prevLogsLengthRef.current = newLogsCount
