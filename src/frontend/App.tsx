@@ -105,24 +105,29 @@ export default function App() {
     prevLogsLengthRef.current = newLogsCount
   }, [data, rowVirtualizer, isAutoscrollEnabled])
 
-  // Trigger loading more when scrolling to the TOP (loader row at index 0)
+  // Trigger loading more when scrolling near the TOP
   // ONLY after the initial scroll to bottom is complete
   useEffect(() => {
     if (data.isLoading) return
     if (!isInitialScrollCompleteRef.current) return
+    if (!data.hasMore || data.isLoadingMore) return
 
-    const [firstItem] = rowVirtualizer.getVirtualItems()
+    const container = parentRef.current
+    if (!container) return
 
-    if (!firstItem) {
-      return
+    const handleScroll = () => {
+      if (!container) return
+
+      // If scrolled within 200px from the top, trigger loading more
+      if (container.scrollTop < 200 && data.hasMore && !data.isLoadingMore) {
+        console.debug('User scrolled near top, loading more logs...')
+        data.loadMore()
+      }
     }
 
-    // When we scroll to index 0 (the loader row), trigger loading
-    if (firstItem.index === 0 && data.hasMore && !data.isLoadingMore) {
-      console.debug('User scrolled to top, loading more logs...')
-      data.loadMore()
-    }
-  }, [data, rowVirtualizer])
+    container.addEventListener('scroll', handleScroll)
+    return () => container.removeEventListener('scroll', handleScroll)
+  }, [data])
 
   // Show loading screen during initial load
   if (data.isLoading) {
