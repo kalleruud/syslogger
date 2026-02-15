@@ -20,6 +20,7 @@ export default function App() {
   const hasInitiallyScrolledRef = useRef(false)
   const isInitialScrollCompleteRef = useRef(false)
   const previousScrollHeightRef = useRef(0)
+  const isScrollingProgrammaticallyRef = useRef(false)
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
   // Calculate virtualizer count: add 1 for loader row at TOP when hasMore
@@ -42,30 +43,45 @@ export default function App() {
       const lastLogIndex = data.hasMore
         ? data.logs.length
         : data.logs.length - 1
+      isScrollingProgrammaticallyRef.current = true
       rowVirtualizer.scrollToIndex(lastLogIndex, {
         align: 'end',
         behavior: 'smooth',
       })
+      setTimeout(() => {
+        isScrollingProgrammaticallyRef.current = false
+      }, 500)
     }
   }, [data, rowVirtualizer, scrollToBottomRef])
 
-  // Track if user is at bottom and update context
+  // Track if user manually scrolls away from bottom
+  // Only update autoscroll state on manual scrolls, not programmatic ones
   useEffect(() => {
     const container = parentRef.current
     if (!container || data.isLoading) return
 
     const handleScroll = () => {
       if (!container) return
+
+      // Ignore scroll events triggered by our own programmatic scrolling
+      if (isScrollingProgrammaticallyRef.current) return
+
       const { scrollTop, scrollHeight, clientHeight } = container
       const distanceFromBottom = scrollHeight - scrollTop - clientHeight
-      // Consider at bottom if within 100px
-      const isAtBottom = distanceFromBottom < ESTIMATED_ROW_HEIGHT * 2
-      setIsAutoscrollEnabled(isAtBottom)
+
+      // Consider at bottom if within 100px or scrolled to the absolute bottom
+      const isAtBottom =
+        distanceFromBottom <= 1 || distanceFromBottom < ESTIMATED_ROW_HEIGHT * 2
+
+      // Only update if different from current state
+      if (isAutoscrollEnabled !== isAtBottom) {
+        setIsAutoscrollEnabled(isAtBottom)
+      }
     }
 
     container.addEventListener('scroll', handleScroll)
     return () => container.removeEventListener('scroll', handleScroll)
-  }, [data.isLoading, setIsAutoscrollEnabled])
+  }, [data.isLoading, isAutoscrollEnabled, setIsAutoscrollEnabled])
 
   // Scroll to bottom on initial load AND when new logs arrive (if autoscroll enabled)
   // Also maintain scroll position when older logs are loaded
@@ -81,6 +97,7 @@ export default function App() {
     // Initial scroll to bottom - wait for scroll to complete before enabling loadMore
     if (!hasInitiallyScrolledRef.current) {
       hasInitiallyScrolledRef.current = true
+      isScrollingProgrammaticallyRef.current = true
       requestAnimationFrame(() => {
         rowVirtualizer.scrollToIndex(lastLogIndex, {
           align: 'end',
@@ -90,6 +107,7 @@ export default function App() {
         setTimeout(() => {
           isInitialScrollCompleteRef.current = true
           previousScrollHeightRef.current = container.scrollHeight
+          isScrollingProgrammaticallyRef.current = false
           console.debug('Initial scroll to bottom completed')
         }, 100)
       })
@@ -110,6 +128,7 @@ export default function App() {
 
       if (wasLoadingOlder) {
         // Older logs were prepended - maintain scroll position
+        isScrollingProgrammaticallyRef.current = true
         requestAnimationFrame(() => {
           const newScrollHeight = container.scrollHeight
           const heightDifference = newScrollHeight - previousScrollHeight
@@ -121,15 +140,26 @@ export default function App() {
           console.debug(
             `Adjusted scroll by ${heightDifference}px after loading older logs`
           )
+
+          // Reset flag after a short delay
+          setTimeout(() => {
+            isScrollingProgrammaticallyRef.current = false
+          }, 50)
         })
       } else if (isAutoscrollEnabled) {
         // New logs appended and autoscroll is enabled - scroll to bottom
+        isScrollingProgrammaticallyRef.current = true
         requestAnimationFrame(() => {
           rowVirtualizer.scrollToIndex(lastLogIndex, {
             align: 'end',
             behavior: 'smooth',
           })
           previousScrollHeightRef.current = container.scrollHeight
+
+          // Reset flag after animation completes
+          setTimeout(() => {
+            isScrollingProgrammaticallyRef.current = false
+          }, 500)
         })
       } else {
         // Update scroll height reference even if not scrolling
