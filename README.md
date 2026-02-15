@@ -157,16 +157,16 @@ syslogger/
 ┌───────────────────────────────────────────┐
 │    Backend (Bun/TypeScript)               │
 │  ┌─────────────────────────────────────┐  │
-│  │ ✅ Syslog Receiver (UDP 5140)       │  │
-│  │ ✅ Syslog Parser (RFC 5424/3164)    │  │
-│  │ ✅ SQLite + Drizzle ORM + WAL       │  │
-│  │ ✅ Tag extraction & storage         │  │
-│  │ ✅ Advanced query functions         │  │
-│  │ ✅ WebSocket Server (Pub/Sub)       │  │
-│  │ ❌ REST API routes                  │  │
-│  │ ❌ Settings API (config.json)       │  │
-│  │ ❌ Log Retention Cleanup            │  │
-│  │ ✅ Bun.serve for fullstack          │  │
+│  │ ✓ Syslog Receiver (UDP 5140)        │  │
+│  │ ✓ Syslog Parser (RFC 5424/3164)     │  │
+│  │ ✓ SQLite + Drizzle ORM + WAL        │  │
+│  │ ✓ Tag extraction & storage          │  │
+│  │ ✓ Advanced query functions          │  │
+│  │ ✓ WebSocket Server (Pub/Sub)        │  │
+│  │ x REST API routes                   │  │
+│  │ x Settings API (config.json)        │  │
+│  │ x Log Retention Cleanup             │  │
+│  │ ✓ Bun.serve for fullstack           │  │
 │  └─────────────────────────────────────┘  │
 └────────────────┬──────────────────────────┘
                  │
@@ -174,17 +174,17 @@ syslogger/
 ┌───────────────────────────────────────────┐
 │    Frontend (React 19 + Bun)              │
 │  ┌─────────────────────────────────────┐  │
-│  │ ✅ Minimal terminal-style UI        │  │
-│  │ ❌ Top bar: search, filters, etc    │  │
-│  │ ❌ Settings popup for retention     │  │
-│  │ 🚧 Log table with virtual scroll    │  │
-│  │ ❌ Click-to-inspect detail panel    │  │
-│  │ 🚧 WebSocket Client (auto-reconnect)│  │
-│  │ ❌ URL-synced filter state          │  │
+│  │ ✓ Minimal terminal-style UI         │  │
+│  │ x Top bar: search, filters, etc     │  │
+│  │ x Settings popup for retention      │  │
+│  │ - Log table with virtual scroll     │  │
+│  │ x Click-to-inspect detail panel     │  │
+│  │ - WebSocket Client (auto-reconnect) │  │
+│  │ x URL-synced filter state           │  │
 │  └─────────────────────────────────────┘  │
 └───────────────────────────────────────────┘
 
-Legend: ✅ Complete | 🚧 In Progress | ❌ Not Started
+Legend: ✓ Complete | - In Progress | x Not Started
 ```
 
 ## Technology Stack
