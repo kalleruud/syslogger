@@ -5,6 +5,7 @@ import ColumnSelector from './ColumnSelector'
 import { AppnameFilter } from './filters/AppnameFilter'
 import { ClearFiltersButton } from './filters/ClearFiltersButton'
 import { HostnameFilter } from './filters/HostnameFilter'
+import { SearchInput } from './filters/SearchInput'
 import { SeverityFilter } from './filters/SeverityFilter'
 import { TagFilter } from './filters/TagFilter'
 import LiveIndicator from './LiveIndicator'
@@ -19,6 +20,10 @@ export default function TopBar() {
         <h1 className='text-lg font-black'>syslogger</h1>
       </div>
       <div className='flex flex-1 items-center justify-center gap-2'>
+        <SearchInput
+          value={filters.search}
+          onChange={search => setFilters({ search })}
+        />
         <SeverityFilter
           value={filters.excludedSeverity}
           onChange={excludedSeverity => setFilters({ excludedSeverity })}

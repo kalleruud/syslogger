@@ -14,6 +14,7 @@ export interface FilterState {
   appname: string[]
   tagIds: number[]
   hostname: string[]
+  search: string
 }
 
 interface FilterContextType {
@@ -32,6 +33,7 @@ const EMPTY_FILTERS: FilterState = {
   appname: [],
   tagIds: [],
   hostname: [],
+  search: '',
 }
 
 function parseFiltersFromURL(searchParams: URLSearchParams): FilterState {
@@ -69,6 +71,11 @@ function parseFiltersFromURL(searchParams: URLSearchParams): FilterState {
       .filter(s => s.length > 0)
   }
 
+  const search = searchParams.get('search')
+  if (search) {
+    filters.search = search.trim()
+  }
+
   return filters
 }
 
@@ -81,6 +88,7 @@ function serializeFiltersToURL(filters: FilterState): URLSearchParams {
   params.delete('appname')
   params.delete('tags')
   params.delete('hostname')
+  params.delete('search')
 
   // Add filter params if they have values
   if (filters.excludedSeverity.length > 0) {
@@ -94,6 +102,9 @@ function serializeFiltersToURL(filters: FilterState): URLSearchParams {
   }
   if (filters.hostname.length > 0) {
     params.set('hostname', filters.hostname.join(','))
+  }
+  if (filters.search.length > 0) {
+    params.set('search', filters.search)
   }
 
   return params
@@ -118,7 +129,8 @@ export function FilterProvider({ children }: { children: ReactNode }) {
       filters.excludedSeverity.length > 0 ||
       filters.appname.length > 0 ||
       filters.tagIds.length > 0 ||
-      filters.hostname.length > 0,
+      filters.hostname.length > 0 ||
+      filters.search.length > 0,
     [filters]
   )
 
@@ -128,6 +140,7 @@ export function FilterProvider({ children }: { children: ReactNode }) {
     if (filters.appname.length > 0) count++
     if (filters.tagIds.length > 0) count++
     if (filters.hostname.length > 0) count++
+    if (filters.search.length > 0) count++
     return count
   }, [filters])
 
@@ -160,6 +173,20 @@ export function FilterProvider({ children }: { children: ReactNode }) {
           logTagIds.includes(tagId)
         )
         if (!hasMatchingTag) return false
+      }
+
+      // Full-text search across message, appname, and hostname
+      if (filters.search.length > 0) {
+        const searchLower = filters.search.toLowerCase()
+        const messageMatch = log.message.toLowerCase().includes(searchLower)
+        const appnameMatch =
+          log.appname?.toLowerCase().includes(searchLower) ?? false
+        const hostnameMatch =
+          log.hostname?.toLowerCase().includes(searchLower) ?? false
+
+        if (!messageMatch && !appnameMatch && !hostnameMatch) {
+          return false
+        }
       }
 
       return true

@@ -70,6 +70,7 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
           appname: filters.appname.length > 0 ? filters.appname : undefined,
           tagIds: filters.tagIds.length > 0 ? filters.tagIds : undefined,
           hostname: filters.hostname.length > 0 ? filters.hostname : undefined,
+          search: filters.search.length > 0 ? filters.search : undefined,
         })
         console.debug(
           `Loaded ${result.data.length} logs (total: ${result.total})`
@@ -130,6 +131,7 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
         appname: filters.appname.length > 0 ? filters.appname : undefined,
         tagIds: filters.tagIds.length > 0 ? filters.tagIds : undefined,
         hostname: filters.hostname.length > 0 ? filters.hostname : undefined,
+        search: filters.search.length > 0 ? filters.search : undefined,
       })
       console.debug(`Loaded ${result.data.length} more logs`)
 

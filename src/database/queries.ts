@@ -6,6 +6,7 @@ import {
   inArray,
   like,
   lt,
+  or,
   SQL,
   sql,
 } from 'drizzle-orm'
@@ -55,7 +56,14 @@ const buildWhereConditions = (filters: LogFilters) => {
     conditions.push(inArray(logs.appname, filters.appname))
   }
   if (filters.search) {
-    conditions.push(like(logs.message, `%${filters.search}%`))
+    // Full-text search across message, appname, and hostname fields
+    conditions.push(
+      or(
+        like(logs.message, `%${filters.search}%`),
+        like(logs.appname, `%${filters.search}%`),
+        like(logs.hostname, `%${filters.search}%`)
+      )!
+    )
   }
   if (filters.beforeTimestamp) {
     conditions.push(lt(logs.timestamp, filters.beforeTimestamp))
