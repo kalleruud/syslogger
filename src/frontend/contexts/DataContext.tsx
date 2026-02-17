@@ -11,6 +11,7 @@ import {
 } from 'react'
 import { fetchLogs } from '../lib/api'
 import { useConnection } from './ConnectionContext'
+import { useFilters } from './FilterContext'
 
 type DataContextType =
   | {
@@ -34,6 +35,7 @@ const PAGE_SIZE = 100
 
 export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
   const { socket, isConnected } = useConnection()
+  const { filters, applyFiltersToLog } = useFilters()
 
   const [logs, setLogs] = useState<LogWithTags[] | undefined>(undefined)
   const [hasMore, setHasMore] = useState(true)
@@ -44,14 +46,31 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
   const isInitialLoadCompleteRef = useRef(false)
 
   // Fetch initial logs on mount - get newest 100 logs (DESC from DB, then reverse)
-  // Only fetch once, even if WebSocket reconnects during HMR
+  // Refetch when filters change
   useEffect(() => {
-    if (isInitialLoadCompleteRef.current) return
+    // Reset initial load flag when filters change
+    isInitialLoadCompleteRef.current = false
 
     async function loadInitialLogs() {
       try {
-        console.debug('Fetching initial logs...')
-        const result = await fetchLogs({ limit: PAGE_SIZE, offset: 0 })
+        console.debug('Fetching initial logs with filters:', filters)
+
+        // Convert excluded severities to included severities
+        const includedSeverities =
+          filters.excludedSeverity.length > 0
+            ? [0, 1, 2, 3, 4, 5, 6, 7].filter(
+                s => !filters.excludedSeverity.includes(s)
+              )
+            : undefined // undefined = all severities
+
+        const result = await fetchLogs({
+          limit: PAGE_SIZE,
+          offset: 0,
+          severity: includedSeverities,
+          appname: filters.appname.length > 0 ? filters.appname : undefined,
+          tagIds: filters.tagIds.length > 0 ? filters.tagIds : undefined,
+          hostname: filters.hostname.length > 0 ? filters.hostname : undefined,
+        })
         console.debug(
           `Loaded ${result.data.length} logs (total: ${result.total})`
         )
@@ -85,7 +104,7 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
     }
 
     loadInitialLogs()
-  }, [])
+  }, [filters])
 
   // Load more logs (older logs) for infinite scroll - triggered when scrolling UP
   const loadMore = useCallback(async () => {
@@ -94,10 +113,23 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
     setIsLoadingMore(true)
     try {
       console.debug(`Loading logs older than ${oldestTimestampRef.current}...`)
+
+      // Convert excluded severities to included severities
+      const includedSeverities =
+        filters.excludedSeverity.length > 0
+          ? [0, 1, 2, 3, 4, 5, 6, 7].filter(
+              s => !filters.excludedSeverity.includes(s)
+            )
+          : undefined // undefined = all severities
+
       const result = await fetchLogs({
         limit: PAGE_SIZE,
         offset: 0, // Always offset 0 since we're filtering by timestamp
         beforeTimestamp: oldestTimestampRef.current,
+        severity: includedSeverities,
+        appname: filters.appname.length > 0 ? filters.appname : undefined,
+        tagIds: filters.tagIds.length > 0 ? filters.tagIds : undefined,
+        hostname: filters.hostname.length > 0 ? filters.hostname : undefined,
       })
       console.debug(`Loaded ${result.data.length} more logs`)
 
@@ -126,27 +158,38 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
     } finally {
       setIsLoadingMore(false)
     }
-  }, [isLoadingMore, hasMore])
+  }, [isLoadingMore, hasMore, filters])
 
   // Handle WebSocket messages - append new logs to the end (terminal style)
-  const handleMessage = useCallback((e: MessageEvent) => {
-    console.debug('Received log via WebSocket')
-    try {
-      const parsed = JSON.parse(e.data)
-      if (!isLogsWithTags(parsed)) throw new Error('Received invalid log.')
-      // APPEND new log to the END (newest at bottom, terminal style)
-      setLogs(prevLogs => [...(prevLogs ?? []), parsed])
-      totalRef.current += 1
-    } catch (err) {
-      if (!Error.isError(err)) throw err
-      console.error(
-        'Failed to parse incoming message data:',
-        err.message + '\n',
-        'Received:',
-        e.data
-      )
-    }
-  }, [])
+  // Apply filters client-side to incoming WebSocket messages
+  const handleMessage = useCallback(
+    (e: MessageEvent) => {
+      console.debug('Received log via WebSocket')
+      try {
+        const parsed = JSON.parse(e.data)
+        if (!isLogsWithTags(parsed)) throw new Error('Received invalid log.')
+
+        // Apply filters client-side
+        if (!applyFiltersToLog(parsed)) {
+          console.debug('Log filtered out by client-side filters')
+          return
+        }
+
+        // APPEND new log to the END (newest at bottom, terminal style)
+        setLogs(prevLogs => [...(prevLogs ?? []), parsed])
+        totalRef.current += 1
+      } catch (err) {
+        if (!Error.isError(err)) throw err
+        console.error(
+          'Failed to parse incoming message data:',
+          err.message + '\n',
+          'Received:',
+          e.data
+        )
+      }
+    },
+    [applyFiltersToLog]
+  )
 
   useEffect(() => {
     if (!isConnected) return

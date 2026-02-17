@@ -11,8 +11,8 @@ export interface FetchLogsParams {
   limit?: number
   offset?: number
   severity?: number[]
-  hostname?: string
-  appname?: string
+  hostname?: string[]
+  appname?: string[]
   search?: string
   tagIds?: number[]
   beforeTimestamp?: string
@@ -33,11 +33,11 @@ function buildQueryString(params: FetchLogsParams): string {
   if (params.severity?.length) {
     searchParams.set('severity', params.severity.join(','))
   }
-  if (params.hostname) {
-    searchParams.set('hostname', params.hostname)
+  if (params.hostname?.length) {
+    searchParams.set('hostname', params.hostname.join(','))
   }
-  if (params.appname) {
-    searchParams.set('appname', params.appname)
+  if (params.appname?.length) {
+    searchParams.set('appname', params.appname.join(','))
   }
   if (params.search) {
     searchParams.set('search', params.search)
@@ -78,5 +78,77 @@ export async function fetchLogs(
     const message = err instanceof Error ? err.message : 'Unknown error'
     console.error('Failed to fetch logs:', message)
     throw new Error(`Failed to fetch logs: ${message}`)
+  }
+}
+
+/**
+ * Fetch unique application names for filtering
+ */
+export async function fetchUniqueAppnames(): Promise<string[]> {
+  try {
+    const response = await fetch('/api/filters/appnames')
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      const errorMessage =
+        errorData.error ||
+        `HTTP error ${response.status}: ${response.statusText}`
+      throw new Error(errorMessage)
+    }
+
+    const result = await response.json()
+    return result as string[]
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    console.error('Failed to fetch appnames:', message)
+    throw new Error(`Failed to fetch appnames: ${message}`)
+  }
+}
+
+/**
+ * Fetch all tags for filtering
+ */
+export async function fetchAllTags(): Promise<{ id: number; name: string }[]> {
+  try {
+    const response = await fetch('/api/filters/tags')
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      const errorMessage =
+        errorData.error ||
+        `HTTP error ${response.status}: ${response.statusText}`
+      throw new Error(errorMessage)
+    }
+
+    const result = await response.json()
+    return result as { id: number; name: string }[]
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    console.error('Failed to fetch tags:', message)
+    throw new Error(`Failed to fetch tags: ${message}`)
+  }
+}
+
+/**
+ * Fetch unique hostnames for filtering
+ */
+export async function fetchUniqueHostnames(): Promise<string[]> {
+  try {
+    const response = await fetch('/api/filters/hostnames')
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      const errorMessage =
+        errorData.error ||
+        `HTTP error ${response.status}: ${response.statusText}`
+      throw new Error(errorMessage)
+    }
+
+    const result = await response.json()
+    return result as string[]
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    console.error('Failed to fetch hostnames:', message)
+    throw new Error(`Failed to fetch hostnames: ${message}`)
   }
 }

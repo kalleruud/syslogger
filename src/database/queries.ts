@@ -22,8 +22,8 @@ import {
 
 export interface LogFilters {
   severity?: number[]
-  hostname?: string
-  appname?: string
+  hostname?: string[]
+  appname?: string[]
   search?: string
   tagIds?: number[]
   limit?: number
@@ -48,11 +48,11 @@ const buildWhereConditions = (filters: LogFilters) => {
   if (filters.severity?.length) {
     conditions.push(inArray(logs.severity, filters.severity))
   }
-  if (filters.hostname) {
-    conditions.push(eq(logs.hostname, filters.hostname))
+  if (filters.hostname?.length) {
+    conditions.push(inArray(logs.hostname, filters.hostname))
   }
-  if (filters.appname) {
-    conditions.push(eq(logs.appname, filters.appname))
+  if (filters.appname?.length) {
+    conditions.push(inArray(logs.appname, filters.appname))
   }
   if (filters.search) {
     conditions.push(like(logs.message, `%${filters.search}%`))

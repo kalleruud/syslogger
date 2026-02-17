@@ -11,16 +11,19 @@ import { createRoot } from 'react-dom/client'
 import { AutoscrollProvider } from './contexts/AutoscrollContext'
 import { ConnectionProvider } from './contexts/ConnectionContext'
 import { DataProvider } from './contexts/DataContext'
+import { FilterProvider } from './contexts/FilterContext'
 
 const elem = document.getElementById('root')!
 const app = (
   <StrictMode>
     <ConnectionProvider>
-      <DataProvider>
-        <AutoscrollProvider>
-          <App />
-        </AutoscrollProvider>
-      </DataProvider>
+      <FilterProvider>
+        <DataProvider>
+          <AutoscrollProvider>
+            <App />
+          </AutoscrollProvider>
+        </DataProvider>
+      </FilterProvider>
     </ConnectionProvider>
   </StrictMode>
 )

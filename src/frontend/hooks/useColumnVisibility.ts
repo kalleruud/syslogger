@@ -74,17 +74,21 @@ export function useColumnVisibility() {
         newVisible.add(column)
       }
 
-      // Update URL
+      // Update URL - preserve existing filter params
       const newParams = new URLSearchParams(globalThis.location.search)
-      const columnsArray = Array.from(newVisible).filter(c => c !== 'message')
+      const columnsArray = Array.from(newVisible)
 
-      if (columnsArray.length === 0) {
+      // Only include non-message columns in the URL (message is always visible)
+      const columnsToStore = columnsArray.filter(c => c !== 'message')
+
+      if (columnsToStore.length === 0) {
         newParams.delete('columns')
       } else {
-        newParams.set('columns', columnsArray.join(','))
+        newParams.set('columns', columnsToStore.join(','))
       }
 
-      const newUrl = `${globalThis.location.pathname}${newParams.toString() ? '?' + newParams.toString() : ''}`
+      const queryString = newParams.toString()
+      const newUrl = `${globalThis.location.pathname}${queryString ? '?' + queryString : ''}`
       globalThis.history.pushState({}, '', newUrl)
 
       // Trigger a custom event so other components can react
