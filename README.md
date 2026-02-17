@@ -40,24 +40,24 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 ### Filtering & Search
 
 - [ ] **Full-text Search**: Search across message, appname, and hostname fields (300ms debounce)
-- [ ] **Severity Multi-select**: Filter by any combination of severity levels (0-7)
-- [ ] **Application Multi-select**: Filter by dynamically-loaded application names
-- [ ] **Tag Multi-select**: Filter by dynamically-loaded tags extracted from log messages
-- [ ] **Hostname Filtering**: Filter by exact hostname match
-- [ ] **URL Parameter Persistence**: Filters all saved in URL for bookmarking and sharing
-- [ ] **Browser History Support**: Back/forward navigation works with filters
+- [x] **Severity Multi-select**: Filter by any combination of severity levels (0-7)
+- [x] **Application Multi-select**: Filter by dynamically-loaded application names
+- [x] **Tag Multi-select**: Filter by dynamically-loaded tags extracted from log messages
+- [x] **Hostname Filtering**: Filter by exact hostname match
+- [x] **URL Parameter Persistence**: Filters all saved in URL for bookmarking and sharing
+- [x] **Browser History Support**: Back/forward navigation works with filters
 
 ### User Interface
 
 - [x] **Single Page Application**: Minimal, terminal-inspired design on a single page
-- [ ] **Top Control Bar**: Search input, filter dropdowns, column visibility toggle, and settings button in one row
+- [x] **Top Control Bar**: Search input, filter dropdowns, column visibility toggle, and settings button in one row
 - [x] **Terminal-style Log Table**: Fixed-width character columns with no gaps or margins between cells
 - [x] **Column Visibility Toggle**: Show/hide columns via multi-select dropdown
 - [ ] **Settings Button**: Opens a popup to configure retention settings per severity level
 - [x] **Severity Color Coding**: Visual distinction by log level (red/orange/yellow/blue)
-- [ ] **Virtual Scrolling**: Efficient rendering of large datasets with @tanstack/react-virtual
-- [ ] **Infinite Scroll**: Load older logs automatically when scrolling up
-- [ ] **Auto scroll**: When the screen is scrolled all the way to the bottom, auto scrolling on new incoming logs is enabled.
+- [x] **Virtual Scrolling**: Efficient rendering of large datasets with @tanstack/react-virtual
+- [x] **Infinite Scroll**: Load older logs automatically when scrolling up
+- [x] **Auto scroll**: When the screen is scrolled all the way to the bottom, auto scrolling on new incoming logs is enabled.
 
 ### Log Detail Panel
 
