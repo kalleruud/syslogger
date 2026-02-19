@@ -136,16 +136,6 @@ export async function getLogs(
   return { data: logsWithTags, total, limit, offset }
 }
 
-// Get a single log by ID with tags
-export async function getLogById(id: number): Promise<LogWithTags | null> {
-  const result = await db.select().from(logs).where(eq(logs.id, id)).limit(1)
-
-  if (result.length === 0) return null
-
-  const logsWithTags = await loadTagsForLogs(result)
-  return logsWithTags.at(0) ?? null
-}
-
 // Insert a new log entry
 export async function insertLog(log: NewLog): Promise<Log> {
   const result = await db.insert(logs).values(log).returning()

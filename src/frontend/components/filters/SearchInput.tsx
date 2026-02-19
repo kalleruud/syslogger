@@ -10,13 +10,9 @@ interface SearchInputProps {
 const DEBOUNCE_DELAY = 300
 
 export function SearchInput({ value, onChange }: SearchInputProps) {
-  const [localValue, setLocalValue] = useState(value)
+  const [localValue, setLocalValue] = useState(() => value)
   const [isFocused, setIsFocused] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    setLocalValue(value)
-  }, [value])
 
   useEffect(() => {
     const timer = setTimeout(() => {

@@ -13,8 +13,9 @@ export function HostnameFilter({ value, onChange }: HostnameFilterProps) {
 
   useEffect(() => {
     async function loadHostnames() {
+      setIsLoading(true)
+
       try {
-        setIsLoading(true)
         const hostnames = await fetchUniqueHostnames()
         setOptions(
           hostnames.map(hostname => ({
@@ -22,9 +23,9 @@ export function HostnameFilter({ value, onChange }: HostnameFilterProps) {
             label: hostname,
           }))
         )
+        setIsLoading(false)
       } catch (err) {
         console.error('Failed to load hostnames:', err)
-      } finally {
         setIsLoading(false)
       }
     }

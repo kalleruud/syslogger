@@ -42,6 +42,7 @@ export function MultiSelect({
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState('')
+  const contentId = React.useId()
 
   const filteredOptions = React.useMemo(() => {
     let filtered = options
@@ -87,6 +88,7 @@ export function MultiSelect({
           variant='outline'
           role='combobox'
           aria-expanded={open}
+          aria-controls={contentId}
           className={cn('h-9 min-w-[180px] justify-between', className)}
           disabled={disabled}>
           <span className={value.length === 0 ? 'text-muted-foreground' : ''}>
@@ -97,7 +99,7 @@ export function MultiSelect({
           <ChevronsUpDown className='ml-2 size-4 shrink-0 opacity-50' />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className='w-[300px] p-0' align='start'>
+      <PopoverContent id={contentId} className='w-[300px] p-0' align='start'>
         <PopoverHeader className='border-b p-2'>
           <Input
             placeholder={searchPlaceholder}

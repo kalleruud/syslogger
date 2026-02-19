@@ -13,8 +13,9 @@ export function AppnameFilter({ value, onChange }: AppnameFilterProps) {
 
   useEffect(() => {
     async function loadAppnames() {
+      setIsLoading(true)
+
       try {
-        setIsLoading(true)
         const appnames = await fetchUniqueAppnames()
         setOptions(
           appnames.map(appname => ({
@@ -22,9 +23,9 @@ export function AppnameFilter({ value, onChange }: AppnameFilterProps) {
             label: appname,
           }))
         )
+        setIsLoading(false)
       } catch (err) {
         console.error('Failed to load appnames:', err)
-      } finally {
         setIsLoading(false)
       }
     }

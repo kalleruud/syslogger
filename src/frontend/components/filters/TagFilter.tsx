@@ -13,8 +13,9 @@ export function TagFilter({ value, onChange }: TagFilterProps) {
 
   useEffect(() => {
     async function loadTags() {
+      setIsLoading(true)
+
       try {
-        setIsLoading(true)
         const tags = await fetchAllTags()
         setOptions(
           tags.map(tag => ({
@@ -22,9 +23,9 @@ export function TagFilter({ value, onChange }: TagFilterProps) {
             label: tag.name,
           }))
         )
+        setIsLoading(false)
       } catch (err) {
         console.error('Failed to load tags:', err)
-      } finally {
         setIsLoading(false)
       }
     }
