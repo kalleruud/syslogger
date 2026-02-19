@@ -1,5 +1,6 @@
 import { insertLog } from '@/database/queries'
 import type { NewLog } from '@/database/schema'
+import config from '@/lib/config'
 import { broadcastLog } from '../websocket'
 
 const FACILITY_LOCAL0 = 16
@@ -73,7 +74,9 @@ const writeToConsole = (
 const createLogFunction = (severity: number, level: string) => {
   return (appname: string, message: string): void => {
     writeToConsole(level, appname, message)
-    void persistLog(severity, appname, message)
+    if (config.development) {
+      void persistLog(severity, appname, message)
+    }
   }
 }
 
