@@ -25,12 +25,19 @@ export const syslogSocketConfig: Bun.udp.SocketOptions<'buffer'> = {
 
 async function handleData(
   _socket: Bun.udp.Socket<'buffer'>,
-  data: Buffer<ArrayBufferLike>
+  data: Buffer<ArrayBufferLike>,
+  _port: number,
+  address: string
 ) {
   const rawMessage = data.toString('utf-8').trimEnd()
   const message = stripAnsiCodes(rawMessage)
   console.debug(message)
+
   const parsed = parseSyslog(message)
+
+  if (!parsed.log.hostname && address?.trim().length > 0) {
+    parsed.log.hostname = address?.trim()
+  }
 
   const log = await insertLog(parsed.log)
 
