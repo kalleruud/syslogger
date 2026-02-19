@@ -1,4 +1,4 @@
-import type { LogWithTags } from '@/database/schema'
+import type { Log } from '@/database/schema'
 import {
   createContext,
   useCallback,
@@ -12,7 +12,6 @@ import {
 export interface FilterState {
   excludedSeverity: number[] // Blacklist: excluded severity levels
   appname: string[]
-  tagIds: number[]
   hostname: string[]
   search: string
 }
@@ -23,7 +22,7 @@ interface FilterContextType {
   clearFilters: () => void
   hasActiveFilters: boolean
   activeFilterCount: number
-  applyFiltersToLog: (log: LogWithTags) => boolean
+  applyFiltersToLog: (log: Log) => boolean
 }
 
 const FilterContext = createContext<FilterContextType | undefined>(undefined)
@@ -31,7 +30,6 @@ const FilterContext = createContext<FilterContextType | undefined>(undefined)
 const EMPTY_FILTERS: FilterState = {
   excludedSeverity: [], // Empty = all severities included
   appname: [],
-  tagIds: [],
   hostname: [],
   search: '',
 }
@@ -53,14 +51,6 @@ function parseFiltersFromURL(searchParams: URLSearchParams): FilterState {
       .split(',')
       .map(v => v.trim())
       .filter(s => s.length > 0)
-  }
-
-  const tagIds = searchParams.get('tags')
-  if (tagIds) {
-    filters.tagIds = tagIds
-      .split(',')
-      .map(v => Number.parseInt(v.trim(), 10))
-      .filter(n => !Number.isNaN(n))
   }
 
   const hostname = searchParams.get('hostname')
@@ -86,7 +76,6 @@ function serializeFiltersToURL(filters: FilterState): URLSearchParams {
   // Remove all filter params first
   params.delete('excludedSeverity')
   params.delete('appname')
-  params.delete('tags')
   params.delete('hostname')
   params.delete('search')
 
@@ -96,9 +85,6 @@ function serializeFiltersToURL(filters: FilterState): URLSearchParams {
   }
   if (filters.appname.length > 0) {
     params.set('appname', filters.appname.join(','))
-  }
-  if (filters.tagIds.length > 0) {
-    params.set('tags', filters.tagIds.join(','))
   }
   if (filters.hostname.length > 0) {
     params.set('hostname', filters.hostname.join(','))
@@ -128,7 +114,6 @@ export function FilterProvider({ children }: { children: ReactNode }) {
     () =>
       filters.excludedSeverity.length > 0 ||
       filters.appname.length > 0 ||
-      filters.tagIds.length > 0 ||
       filters.hostname.length > 0 ||
       filters.search.length > 0,
     [filters]
@@ -138,14 +123,13 @@ export function FilterProvider({ children }: { children: ReactNode }) {
     let count = 0
     if (filters.excludedSeverity.length > 0) count++
     if (filters.appname.length > 0) count++
-    if (filters.tagIds.length > 0) count++
     if (filters.hostname.length > 0) count++
     if (filters.search.length > 0) count++
     return count
   }, [filters])
 
   const applyFiltersToLog = useCallback(
-    (log: LogWithTags): boolean => {
+    (log: Log): boolean => {
       // Exclude logs with excluded severity levels
       if (
         filters.excludedSeverity.length > 0 &&
@@ -165,14 +149,6 @@ export function FilterProvider({ children }: { children: ReactNode }) {
       if (filters.hostname.length > 0) {
         if (!log.hostname) return false
         if (!filters.hostname.includes(log.hostname)) return false
-      }
-
-      if (filters.tagIds.length > 0) {
-        const logTagIds = log.tags.map(tag => tag.id)
-        const hasMatchingTag = filters.tagIds.some(tagId =>
-          logTagIds.includes(tagId)
-        )
-        if (!hasMatchingTag) return false
       }
 
       // Full-text search across message, appname, and hostname

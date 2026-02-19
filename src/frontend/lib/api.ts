@@ -1,7 +1,7 @@
-import type { LogWithTags } from '@/database/schema'
+import type { Log } from '@/database/schema'
 
 export interface PaginatedLogsResult {
-  data: LogWithTags[]
+  data: Log[]
   total: number
   limit: number
   offset: number
@@ -14,7 +14,6 @@ export interface FetchLogsParams {
   hostname?: string[]
   appname?: string[]
   search?: string
-  tagIds?: number[]
   beforeTimestamp?: string
 }
 
@@ -41,9 +40,6 @@ function buildQueryString(params: FetchLogsParams): string {
   }
   if (params.search) {
     searchParams.set('search', params.search)
-  }
-  if (params.tagIds?.length) {
-    searchParams.set('tags', params.tagIds.join(','))
   }
   if (params.beforeTimestamp) {
     searchParams.set('beforeTimestamp', params.beforeTimestamp)
@@ -102,30 +98,6 @@ export async function fetchUniqueAppnames(): Promise<string[]> {
     const message = err instanceof Error ? err.message : 'Unknown error'
     console.error('Failed to fetch appnames:', message)
     throw new Error(`Failed to fetch appnames: ${message}`)
-  }
-}
-
-/**
- * Fetch all tags for filtering
- */
-export async function fetchAllTags(): Promise<{ id: number; name: string }[]> {
-  try {
-    const response = await fetch('/api/filters/tags')
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      const errorMessage =
-        errorData.error ||
-        `HTTP error ${response.status}: ${response.statusText}`
-      throw new Error(errorMessage)
-    }
-
-    const result = await response.json()
-    return result as { id: number; name: string }[]
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unknown error'
-    console.error('Failed to fetch tags:', message)
-    throw new Error(`Failed to fetch tags: ${message}`)
   }
 }
 

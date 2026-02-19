@@ -8,7 +8,6 @@ export type ColumnKey =
   | 'hostname'
   | 'procid'
   | 'msgid'
-  | 'tags'
   | 'message'
 
 export type ColumnDefinition = {
@@ -25,7 +24,6 @@ export const COLUMNS: ColumnDefinition[] = [
   { key: 'hostname', label: 'Hostname', alwaysVisible: false },
   { key: 'procid', label: 'Process ID', alwaysVisible: false },
   { key: 'msgid', label: 'Message ID', alwaysVisible: false },
-  { key: 'tags', label: 'Tags', alwaysVisible: false },
   { key: 'message', label: 'Message', alwaysVisible: true },
 ]
 

@@ -1,10 +1,9 @@
-import { insertLogWithTags } from '@/database/queries'
+import { insertLog } from '@/database/queries'
 import type { NewLog } from '@/database/schema'
 import { broadcastLog } from '../websocket'
 
 const FACILITY_LOCAL0 = 16
 const HOSTNAME = 'syslogger'
-const INTERNAL_TAG = 'internal'
 const MULTIPLIER_FOR_PRIORITY = 8
 
 const SEVERITY = {
@@ -46,20 +45,14 @@ const createLogEntry = (
   }
 }
 
-const combineTagsWithInternal = (tags?: string[]): string[] => {
-  return [INTERNAL_TAG, ...(tags ?? [])]
-}
-
 const persistLog = async (
   severity: number,
   appname: string,
-  message: string,
-  tags?: string[]
+  message: string
 ): Promise<void> => {
   try {
     const logEntry = createLogEntry(severity, appname, message)
-    const allTags = combineTagsWithInternal(tags)
-    const savedLog = await insertLogWithTags(logEntry, allTags)
+    const savedLog = await insertLog(logEntry)
     broadcastLog(savedLog)
   } catch (error) {
     console.error('[CRITICAL] Failed to log:', error)
@@ -78,9 +71,9 @@ const writeToConsole = (
 }
 
 const createLogFunction = (severity: number, level: string) => {
-  return (appname: string, message: string, tags?: string[]): void => {
+  return (appname: string, message: string): void => {
     writeToConsole(level, appname, message)
-    void persistLog(severity, appname, message, tags)
+    void persistLog(severity, appname, message)
   }
 }
 

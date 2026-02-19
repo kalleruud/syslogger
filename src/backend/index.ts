@@ -5,7 +5,6 @@ import {
   handleGetAppnames,
   handleGetHostnames,
   handleGetLogs,
-  handleGetTags,
 } from './routes/api'
 
 export const serverConfig: Bun.Serve.Options<BunSocketData> = {
@@ -21,9 +20,6 @@ export const serverConfig: Bun.Serve.Options<BunSocketData> = {
     },
     '/api/filters/appnames': {
       GET: handleGetAppnames,
-    },
-    '/api/filters/tags': {
-      GET: handleGetTags,
     },
     '/api/filters/hostnames': {
       GET: handleGetHostnames,

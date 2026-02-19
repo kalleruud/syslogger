@@ -1,3 +1,4 @@
+import { SEVERITIES } from '@/lib/severities'
 import { SyslogParser, type ParsedLog } from './base.parser'
 
 /*
@@ -17,20 +18,23 @@ export default class DockerSyslogParser extends SyslogParser {
 
   public parse(rawMessage: string) {
     const parsed = this.parseParts(rawMessage)
-    const tags = this.parseTags(parsed.message)
     const timestamp = this.extractTimestamp(parsed.date, parsed.message)
-    const priority = this.tryParsePri(parsed.pri, tags)
+    const priority = this.tryParsePri(parsed.pri)
+    const severityOverride =
+      priority.severity === SEVERITIES.info.level
+        ? this.identifySeverity(parsed.message)
+        : undefined
 
     return {
       log: {
         raw: rawMessage,
         ...parsed,
-        ...priority,
+        facility: priority.facility,
+        severity: severityOverride?.level ?? priority.severity,
         timestamp,
         msgid: null,
         hostname: null,
       },
-      tags,
     } satisfies ParsedLog
   }
 
@@ -50,7 +54,7 @@ export default class DockerSyslogParser extends SyslogParser {
   }
 
   private extractTimestamp(bsdDate: string, message: string): string {
-    const cleanedMessage = this.removeTagsAndTrim(message)
+    const cleanedMessage = this.stripBracketedSegments(message)
     const isoMatch = DockerSyslogParser.isoTimestampFormat.exec(cleanedMessage)
 
     if (isoMatch) {
@@ -60,7 +64,7 @@ export default class DockerSyslogParser extends SyslogParser {
     return this.parseBSDTimestamp(bsdDate).toISOString()
   }
 
-  private removeTagsAndTrim(message: string): string {
+  private stripBracketedSegments(message: string): string {
     return message.replace(/\[.*?\]/g, '').trim()
   }
 }

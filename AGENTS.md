@@ -52,7 +52,7 @@ docker-compose up --build   # Build and run in Docker
 │   │       ├── api.ts       # API response helpers
 │   │       └── shutdown.ts  # Graceful shutdown
 │   ├── database/
-│   │   ├── schema.ts        # Drizzle ORM schema (logs, tags, logs_tags)
+│   │   ├── schema.ts        # Drizzle ORM schema (logs)
 │   │   ├── database.ts      # SQLite connection with WAL mode
 │   │   └── queries.ts       # Type-safe query functions
 │   ├── frontend/

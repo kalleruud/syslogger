@@ -7,7 +7,6 @@ import { ClearFiltersButton } from './filters/ClearFiltersButton'
 import { HostnameFilter } from './filters/HostnameFilter'
 import { SearchInput } from './filters/SearchInput'
 import { SeverityFilter } from './filters/SeverityFilter'
-import { TagFilter } from './filters/TagFilter'
 import LiveIndicator from './LiveIndicator'
 
 export default function TopBar() {
@@ -31,10 +30,6 @@ export default function TopBar() {
         <AppnameFilter
           value={filters.appname}
           onChange={appname => setFilters({ appname })}
-        />
-        <TagFilter
-          value={filters.tagIds}
-          onChange={tagIds => setFilters({ tagIds })}
         />
         <HostnameFilter
           value={filters.hostname}

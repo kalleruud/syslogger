@@ -1,4 +1,4 @@
-import { isLogsWithTags, type LogWithTags } from '@/database/schema'
+import { isLogRecord, type Log } from '@/database/schema'
 import {
   createContext,
   useCallback,
@@ -16,7 +16,7 @@ import { useFilters } from './FilterContext'
 type DataContextType =
   | {
       isLoading: false
-      logs: LogWithTags[]
+      logs: Log[]
       hasMore: boolean
       isLoadingMore: boolean
       loadMore: () => Promise<void>
@@ -37,7 +37,7 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
   const { socket, isConnected } = useConnection()
   const { filters, applyFiltersToLog } = useFilters()
 
-  const [logs, setLogs] = useState<LogWithTags[] | undefined>(undefined)
+  const [logs, setLogs] = useState<Log[] | undefined>(undefined)
   const [hasMore, setHasMore] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const totalRef = useRef(0)
@@ -64,8 +64,6 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
 
       const appnameFilter =
         filters.appname.length > 0 ? filters.appname : undefined
-      const tagIdsFilter =
-        filters.tagIds.length > 0 ? filters.tagIds : undefined
       const hostnameFilter =
         filters.hostname.length > 0 ? filters.hostname : undefined
       const searchFilter =
@@ -77,7 +75,6 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
           offset: 0,
           severity: includedSeverities,
           appname: appnameFilter,
-          tagIds: tagIdsFilter,
           hostname: hostnameFilter,
           search: searchFilter,
         })
@@ -134,7 +131,6 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
 
     const appnameFilter =
       filters.appname.length > 0 ? filters.appname : undefined
-    const tagIdsFilter = filters.tagIds.length > 0 ? filters.tagIds : undefined
     const hostnameFilter =
       filters.hostname.length > 0 ? filters.hostname : undefined
     const searchFilter = filters.search.length > 0 ? filters.search : undefined
@@ -146,7 +142,6 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
         beforeTimestamp: oldestTimestampRef.current,
         severity: includedSeverities,
         appname: appnameFilter,
-        tagIds: tagIdsFilter,
         hostname: hostnameFilter,
         search: searchFilter,
       })
@@ -200,7 +195,7 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
         return
       }
 
-      if (!isLogsWithTags(parsed)) {
+      if (!isLogRecord(parsed)) {
         console.error('Received invalid log.')
         return
       }

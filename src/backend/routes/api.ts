@@ -1,5 +1,4 @@
 import {
-  getAllTags,
   getLogs,
   getUniqueAppnames,
   getUniqueHostnames,
@@ -62,9 +61,6 @@ function extractFiltersFromRequest(url: URL): LogFilters {
   const search = params.get('search')
   if (search) filters.search = search
 
-  const tagIds = parseNumberArrayParam(params.get('tags'))
-  if (tagIds?.length) filters.tagIds = tagIds
-
   const beforeTimestamp = params.get('beforeTimestamp')
   if (beforeTimestamp) filters.beforeTimestamp = beforeTimestamp
 
@@ -114,23 +110,6 @@ export async function handleGetAppnames(): Promise<Response> {
     const message = err instanceof Error ? err.message : 'Unknown error'
     logger.error('api', `Failed to fetch appnames: ${message}`)
     return error('Failed to fetch appnames', 500)
-  }
-}
-
-/**
- * Handler for GET /api/filters/tags
- * Fetches all tags for filtering
- */
-export async function handleGetTags(): Promise<Response> {
-  try {
-    logger.debug('api', 'Fetching all tags')
-    const tags = await getAllTags()
-    logger.debug('api', `Returned ${tags.length} tags`)
-    return json(tags)
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unknown error'
-    logger.error('api', `Failed to fetch tags: ${message}`)
-    return error('Failed to fetch tags', 500)
   }
 }
 

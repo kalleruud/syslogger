@@ -1,4 +1,4 @@
-import type { LogWithTags } from '@/database/schema'
+import type { Log } from '@/database/schema'
 import { server } from '@/syslogger'
 import { randomUUIDv7 } from 'bun'
 import logger from './managers/log.manager'
@@ -28,7 +28,7 @@ async function close(ws: BunSocket) {
   ws.unsubscribe(LOGS_TOPIC)
 }
 
-export function broadcastLog(log: LogWithTags) {
+export function broadcastLog(log: Log) {
   return server.publish(LOGS_TOPIC, JSON.stringify(log))
 }
 

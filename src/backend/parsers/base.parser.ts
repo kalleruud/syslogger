@@ -1,4 +1,4 @@
-import type { Log, Tag } from '@/database/schema'
+import type { Log } from '@/database/schema'
 import { FACILITIES, getFacility, type Facility } from '@/lib/facilities'
 import { getSeverity, SEVERITIES, type Severity } from '@/lib/severities'
 
@@ -19,14 +19,12 @@ const MONTHS = [
 
 export type ParsedLog = {
   log: Omit<Log, 'id' | 'createdAt'>
-  tags: Omit<Tag, 'id' | 'createdAt'>[]
 }
 
 export abstract class SyslogParser {
   abstract readonly name: 'rfc5424' | 'rfc3164' | 'docker' | 'fallback'
   protected abstract readonly format: RegExp
 
-  private static readonly tagFormat = /\[(?<tag>.*?)\]/g
   private static readonly bsdFormat =
     /(?<month>\w{3}) (?<date>( |[1-3])\d) (?<time>[0-2]\d:[0-5]\d:[0-5]\d)/
 
@@ -70,16 +68,12 @@ export abstract class SyslogParser {
     )
   }
 
-  protected tryParsePri(pri: string, tags: ReturnType<typeof this.parseTags>) {
+  protected tryParsePri(pri: string) {
     const { facility, severity } = this.parsePri(Number.parseFloat(pri))
-
-    // Docker always gives PRI 30, so we try to identify severity within message
-    const severityOverride =
-      severity === SEVERITIES.info ? this.identifySeverity(tags) : undefined
 
     return {
       facility: facility.level,
-      severity: severityOverride?.level ?? severity.level,
+      severity: severity.level,
     }
   }
 
@@ -98,19 +92,12 @@ export abstract class SyslogParser {
     }
   }
 
-  protected parseTags(message: string): ParsedLog['tags'] {
-    const tags: ParsedLog['tags'] = []
-    while (true) {
-      const match = SyslogParser.tagFormat.exec(message)
-      if (!match?.groups?.tag || match.groups.tag.trim() === '') return tags
-      tags.push({ name: match.groups.tag.trim().toLowerCase() })
-    }
-  }
-
-  protected identifySeverity(tags: ParsedLog['tags']) {
-    const tagSet = new Set(tags.map(t => t.name))
+  protected identifySeverity(message: string) {
+    const lowerMessage = message.toLowerCase()
     for (const severity of Object.values(SEVERITIES)) {
-      if (tagSet.intersection(severity.synonyms).size > 0) return severity
+      for (const synonym of severity.synonyms) {
+        if (lowerMessage.includes(synonym)) return severity
+      }
     }
   }
 }

@@ -1,4 +1,4 @@
-import type { LogWithTags } from '@/database/schema'
+import type { Log } from '@/database/schema'
 import type { ColumnKey } from '@/frontend/hooks/useColumnVisibility'
 import { getFacility } from '@/lib/facilities'
 import { getSeverity } from '@/lib/severities'
@@ -30,7 +30,7 @@ function formatLocalIso(date: Date): { datePart: string; timePart: string } {
 }
 
 type LogRowProps = {
-  log: LogWithTags
+  log: Log
   visibleColumns: Set<ColumnKey>
 } & ComponentProps<'div'>
 
@@ -99,18 +99,6 @@ export default function LogRow({
 
       {visibleColumns.has('msgid') && log.msgid && (
         <div className='line-clamp-1 shrink-0'>{log.msgid}</div>
-      )}
-
-      {visibleColumns.has('tags') && log.tags.length > 0 && (
-        <div className='line-clamp-1 flex shrink-0 gap-1'>
-          {log.tags.map(tag => (
-            <span
-              key={tag.id}
-              className='rounded bg-accent px-1.5 py-0.5 text-xs text-accent-foreground'>
-              {tag.name}
-            </span>
-          ))}
-        </div>
       )}
 
       {visibleColumns.has('message') && (

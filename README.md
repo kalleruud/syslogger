@@ -12,15 +12,6 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 - [x] **Docker-friendly Parsing**: Handle containerized logs without hostname field
 - [x] **Automatic Severity Detection**: Fallback regex-based severity extraction from message text
 - [x] **Complete Field Extraction**: Facility, severity, timestamp, hostname, appname, procid, msgid, and message
-- [x] **Automatic Tag Extraction**: Text within square brackets (e.g., `[ERROR]`, `[DB]`) is extracted as tags
-
-### Tags
-
-- [x] **Automatic Extraction**: Tags are extracted from text within square brackets (e.g., `[ERROR]`, `[REQUEST]`)
-- [x] **Normalized Storage**: Tags are stored lowercase and trimmed of whitespace
-- [x] **Many-to-Many Relationship**: A log can have multiple tags, and a tag can appear on multiple logs
-- [x] **Deduplication**: Tags are never duplicated; new logs are related to existing tags
-- [x] **Examples**: `Connection [TIMEOUT] from [DB]` extracts tags: `timeout`, `db`
 
 ### Database & Storage
 
@@ -29,7 +20,6 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 - [x] **Performance Indexes**: Optimized queries with indexes on timestamp, severity, hostname, and appname
 - [x] **WAL Mode**: Write-Ahead Logging for better concurrency
 - [x] **Raw Message Storage**: Original syslog messages preserved for debugging
-- [x] **Tag Tables**: Separate `tags` table with junction table for efficient many-to-many relationships
 
 ### Real-time Features
 
@@ -42,7 +32,6 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 - [ ] **Full-text Search**: Search across message, appname, and hostname fields (300ms debounce)
 - [x] **Severity Multi-select**: Filter by any combination of severity levels (0-7)
 - [x] **Application Multi-select**: Filter by dynamically-loaded application names
-- [x] **Tag Multi-select**: Filter by dynamically-loaded tags extracted from log messages
 - [x] **Hostname Filtering**: Filter by exact hostname match
 - [x] **URL Parameter Persistence**: Filters all saved in URL for bookmarking and sharing
 - [x] **Browser History Support**: Back/forward navigation works with filters
@@ -65,7 +54,6 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 - [ ] **Non-blocking**: Log table remains fully interactable while the detail panel is open
 - [ ] **Full Field Display**: All syslog fields with human-readable labels
 - [ ] **Facility Names**: Numeric facilities shown as readable names (kernel, user, mail, daemon, etc.)
-- [ ] **Tag Display**: Shows all extracted tags in the detail view
 - [ ] **Raw Message View**: Original unparsed syslog message
 - [ ] **Keyboard Support**: Press Escape to close the panel, cmd + k to search. Display hotkey helpers.
 
@@ -107,7 +95,7 @@ syslogger/
 │   │       ├── api.ts              # API response helpers
 │   │       └── shutdown.ts         # Graceful shutdown
 │   ├── database/
-│   │   ├── schema.ts          # Drizzle schema (logs, tags, logs_tags)
+│   │   ├── schema.ts          # Drizzle schema (logs)
 │   │   ├── database.ts        # SQLite connection with WAL mode
 │   │   └── queries.ts         # Type-safe database queries
 │   ├── frontend/
@@ -160,7 +148,6 @@ syslogger/
 │  │ ✓ Syslog Receiver (UDP 5140)        │  │
 │  │ ✓ Syslog Parser (RFC 5424/3164)     │  │
 │  │ ✓ SQLite + Drizzle ORM + WAL        │  │
-│  │ ✓ Tag extraction & storage          │  │
 │  │ ✓ Advanced query functions          │  │
 │  │ ✓ WebSocket Server (Pub/Sub)        │  │
 │  │ x REST API routes                   │  │
@@ -242,7 +229,6 @@ Fetch logs with optional filtering and pagination.
 - `severity` - Comma-separated severity levels (e.g., `0,1,2,3`)
 - `hostname` - Filter by exact hostname
 - `appname` - Comma-separated application names (e.g., `nginx,sshd`)
-- `tags` - Comma-separated tags (e.g., `error,timeout,db`)
 - `search` - Full-text search in message, appname, and hostname
 
 **Note**: Database query functions for these filters are already implemented in `src/database/queries.ts`.
@@ -257,7 +243,6 @@ Real-time log streaming to connected clients (in progress).
 
 - **UDP Syslog Reception**: Receives and processes syslog messages on configurable port
 - **Multi-format Parsing**: Supports RFC 5424, RFC 3164, and Docker log formats
-- **Tag Extraction**: Automatically extracts tags from `[BRACKETED]` text in messages
 - **SQLite with WAL**: Write-Ahead Logging enabled for better concurrency
 - **Advanced Queries**: Full filtering, pagination, and full-text search capability
 - **Database Indexes**: Optimized queries with composite indexes

@@ -1,5 +1,5 @@
 import logger from '@/backend/managers/log.manager'
-import { insertLogWithTags } from '@/database/queries'
+import { insertLog } from '@/database/queries'
 import config from '@/lib/config'
 import parseSyslog from '../parsers/parser'
 import { broadcastLog } from '../websocket'
@@ -32,10 +32,7 @@ async function handleData(
   console.debug(message)
   const parsed = parseSyslog(message)
 
-  const log = await insertLogWithTags(
-    parsed.log,
-    parsed.tags.map(t => t.name)
-  )
+  const log = await insertLog(parsed.log)
 
   broadcastLog(log)
 }

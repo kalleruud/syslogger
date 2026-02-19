@@ -1,3 +1,4 @@
+import { SEVERITIES } from '@/lib/severities'
 import { SyslogParser } from './base.parser'
 
 export default class FallbackParser extends SyslogParser {
@@ -15,13 +16,17 @@ export default class FallbackParser extends SyslogParser {
     if (!pri) throw new Error(`PRI not found!: ${rawMessage}`)
     if (!message) throw new Error(`Message not found!: ${rawMessage}`)
 
-    const tags = this.parseTags(message)
-    const priority = this.tryParsePri(pri, tags)
+    const priority = this.tryParsePri(pri)
+    const severityOverride =
+      priority.severity === SEVERITIES.info.level
+        ? this.identifySeverity(message)
+        : undefined
 
     return {
       log: {
         raw: rawMessage,
-        ...priority,
+        facility: priority.facility,
+        severity: severityOverride?.level ?? priority.severity,
         message: message,
         timestamp: new Date()?.toISOString(),
         appname: null,
@@ -29,7 +34,6 @@ export default class FallbackParser extends SyslogParser {
         msgid: null,
         hostname: null,
       },
-      tags,
     }
   }
 }
