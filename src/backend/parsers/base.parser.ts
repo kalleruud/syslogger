@@ -93,10 +93,25 @@ export abstract class SyslogParser {
   }
 
   protected identifySeverity(message: string) {
-    const lowerMessage = message.toLowerCase()
+    const bracketedTokens = Array.from(
+      message.matchAll(/\[(?<token>[^\]]+?)\]/g)
+    )
+      .map(match => match.groups?.token ?? '')
+      .flatMap(token => token.split(/[^a-zA-Z0-9]+/))
+      .map(token => token.trim().toLowerCase())
+      .filter(token => token.length > 0)
+
+    const messageTokens = message
+      .split(/[^a-zA-Z0-9]+/)
+      .map(token => token.trim().toLowerCase())
+      .filter(token => token.length > 0)
+
+    const tokensToCheck =
+      bracketedTokens.length > 0 ? bracketedTokens : messageTokens
+
     for (const severity of Object.values(SEVERITIES)) {
       for (const synonym of severity.synonyms) {
-        if (lowerMessage.includes(synonym)) return severity
+        if (tokensToCheck.includes(synonym)) return severity
       }
     }
   }

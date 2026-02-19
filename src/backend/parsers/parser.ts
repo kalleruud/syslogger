@@ -1,8 +1,13 @@
 import { SyslogParser, type ParsedLog } from './base.parser'
 import DockerSyslogParser from './docker.parser'
 import FallbackParser from './fallback.parser'
+import Rfc3164SyslogParser from './rfc3164.parser'
 
-const parsers: SyslogParser[] = [new DockerSyslogParser(), new FallbackParser()]
+const parsers: SyslogParser[] = [
+  new Rfc3164SyslogParser(),
+  new DockerSyslogParser(),
+  new FallbackParser(),
+]
 
 export default function parseSyslog(rawMessage: string): ParsedLog {
   for (const parser of Object.values(parsers)) {
