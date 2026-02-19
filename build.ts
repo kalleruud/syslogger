@@ -36,7 +36,7 @@ Example:
 const toCamelCase = (str: string): string =>
   str.replaceAll(/-([a-z])/g, g => g[1]!.toUpperCase())
 
-const parseValue = (value: string): any => {
+const parseValue = (value: string): string | number | boolean | string[] => {
   if (value === 'true') return true
   if (value === 'false') return false
 
@@ -85,11 +85,13 @@ function parseArgs(): Partial<Bun.BuildConfig> {
     key = toCamelCase(key)
 
     if (key.includes('.')) {
-      const [parentKey, childKey] = key.split('.')
-      config[parentKey] = config[parentKey] || {}
-      config[parentKey][childKey] = parseValue(value)
+      const [parentKey, childKey] = key.split('.') as [string, string]
+      const configAny = config as Record<string, unknown>
+      configAny[parentKey] = configAny[parentKey] || {}
+      ;(configAny[parentKey] as Record<string, unknown>)[childKey] =
+        parseValue(value)
     } else {
-      config[key] = parseValue(value)
+      ;(config as Record<string, unknown>)[key] = parseValue(value)
     }
   }
 

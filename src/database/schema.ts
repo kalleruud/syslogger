@@ -87,11 +87,12 @@ export type NewTag = typeof tags.$inferInsert
 
 export type LogWithTags = Log & { tags: Tag[] }
 
-export function isLogsWithTags(data: any): data is LogWithTags {
+export function isLogsWithTags(data: unknown): data is LogWithTags {
   if (typeof data !== 'object' || data === null) return false
+  const record = data as Record<string, unknown>
   return (
-    typeof data.id === 'number' &&
-    typeof data.timestamp === 'string' &&
-    typeof data.raw === 'string'
+    typeof record.id === 'number' &&
+    typeof record.timestamp === 'string' &&
+    typeof record.raw === 'string'
   )
 }

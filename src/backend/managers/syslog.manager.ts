@@ -25,9 +25,7 @@ export const syslogSocketConfig: Bun.udp.SocketOptions<'buffer'> = {
 
 async function handleData(
   _socket: Bun.udp.Socket<'buffer'>,
-  data: Buffer<ArrayBufferLike>,
-  _port: number,
-  _address: string
+  data: Buffer<ArrayBufferLike>
 ) {
   const rawMessage = data.toString('utf-8').trimEnd()
   const message = stripAnsiCodes(rawMessage)

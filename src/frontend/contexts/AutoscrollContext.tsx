@@ -38,6 +38,7 @@ export function AutoscrollProvider({
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAutoscroll = () => {
   const context = useContext(AutoscrollContext)
   if (!context)

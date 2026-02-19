@@ -88,6 +88,7 @@ export function ConnectionProvider({
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useConnection = () => {
   const context = useContext(ConnectionContext)
   if (!context)

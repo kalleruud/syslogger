@@ -1,4 +1,4 @@
-export function json(data: any, status = 200) {
+export function json(data: unknown, status = 200) {
   return Response.json(data, { status })
 }
 

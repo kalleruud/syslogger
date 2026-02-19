@@ -299,6 +299,7 @@ function groupTagsByLogId(
 
   for (const association of associations) {
     const existingTags = tagsByLogId.get(association.logId) ?? []
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { logId, ...tag } = association
     existingTags.push(tag)
     tagsByLogId.set(association.logId, existingTags)
