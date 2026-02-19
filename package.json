@@ -7,7 +7,7 @@
     "dev": "bun --hot src/syslogger.ts",
     "start": "NODE_ENV=production bun src/syslogger.ts",
     "build": "bun run build.ts",
-    "check": "eslint . && prettier --check .",
+    "check": "eslint . && prettier --check . && react-doctor@latest . --verbose --diff",
     "db:gen": "drizzle-kit generate",
     "db:push": "drizzle-kit push --force",
     "db:studio": "drizzle-kit studio"
