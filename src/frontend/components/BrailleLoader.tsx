@@ -1,6 +1,6 @@
+import { cn } from '@/lib/utils'
 import type { ComponentProps } from 'react'
 import { useEffect, useState } from 'react'
-import { twMerge } from 'tailwind-merge'
 
 const PATTERNS = {
   small: ['⠟', '⠯', '⠷', '⠾', '⠽', '⠻'].toReversed(),
@@ -29,7 +29,7 @@ export default function BrailleLoader({
 
   return (
     <span
-      className={twMerge(
+      className={cn(
         'inline-block',
         'text-primary shadow-primary text-shadow-[0_0px_10px]',
         className

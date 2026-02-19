@@ -3,7 +3,7 @@ import { server } from '@/syslogger'
 import { randomUUIDv7 } from 'bun'
 import logger from './managers/log.manager'
 
-export type BunSocket = Bun.ServerWebSocket<BunSocketData>
+type BunSocket = Bun.ServerWebSocket<BunSocketData>
 export type BunSocketData = {
   id: string
 }

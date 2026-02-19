@@ -1,4 +1,4 @@
-import { twMerge } from 'tailwind-merge'
+import { cn } from '@/lib/utils'
 import { useConnection } from '../contexts/ConnectionContext'
 
 export default function LiveIndicator() {
@@ -6,7 +6,7 @@ export default function LiveIndicator() {
   return (
     <div className='flex items-center justify-center gap-2'>
       <div
-        className={twMerge(
+        className={cn(
           'size-2 rounded-full shadow-[0_0px_10px]',
           isConnected
             ? 'animate-pulse bg-primary shadow-primary'

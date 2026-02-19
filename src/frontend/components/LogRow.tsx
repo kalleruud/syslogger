@@ -2,8 +2,8 @@ import type { LogWithTags } from '@/database/schema'
 import type { ColumnKey } from '@/frontend/hooks/useColumnVisibility'
 import { getFacility } from '@/lib/facilities'
 import { getSeverity } from '@/lib/severities'
+import { cn } from '@/lib/utils'
 import type { ComponentProps } from 'react'
-import { twMerge } from 'tailwind-merge'
 
 const timezone = process.env.TZ || 'UTC'
 
@@ -59,7 +59,7 @@ export default function LogRow({
 
   return (
     <div
-      className={twMerge(
+      className={cn(
         'flex w-screen gap-2 select-text hover:cursor-pointer hover:bg-accent-foreground/15',
         className
       )}
@@ -80,7 +80,7 @@ export default function LogRow({
 
       {visibleColumns.has('severity') && (
         <div
-          className={twMerge(
+          className={cn(
             'line-clamp-1 shrink-0',
             severityTextStyles[severity.level]
           )}
