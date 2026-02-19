@@ -23,6 +23,7 @@ export default class FallbackParser extends SyslogParser {
         : undefined
 
     return {
+      parser: this.name,
       log: {
         raw: rawMessage,
         facility: priority.facility,

@@ -17,12 +17,15 @@ const MONTHS = [
   'Dec', // 11
 ]
 
+type ParserName = 'rfc5424' | 'rfc3164' | 'docker' | 'fallback'
+
 export type ParsedLog = {
   log: Omit<Log, 'id' | 'createdAt'>
+  parser: ParserName
 }
 
 export abstract class SyslogParser {
-  abstract readonly name: 'rfc5424' | 'rfc3164' | 'docker' | 'fallback'
+  abstract readonly name: ParserName
   protected abstract readonly format: RegExp
 
   private static readonly bsdFormat =
@@ -63,8 +66,7 @@ export abstract class SyslogParser {
       Number.parseInt(date!),
       Number.parseInt(hour!),
       Number.parseInt(minute!),
-      Number.parseInt(second!),
-      now.getMilliseconds()
+      Number.parseInt(second!)
     )
   }
 

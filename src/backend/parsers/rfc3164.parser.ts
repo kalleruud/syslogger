@@ -20,6 +20,7 @@ export default class Rfc3164SyslogParser extends SyslogParser {
         : undefined
 
     return {
+      parser: this.name,
       log: {
         raw: rawMessage,
         facility: priority.facility,

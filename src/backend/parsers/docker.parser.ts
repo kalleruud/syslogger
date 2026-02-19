@@ -26,6 +26,7 @@ export default class DockerSyslogParser extends SyslogParser {
         : undefined
 
     return {
+      parser: this.name,
       log: {
         raw: rawMessage,
         ...parsed,
@@ -65,6 +66,6 @@ export default class DockerSyslogParser extends SyslogParser {
   }
 
   private stripBracketedSegments(message: string): string {
-    return message.replace(/\[.*?\]/g, '').trim()
+    return message.replaceAll(/\[.*?\]/g, '').trim()
   }
 }
