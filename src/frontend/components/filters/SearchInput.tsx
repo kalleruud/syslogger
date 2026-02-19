@@ -8,6 +8,7 @@ interface SearchInputProps {
 }
 
 const DEBOUNCE_DELAY = 300
+const AUTO_CLOSE_DELAY = 5_000 // 5 seconds
 
 export function SearchInput({ value, onChange }: SearchInputProps) {
   const [localValue, setLocalValue] = useState(() => value)
@@ -23,6 +24,18 @@ export function SearchInput({ value, onChange }: SearchInputProps) {
 
     return () => clearTimeout(timer)
   }, [localValue, value, onChange])
+
+  // Auto-close search input after 10 seconds of inactivity if empty
+  useEffect(() => {
+    if (isFocused && !localValue) {
+      const autoCloseTimer = setTimeout(() => {
+        setIsFocused(false)
+        inputRef.current?.blur()
+      }, AUTO_CLOSE_DELAY)
+
+      return () => clearTimeout(autoCloseTimer)
+    }
+  }, [isFocused, localValue])
 
   const handleIconClick = () => {
     setIsFocused(true)
