@@ -9,7 +9,7 @@ type ParsedTag = {
 export default class Rfc3164SyslogParser extends SyslogParser {
   name = 'rfc3164' as const
   format =
-    /^<(?<pri>\d{1,3})>(?<date>\w{3} {1,2}[1-3]?\d \d{2}:\d{2}:\d{2}) (?<hostname>[^ ]+) (?<tag>[^:]+): ?(?<message>.*)/
+    /^<(?<pri>\d{1,3})>(?<date>\w{3} {1,2}[1-3]?\d \d{2}:\d{2}:\d{2}) (?<hostname>[^ :]+) (?<tag>[^:]+): ?(?<message>.*)/
 
   public parse(rawMessage: string): ParsedLog {
     const parsed = this.parseParts(rawMessage)

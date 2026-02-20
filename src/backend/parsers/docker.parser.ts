@@ -16,6 +16,9 @@ export default class DockerSyslogParser extends SyslogParser {
   private static readonly isoTimestampFormat =
     /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z?/
 
+  private static readonly slashTimestampFormat =
+    /^\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2}(?:\.\d{1,6})?/
+
   public parse(rawMessage: string) {
     const parsed = this.parseParts(rawMessage)
     const timestamp = this.extractTimestamp(parsed.date, parsed.message)
@@ -29,7 +32,9 @@ export default class DockerSyslogParser extends SyslogParser {
       parser: this.name,
       log: {
         raw: rawMessage,
-        ...parsed,
+        appname: parsed.appname,
+        procid: parsed.procid,
+        message: parsed.message,
         facility: priority.facility,
         severity: severityOverride?.level ?? priority.severity,
         timestamp,
@@ -62,7 +67,26 @@ export default class DockerSyslogParser extends SyslogParser {
       return this.parseISO8601(isoMatch[0])
     }
 
+    const slashMatch =
+      DockerSyslogParser.slashTimestampFormat.exec(cleanedMessage)
+    if (slashMatch) {
+      return this.parseSlashTimestamp(slashMatch[0])
+    }
+
     return this.parseBSDTimestamp(bsdDate).toISOString()
+  }
+
+  private parseSlashTimestamp(value: string): string {
+    const [datePart, timePart] = value.split(' ')
+    if (!datePart || !timePart) return this.parseISO8601(value)
+
+    const [year, month, day] = datePart.split('/')
+    const [time, fraction] = timePart.split('.')
+
+    const milliseconds = fraction ? fraction.padEnd(3, '0').slice(0, 3) : '000'
+    const isoTimestamp = `${year}-${month}-${day}T${time}.${milliseconds}Z`
+
+    return this.parseISO8601(isoTimestamp)
   }
 
   private stripBracketedSegments(message: string): string {

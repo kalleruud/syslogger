@@ -18,7 +18,8 @@ const testCases: {
         appname: 'media-seerr',
         facility: FACILITIES.daemons.level,
         hostname: null,
-        message: '2026-02-19T23:19:00.002Z [debug][Jobs]: Starting scheduled job: Download Sync',
+        message:
+          '2026-02-19T23:19:00.002Z [debug][Jobs]: Starting scheduled job: Download Sync',
         msgid: null,
         procid: '15429',
         raw: '<30>Feb 20 00:19:00 media-seerr[15429]: 2026-02-19T23:19:00.002Z [debug][Jobs]: Starting scheduled job: Download Sync',
@@ -52,7 +53,8 @@ const testCases: {
         appname: 'media-unpackerr',
         facility: FACILITIES.daemons.level,
         hostname: null,
-        message: '[INFO] 2026/02/20 00:45:25.976377 sonarr.go:74: [Sonarr] Updated (http://media.vpn.local:8989): 0 Items Queued, 0 Retrieved',
+        message:
+          '[INFO] 2026/02/20 00:45:25.976377 sonarr.go:74: [Sonarr] Updated (http://media.vpn.local:8989): 0 Items Queued, 0 Retrieved',
         msgid: null,
         procid: '15429',
         raw: '<30>Feb 20 00:45:25 media-unpackerr[15429]: [INFO] 2026/02/20 00:45:25.976377 sonarr.go:74: [Sonarr] Updated (http://media.vpn.local:8989): 0 Items Queued, 0 Retrieved',
@@ -68,10 +70,7 @@ describe('parseSyslog', () => {
     test(`parses syslog message #${index + 1}`, () => {
       const result = parseSyslog(testCase.log)
 
-      expect(result.log).toEqual({
-        ...testCase.expected,
-        raw: testCase.log,
-      })
+      expect(result).toEqual(testCase.expected)
     })
   }
 })
