@@ -73,4 +73,10 @@ describe('parseSyslog', () => {
       expect(result).toEqual(testCase.expected)
     })
   }
+
+  test('throws on empty docker syslog message', () => {
+    const log = '<30>Feb 20 01:23:11 media-radarr[15429]: '
+
+    expect(() => parseSyslog(log)).toThrow()
+  })
 })
