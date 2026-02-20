@@ -89,7 +89,7 @@ export function MultiSelect({
           role='combobox'
           aria-expanded={open}
           aria-controls={contentId}
-          className={cn('h-9 min-w-[180px] justify-between', className)}
+          className={cn('h-9 min-w-45 justify-between', className)}
           disabled={disabled}>
           <span className={value.length === 0 ? 'text-muted-foreground' : ''}>
             {value.length === 0
@@ -99,7 +99,7 @@ export function MultiSelect({
           <ChevronsUpDown className='ml-2 size-4 shrink-0 opacity-50' />
         </Button>
       </PopoverTrigger>
-      <PopoverContent id={contentId} className='w-[300px] p-0' align='start'>
+      <PopoverContent id={contentId} className='w-75 p-0' align='start'>
         <PopoverHeader className='border-b p-2'>
           <Input
             placeholder={searchPlaceholder}
@@ -131,7 +131,7 @@ export function MultiSelect({
             </Button>
           </div>
         </div>
-        <div className='max-h-[300px] overflow-y-auto p-2'>
+        <div className='max-h-75 overflow-y-auto p-2'>
           {filteredOptions.length === 0 ? (
             <div className='py-6 text-center text-sm text-muted-foreground'>
               No results found.
