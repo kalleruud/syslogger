@@ -48,6 +48,9 @@ export abstract class SyslogParser {
    * Parses BSD timestamp format:
    * Feb 10 23:59:59
    * Jun  1 00:00:00
+   *
+   * Note: BSD timestamps do not include timezone information.
+   * They are always interpreted as UTC for consistency across environments.
    */
   protected parseBSDTimestamp(bsdTime: string): Date {
     const match = SyslogParser.bsdFormat.exec(bsdTime)
@@ -61,12 +64,14 @@ export abstract class SyslogParser {
 
     const now = new Date()
     return new Date(
-      now.getFullYear(),
-      monthValue,
-      Number.parseInt(date!),
-      Number.parseInt(hour!),
-      Number.parseInt(minute!),
-      Number.parseInt(second!)
+      Date.UTC(
+        now.getUTCFullYear(),
+        monthValue,
+        Number.parseInt(date!),
+        Number.parseInt(hour!),
+        Number.parseInt(minute!),
+        Number.parseInt(second!)
+      )
     )
   }
 

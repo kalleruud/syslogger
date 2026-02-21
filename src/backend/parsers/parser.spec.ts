@@ -41,7 +41,7 @@ const testCases: {
         procid: null,
         raw: '<13>Feb 20 00:00:01 Svetlana move: mover: started',
         severity: SEVERITIES.notice.level,
-        timestamp: '2026-02-19T23:00:01.000Z',
+        timestamp: '2026-02-20T00:00:01.000Z',
       },
     },
   },
