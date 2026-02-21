@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils'
-import { Search } from 'lucide-react'
+import { Search, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Input } from '../ui/input'
+import { Button } from '../ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 
 interface SearchInputProps {
@@ -26,22 +26,39 @@ export function SearchInput({ value, onChange }: SearchInputProps) {
     return () => clearTimeout(timer)
   }, [localValue, value, onChange])
 
+  const handleClear = () => {
+    setLocalValue('')
+  }
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <div className='relative'>
-          <Search className='absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground' />
-          <Input
+        <div
+          className={cn(
+            'flex w-full items-center gap-2 rounded-md border border-input bg-transparent px-2 py-1 shadow-xs transition-[color,box-shadow] md:max-w-md',
+            'focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50',
+            'dark:bg-input/30',
+            hasValue && 'border-primary'
+          )}>
+          <Search className='size-4 shrink-0 text-muted-foreground' />
+          <input
             type='text'
             placeholder='Search logs...'
             value={localValue}
             onChange={e => setLocalValue(e.target.value)}
-            className={cn(
-              'h-8 w-48 pl-9 md:w-64',
-              hasValue && 'border-primary text-primary'
-            )}
+            className='flex-1 bg-transparent outline-none placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50'
             aria-label='Search logs'
           />
+          {hasValue && (
+            <Button
+              onClick={handleClear}
+              size='sm'
+              variant='ghost'
+              className='size-5 p-0 text-xs'
+              aria-label='Clear search'>
+              <X className='size-4' />
+            </Button>
+          )}
         </div>
       </TooltipTrigger>
       <TooltipContent>
