@@ -66,5 +66,15 @@
       "prettier-plugin-organize-imports",
       "prettier-plugin-tailwindcss"
     ]
-  }
+  },
+  "reactDoctor": {
+    "ignore": {
+      "files": [
+        "./src/frontend/components/ui/**"
+      ]
+    }
+  },
+  "eslintIgnore": [
+    "./src/frontend/components/ui/**"
+  ]
 }
