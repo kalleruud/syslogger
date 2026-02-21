@@ -233,7 +233,7 @@ export default function App() {
 
               if (isLoaderRow) {
                 content = (
-                  <div className='flex items-center justify-center gap-2 py-2'>
+                  <div className='flex items-center justify-center gap-2'>
                     <BrailleLoader className='text-primary' />
                     <span className='text-muted-foreground'>
                       Loading older logs...
@@ -251,7 +251,7 @@ export default function App() {
               } else if (!hasMore && virtualRow.index === 0) {
                 // Show "No older logs" message at top when no more logs
                 content = (
-                  <div className='flex items-center justify-center py-2'>
+                  <div className='flex items-center justify-center'>
                     <span className='text-muted-foreground'>No older logs</span>
                   </div>
                 )

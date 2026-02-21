@@ -1,5 +1,5 @@
 import logo from '@public/logo.svg'
-import { SlidersHorizontal } from 'lucide-react'
+import { Filter } from 'lucide-react'
 import { useState } from 'react'
 import { useFilters } from '../contexts/FilterContext'
 import AutoscrollIndicator from './AutoscrollIndicator'
@@ -47,7 +47,7 @@ export default function TopBar() {
                 onClick={toggleFilterBar}
                 aria-label='Toggle filters'
                 className='h-8 w-8'>
-                <SlidersHorizontal className='size-4' />
+                <Filter className='size-4' />
               </Button>
             </TooltipTrigger>
             <TooltipContent>

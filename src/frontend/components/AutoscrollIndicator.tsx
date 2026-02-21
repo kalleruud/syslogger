@@ -1,3 +1,4 @@
+import { cn } from '@/lib/utils'
 import { ArrowDown, ArrowDownToLine } from 'lucide-react'
 import { useAutoscroll } from '../contexts/AutoscrollContext'
 import { Button } from './ui/button'
@@ -20,11 +21,14 @@ export default function AutoscrollIndicator() {
             variant='ghost'
             size='sm'
             onClick={handleClick}
+            className={cn(
+              'text-muted-foreground disabled:text-primary disabled:opacity-100'
+            )}
             disabled={isAutoscrollEnabled}
             aria-label='Enable autoscroll'>
-            <Icon className='size-4 text-muted-foreground' />
-            <span className='hidden text-muted-foreground md:inline'>
-              {isAutoscrollEnabled ? 'Autoscrolling' : 'Autoscroll   '}
+            <Icon className='size-4' />
+            <span className='hidden md:inline'>
+              {isAutoscrollEnabled ? 'Autoscrolling' : 'Autoscroll'}
             </span>
           </Button>
         </TooltipTrigger>
