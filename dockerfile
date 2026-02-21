@@ -48,9 +48,10 @@ EXPOSE 3791/tcp 5140/udp
 # Run as bun user for security
 USER bun
 
-# Health check
+# Health check (runs inside container, uses internal port)
+# Note: This checks the app's health from inside the container, not externally
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD bun -e "fetch('http://localhost:3791/').then(() => process.exit(0)).catch(() => process.exit(1))"
+  CMD bun -e "fetch('http://127.0.0.1:3791/').then(() => process.exit(0)).catch(() => process.exit(1))"
 
 # Start the application
 ENTRYPOINT [ "bun", "run", "src/syslogger.ts" ]
