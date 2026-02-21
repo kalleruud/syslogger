@@ -137,18 +137,17 @@ export function MultiSelect({
               No results found.
             </div>
           ) : (
-            <div className='space-y-1'>
+            <fieldset className='space-y-1 border-0 p-0'>
+              <legend className='sr-only'>Select options</legend>
               {filteredOptions.map(option => {
                 const isSelected = value.includes(option.value)
                 return (
-                  <button
+                  <label
                     key={option.value}
-                    type='button'
-                    onClick={() => toggleOption(option.value)}
-                    className='flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground'>
+                    className='flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:outline-none hover:bg-accent hover:text-accent-foreground'>
                     <Checkbox
                       checked={isSelected}
-                      className='pointer-events-none'
+                      onCheckedChange={() => toggleOption(option.value)}
                     />
                     <div className='flex flex-1 flex-col items-start'>
                       {renderOption ? (
@@ -165,10 +164,10 @@ export function MultiSelect({
                       )}
                     </div>
                     {isSelected && <Check className='size-4' />}
-                  </button>
+                  </label>
                 )
               })}
-            </div>
+            </fieldset>
           )}
         </div>
       </PopoverContent>
