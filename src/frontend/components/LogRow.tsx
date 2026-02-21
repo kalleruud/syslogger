@@ -116,7 +116,9 @@ export default function LogRow({
       )}
 
       {visibleColumns.has('message') && (
-        <div className='line-clamp-1 break-all' title={log.raw}>{log.message}</div>
+        <div className='line-clamp-1 break-all' title={log.raw}>
+          {log.message}
+        </div>
       )}
     </div>
   )

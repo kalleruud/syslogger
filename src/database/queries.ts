@@ -22,7 +22,11 @@ export interface PaginatedResult<T> {
 const DEFAULT_LIMIT = 100
 const DEFAULT_OFFSET = 0
 
-const buildWhereConditions = (filters: LogFilters) => {
+/**
+ * Build WHERE conditions for user filters only (severity, hostname, appname, search)
+ * Used for counting total matching logs
+ */
+const buildFilterConditions = (filters: LogFilters) => {
   const conditions: SQL[] = []
 
   if (filters.severity?.length) {
@@ -44,6 +48,17 @@ const buildWhereConditions = (filters: LogFilters) => {
       )!
     )
   }
+
+  return conditions
+}
+
+/**
+ * Build WHERE conditions for pagination only (beforeTimestamp)
+ * Used for fetching specific pages of data
+ */
+const buildPaginationConditions = (filters: LogFilters) => {
+  const conditions: SQL[] = []
+
   if (filters.beforeTimestamp) {
     conditions.push(lt(logs.timestamp, filters.beforeTimestamp))
   }
@@ -83,12 +98,23 @@ export async function getLogs(
   const limit = filters.limit ?? DEFAULT_LIMIT
   const offset = filters.offset ?? DEFAULT_OFFSET
 
-  const conditions = buildWhereConditions(filters)
+  // For counting: use ONLY user filters (excludes beforeTimestamp)
+  // This ensures total represents ALL logs matching filters, not just paginated subset
+  const filterConditions = buildFilterConditions(filters)
+  const filterWhereClause =
+    filterConditions.length > 0 ? and(...filterConditions) : undefined
 
-  const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+  // For fetching data: use BOTH user filters AND pagination filters
+  const paginationConditions = buildPaginationConditions(filters)
+  const allConditions = [...filterConditions, ...paginationConditions]
+  const dataWhereClause =
+    allConditions.length > 0 ? and(...allConditions) : undefined
 
-  const total = await countMatchingLogs(whereClause)
-  const logsResult = await fetchPaginatedLogs(whereClause, limit, offset)
+  // Count with filter conditions only (excludes beforeTimestamp for accurate total)
+  const total = await countMatchingLogs(filterWhereClause)
+
+  // Fetch with both filter and pagination conditions
+  const logsResult = await fetchPaginatedLogs(dataWhereClause, limit, offset)
 
   return { data: logsResult, total, limit, offset }
 }
