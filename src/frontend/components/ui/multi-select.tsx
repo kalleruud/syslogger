@@ -28,6 +28,9 @@ interface MultiSelectProps {
   className?: string
   disabled?: boolean
   renderOption?: (option: MultiSelectOption) => React.ReactNode
+  icon?: React.ReactNode
+  ariaLabel?: string
+  showText?: boolean
 }
 
 export function MultiSelect({
@@ -39,10 +42,14 @@ export function MultiSelect({
   className,
   disabled = false,
   renderOption,
+  icon,
+  ariaLabel,
+  showText = false,
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState('')
   const contentId = React.useId()
+  const hasActiveFilters = value.length > 0
 
   const filteredOptions = React.useMemo(() => {
     let filtered = options
@@ -89,14 +96,24 @@ export function MultiSelect({
           role='combobox'
           aria-expanded={open}
           aria-controls={contentId}
-          className={cn('h-9 min-w-45 justify-between', className)}
+          aria-label={ariaLabel || placeholder}
+          className={cn(
+            'h-9 min-w-9 justify-center gap-1.5 lg:min-w-45 lg:justify-between',
+            hasActiveFilters && 'border-primary text-primary',
+            className
+          )}
           disabled={disabled}>
-          <span className={value.length === 0 ? 'text-muted-foreground' : ''}>
+          {icon || <ChevronsUpDown className='size-4 shrink-0' />}
+          <span className={showText ? '' : 'hidden lg:inline'}>
             {value.length === 0
               ? placeholder
               : `${placeholder} (${value.length})`}
           </span>
-          <ChevronsUpDown className='ml-2 size-4 shrink-0 opacity-50' />
+          {hasActiveFilters && !showText && (
+            <span className='flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground lg:hidden'>
+              {value.length}
+            </span>
+          )}
         </Button>
       </PopoverTrigger>
       <PopoverContent id={contentId} className='w-75 p-0' align='start'>

@@ -12,14 +12,25 @@ export default function AutoscrollIndicator() {
   return (
     <div className='flex items-center gap-2'>
       {isAutoscrollEnabled ? (
-        <>
+        <div
+          className='flex items-center gap-2'
+          aria-label='Auto-scrolling enabled'>
           <ArrowDown className='size-4 animate-bounce text-primary' />
-          <span className='font-medium text-primary'>Auto-scrolling</span>
-        </>
+          <span className='hidden font-medium text-primary lg:inline'>
+            Auto-scrolling
+          </span>
+        </div>
       ) : (
-        <Button variant='ghost' size='sm' onClick={handleClick}>
+        <Button
+          variant='ghost'
+          size='sm'
+          onClick={handleClick}
+          aria-label='Enable autoscroll'
+          className='gap-2'>
           <ArrowDownToLine className='size-4 text-muted-foreground' />
-          <span className='text-muted-foreground'>Autoscroll</span>
+          <span className='hidden text-muted-foreground lg:inline'>
+            Autoscroll
+          </span>
         </Button>
       )}
     </div>

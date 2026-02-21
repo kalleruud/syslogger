@@ -19,9 +19,9 @@ export default function ColumnSelector() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant='outline' size='sm'>
+        <Button variant='outline' size='sm' aria-label='Toggle columns'>
           <Columns />
-          Columns
+          <span className='hidden lg:inline'>Columns</span>
         </Button>
       </PopoverTrigger>
       <PopoverContent align='end' className='w-64'>

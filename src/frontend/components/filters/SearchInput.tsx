@@ -63,7 +63,7 @@ export function SearchInput({ value, onChange }: SearchInputProps) {
         onFocus={() => setIsFocused(true)}
         onBlur={handleBlur}
         className={`pl-9 transition-all duration-300 ease-in-out ${
-          isFocused || localValue ? 'w-64' : 'w-9 cursor-pointer'
+          isFocused || localValue ? 'w-48 lg:w-64' : 'w-9 cursor-pointer'
         }`}
       />
     </div>

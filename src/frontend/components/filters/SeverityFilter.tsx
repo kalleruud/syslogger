@@ -1,10 +1,12 @@
 import { SEVERITIES } from '@/lib/severities'
+import { AlertTriangle } from 'lucide-react'
 import { useMemo } from 'react'
 import { MultiSelect, type MultiSelectOption } from '../ui/multi-select'
 
 interface SeverityFilterProps {
   value: number[] // Excluded severity levels (blacklist)
   onChange: (value: number[]) => void
+  showText?: boolean
 }
 
 const severityStyles = [
@@ -18,7 +20,11 @@ const severityStyles = [
   'text-debug italic',
 ]
 
-export function SeverityFilter({ value, onChange }: SeverityFilterProps) {
+export function SeverityFilter({
+  value,
+  onChange,
+  showText,
+}: SeverityFilterProps) {
   const options: MultiSelectOption[] = useMemo(
     () =>
       Object.values(SEVERITIES).map(severity => ({
@@ -51,6 +57,9 @@ export function SeverityFilter({ value, onChange }: SeverityFilterProps) {
       onChange={handleChange}
       placeholder='Severity'
       searchPlaceholder='Search severity...'
+      icon={<AlertTriangle className='size-4' />}
+      ariaLabel='Filter by severity'
+      showText={showText}
       renderOption={option => {
         const level = Number.parseInt(option.value, 10)
         return (

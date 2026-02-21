@@ -1,3 +1,4 @@
+import { Package } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { fetchUniqueAppnames } from '../../lib/api'
 import { MultiSelect, type MultiSelectOption } from '../ui/multi-select'
@@ -5,9 +6,14 @@ import { MultiSelect, type MultiSelectOption } from '../ui/multi-select'
 interface AppnameFilterProps {
   value: string[]
   onChange: (value: string[]) => void
+  showText?: boolean
 }
 
-export function AppnameFilter({ value, onChange }: AppnameFilterProps) {
+export function AppnameFilter({
+  value,
+  onChange,
+  showText,
+}: AppnameFilterProps) {
   const [options, setOptions] = useState<MultiSelectOption[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -40,6 +46,9 @@ export function AppnameFilter({ value, onChange }: AppnameFilterProps) {
       onChange={onChange}
       placeholder={isLoading ? 'Loading...' : 'Application'}
       searchPlaceholder='Search applications...'
+      icon={<Package className='size-4' />}
+      ariaLabel='Filter by application'
+      showText={showText}
       disabled={isLoading}
     />
   )
