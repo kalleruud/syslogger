@@ -5,12 +5,11 @@ import { getSeverity } from '@/lib/severities'
 import { cn } from '@/lib/utils'
 import type { ComponentProps } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
-
-const timezone = process.env.TZ || 'UTC'
+import config from '@/lib/config'
 
 function formatLocalIso(date: Date): { datePart: string; timePart: string } {
   const formatter = new Intl.DateTimeFormat('sv-SE', {
-    timeZone: timezone,
+    timeZone: config.timezone,
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
