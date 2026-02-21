@@ -386,7 +386,27 @@ The container includes built-in health checks that verify the HTTP server is res
 ```bash
 # Check container health
 docker ps
+
+# View detailed health status
 docker inspect syslogger | grep -A 10 Health
+
+# Or use the Makefile
+make health
+```
+
+**How it works:**
+
+- The healthcheck runs **inside the container** using `127.0.0.1:3791`
+- It's not affected by external domains (like `logs.kallerud.no`)
+- The check verifies the app is responding to HTTP requests
+- Status appears in `docker ps` output (starting, healthy, unhealthy)
+
+**Example output:**
+
+```bash
+$ docker ps
+CONTAINER ID   IMAGE              STATUS                    PORTS
+abc123def456   syslogger:latest   Up 2 min (healthy)       0.0.0.0:3791->3791/tcp
 ```
 
 ### Testing Syslog Reception
@@ -538,14 +558,55 @@ The Dockerfile follows the [official Bun guide](https://bun.sh/guides/ecosystem/
 - Consistent builds with frozen lockfile
 - Security through non-root user
 
+### Production Deployment
+
+When deploying to production with an external domain (e.g., `logs.kallerud.no`):
+
+**Reverse Proxy Setup:**
+
+```nginx
+# Nginx example
+server {
+    listen 443 ssl http2;
+    server_name logs.kallerud.no;
+
+    # SSL certificates
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
+
+    location / {
+        proxy_pass http://localhost:3791;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+**Important Notes:**
+
+- The healthcheck always uses `127.0.0.1:3791` (internal container check)
+- External domain is handled by your reverse proxy (Nginx/Caddy/Traefik)
+- WebSocket support requires `Upgrade` and `Connection` headers
+- Update `SYSLOGGER_CORS_ORIGIN` if restricting CORS
+
 ### Production Considerations
 
 - **Volume Backups**: Regularly backup the `./data` directory containing the SQLite database
 - **Resource Limits**: Adjust memory limits in `docker-compose.yml` based on log volume
 - **Log Rotation**: The compose file includes log rotation (10MB max, 3 files)
-- **Firewall**: Ensure UDP port 5140 is open for syslog reception
+- **Firewall**:
+  - Ensure UDP port 5140 is open for syslog reception
+  - HTTP port 3791 should only be exposed via reverse proxy (not directly)
 - **Monitoring**: Use the built-in health checks for monitoring
-- **Security**: Container runs as `bun` user (non-root) for better security
+- **Security**:
+  - Container runs as `bun` user (non-root) for better security
+  - Use SSL/TLS via reverse proxy for production
+  - Consider restricting CORS origins
 
 ## Contributing
 
