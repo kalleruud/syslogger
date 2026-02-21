@@ -98,7 +98,7 @@ export function MultiSelect({
           aria-controls={contentId}
           aria-label={ariaLabel || placeholder}
           className={cn(
-            'h-9 min-w-9 justify-center gap-1.5 lg:min-w-45 lg:justify-between',
+            'h-8 min-w-8 justify-center gap-1.5 lg:min-w-45 lg:justify-between',
             hasActiveFilters && 'border-primary text-primary',
             className
           )}

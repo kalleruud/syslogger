@@ -1,3 +1,4 @@
+import { cn } from '@/lib/utils'
 import { Search } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Input } from '../ui/input'
@@ -15,6 +16,9 @@ export function SearchInput({ value, onChange }: SearchInputProps) {
   const [isFocused, setIsFocused] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
+  const isCollapsed = !isFocused && !localValue
+  const hasValue = Boolean(localValue)
+
   useEffect(() => {
     const timer = setTimeout(() => {
       if (localValue !== value) {
@@ -25,7 +29,7 @@ export function SearchInput({ value, onChange }: SearchInputProps) {
     return () => clearTimeout(timer)
   }, [localValue, value, onChange])
 
-  // Auto-close search input after 10 seconds of inactivity if empty
+  // Auto-close search input after 5 seconds of inactivity if empty
   useEffect(() => {
     if (isFocused && !localValue) {
       const autoCloseTimer = setTimeout(() => {
@@ -39,7 +43,10 @@ export function SearchInput({ value, onChange }: SearchInputProps) {
 
   const handleIconClick = () => {
     setIsFocused(true)
-    inputRef.current?.focus()
+    // Use setTimeout to ensure input is rendered and available
+    setTimeout(() => {
+      inputRef.current?.focus()
+    }, 0)
   }
 
   const handleBlur = () => {
@@ -51,7 +58,12 @@ export function SearchInput({ value, onChange }: SearchInputProps) {
   return (
     <div className='relative'>
       <Search
-        className='absolute top-1/2 left-3 z-10 h-4 w-4 -translate-y-1/2 cursor-pointer text-muted-foreground transition-colors hover:text-foreground'
+        className={cn(
+          'absolute top-1/2 z-10 size-4 -translate-y-1/2 cursor-pointer transition-all',
+          isCollapsed
+            ? 'left-1/2 -translate-x-1/2 text-foreground/70 hover:text-foreground'
+            : 'left-3 text-muted-foreground hover:text-foreground'
+        )}
         onClick={handleIconClick}
       />
       <Input
@@ -62,9 +74,14 @@ export function SearchInput({ value, onChange }: SearchInputProps) {
         onChange={e => setLocalValue(e.target.value)}
         onFocus={() => setIsFocused(true)}
         onBlur={handleBlur}
-        className={`pl-9 transition-all duration-300 ease-in-out ${
-          isFocused || localValue ? 'w-48 lg:w-64' : 'w-9 cursor-pointer'
-        }`}
+        className={cn(
+          'h-8 pl-9 transition-all duration-300 ease-in-out',
+          isCollapsed
+            ? 'w-8 cursor-pointer border-input bg-background pl-0 text-transparent shadow-xs placeholder:text-transparent hover:bg-accent dark:border-input dark:bg-input/30 dark:hover:bg-input/50'
+            : 'w-48 lg:w-64',
+          hasValue && 'border-primary text-primary'
+        )}
+        aria-label={isCollapsed ? 'Open search' : 'Search logs'}
       />
     </div>
   )
