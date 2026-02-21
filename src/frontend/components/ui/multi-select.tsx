@@ -1,4 +1,4 @@
-import { Check, ChevronsUpDown } from 'lucide-react'
+import { ChevronsUpDown } from 'lucide-react'
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
@@ -180,7 +180,6 @@ export function MultiSelect({
                         </>
                       )}
                     </div>
-                    {isSelected && <Check className='size-4' />}
                   </label>
                 )
               })}
