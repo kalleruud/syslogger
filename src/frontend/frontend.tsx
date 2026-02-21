@@ -8,6 +8,7 @@
 import App from '@/frontend/App'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { TooltipProvider } from './components/ui/tooltip'
 import { AutoscrollProvider } from './contexts/AutoscrollContext'
 import { ConnectionProvider } from './contexts/ConnectionContext'
 import { DataProvider } from './contexts/DataContext'
@@ -20,7 +21,9 @@ const app = (
       <FilterProvider>
         <DataProvider>
           <AutoscrollProvider>
-            <App />
+            <TooltipProvider delayDuration={500}>
+              <App />
+            </TooltipProvider>
           </AutoscrollProvider>
         </DataProvider>
       </FilterProvider>

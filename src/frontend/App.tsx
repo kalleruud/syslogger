@@ -3,7 +3,6 @@ import { useEffect, useRef } from 'react'
 import BrailleLoader from './components/BrailleLoader'
 import LogRow from './components/LogRow'
 import TopBar from './components/TopBar'
-import { TooltipProvider } from './components/ui/tooltip'
 import { useAutoscroll } from './contexts/AutoscrollContext'
 import { useData } from './contexts/DataContext'
 import { useColumnVisibility } from './hooks/useColumnVisibility'
@@ -198,92 +197,84 @@ export default function App() {
   // Show loading screen during initial load
   if (data.isLoading) {
     return (
-      <TooltipProvider>
-        <div className='flex h-dvh w-screen items-center justify-center gap-2'>
-          <BrailleLoader className='text-primary' />
-          Loading
-        </div>
-      </TooltipProvider>
+      <div className='flex h-dvh w-screen items-center justify-center gap-2'>
+        <BrailleLoader className='text-primary' />
+        Loading
+      </div>
     )
   }
 
   const { logs, hasMore } = data
 
   return (
-    <TooltipProvider>
-      <div className='flex h-dvh w-screen flex-col'>
-        <TopBar />
-        <div ref={parentRef} className='mt-2 flex-1 overflow-y-auto pt-16'>
-          {logs.length === 0 ? (
-            <div className='flex h-full w-full items-center justify-center'>
-              <span className='text-muted-foreground'>No logs yet</span>
-            </div>
-          ) : (
-            <div
-              style={{
-                height: `${rowVirtualizer.getTotalSize()}px`,
-                width: '100%',
-                position: 'relative',
-              }}>
-              {rowVirtualizer.getVirtualItems().map(virtualRow => {
-                // If hasMore, index 0 is the loader row, logs start at index 1
-                // If !hasMore, all indices are logs (no loader)
-                const isLoaderRow = hasMore && virtualRow.index === 0
-                const logIndex = hasMore
-                  ? virtualRow.index - 1
-                  : virtualRow.index
-                const log = logs[logIndex]
+    <div className='flex h-dvh w-screen flex-col'>
+      <TopBar />
+      <div ref={parentRef} className='mt-2 flex-1 overflow-y-auto pt-16'>
+        {logs.length === 0 ? (
+          <div className='flex h-full w-full items-center justify-center'>
+            <span className='text-muted-foreground'>No logs yet</span>
+          </div>
+        ) : (
+          <div
+            style={{
+              height: `${rowVirtualizer.getTotalSize()}px`,
+              width: '100%',
+              position: 'relative',
+            }}>
+            {rowVirtualizer.getVirtualItems().map(virtualRow => {
+              // If hasMore, index 0 is the loader row, logs start at index 1
+              // If !hasMore, all indices are logs (no loader)
+              const isLoaderRow = hasMore && virtualRow.index === 0
+              const logIndex = hasMore ? virtualRow.index - 1 : virtualRow.index
+              const log = logs[logIndex]
 
-                // Determine content for this row
-                let content: React.ReactNode = null
+              // Determine content for this row
+              let content: React.ReactNode = null
 
-                if (isLoaderRow) {
-                  content = (
-                    <div className='flex items-center justify-center gap-2 py-2'>
-                      <BrailleLoader className='text-primary' />
-                      <span className='text-muted-foreground'>
-                        Loading older logs...
-                      </span>
-                    </div>
-                  )
-                } else if (log) {
-                  content = (
-                    <LogRow
-                      log={log}
-                      visibleColumns={visibleColumns}
-                      className='px-1'
-                    />
-                  )
-                } else if (!hasMore && virtualRow.index === 0) {
-                  // Show "No older logs" message at top when no more logs
-                  content = (
-                    <div className='flex items-center justify-center py-2'>
-                      <span className='text-muted-foreground'>
-                        No older logs
-                      </span>
-                    </div>
-                  )
-                }
-
-                return (
-                  <div
-                    key={virtualRow.key}
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: `${virtualRow.size}px`,
-                      transform: `translateY(${virtualRow.start}px)`,
-                    }}>
-                    {content}
+              if (isLoaderRow) {
+                content = (
+                  <div className='flex items-center justify-center gap-2 py-2'>
+                    <BrailleLoader className='text-primary' />
+                    <span className='text-muted-foreground'>
+                      Loading older logs...
+                    </span>
                   </div>
                 )
-              })}
-            </div>
-          )}
-        </div>
+              } else if (log) {
+                content = (
+                  <LogRow
+                    log={log}
+                    visibleColumns={visibleColumns}
+                    className='px-1'
+                  />
+                )
+              } else if (!hasMore && virtualRow.index === 0) {
+                // Show "No older logs" message at top when no more logs
+                content = (
+                  <div className='flex items-center justify-center py-2'>
+                    <span className='text-muted-foreground'>No older logs</span>
+                  </div>
+                )
+              }
+
+              return (
+                <div
+                  key={virtualRow.key}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: `${virtualRow.size}px`,
+                    transform: `translateY(${virtualRow.start}px)`,
+                  }}>
+                  {content}
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
-    </TooltipProvider>
+    </div>
   )
 }
