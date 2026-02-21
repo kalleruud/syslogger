@@ -7,12 +7,14 @@ interface AppnameFilterProps {
   value: string[]
   onChange: (value: string[]) => void
   showText?: boolean
+  size?: 'default' | 'sm' | 'lg'
 }
 
 export function AppnameFilter({
   value,
   onChange,
   showText,
+  size,
 }: AppnameFilterProps) {
   const [options, setOptions] = useState<MultiSelectOption[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -49,6 +51,7 @@ export function AppnameFilter({
       icon={<Package className='size-4' />}
       ariaLabel='Filter by application'
       showText={showText}
+      size={size}
       disabled={isLoading}
     />
   )

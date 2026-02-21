@@ -6,7 +6,7 @@ import { MultiSelect, type MultiSelectOption } from '../ui/multi-select'
 interface SeverityFilterProps {
   value: number[] // Excluded severity levels (blacklist)
   onChange: (value: number[]) => void
-  showText?: boolean
+  size?: 'default' | 'sm' | 'lg'
 }
 
 const severityStyles = [
@@ -23,7 +23,7 @@ const severityStyles = [
 export function SeverityFilter({
   value,
   onChange,
-  showText,
+  size,
 }: SeverityFilterProps) {
   const options: MultiSelectOption[] = useMemo(
     () =>
@@ -45,8 +45,10 @@ export function SeverityFilter({
   const handleChange = (newSelected: string[]) => {
     // Convert selected (included) back to excluded (blacklist)
     const allSeverities = [0, 1, 2, 3, 4, 5, 6, 7]
-    const includedNumbers = newSelected.map(v => Number.parseInt(v, 10))
-    const excluded = allSeverities.filter(s => !includedNumbers.includes(s))
+    const includedNumbers = new Set(
+      newSelected.map(v => Number.parseInt(v, 10))
+    )
+    const excluded = allSeverities.filter(s => !includedNumbers.has(s))
     onChange(excluded)
   }
 
@@ -59,7 +61,7 @@ export function SeverityFilter({
       searchPlaceholder='Search severity...'
       icon={<AlertTriangle className='size-4' />}
       ariaLabel='Filter by severity'
-      showText={showText}
+      size={size}
       renderOption={option => {
         const level = Number.parseInt(option.value, 10)
         return (

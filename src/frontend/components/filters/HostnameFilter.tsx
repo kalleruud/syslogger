@@ -7,12 +7,14 @@ interface HostnameFilterProps {
   value: string[]
   onChange: (value: string[]) => void
   showText?: boolean
+  size?: 'default' | 'sm' | 'lg'
 }
 
 export function HostnameFilter({
   value,
   onChange,
   showText,
+  size,
 }: HostnameFilterProps) {
   const [options, setOptions] = useState<MultiSelectOption[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -49,6 +51,7 @@ export function HostnameFilter({
       icon={<Server className='size-4' />}
       ariaLabel='Filter by hostname'
       showText={showText}
+      size={size}
       disabled={isLoading}
     />
   )

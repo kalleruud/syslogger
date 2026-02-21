@@ -13,13 +13,19 @@ import {
   PopoverTrigger,
 } from './ui/popover'
 
-export default function ColumnSelector() {
+interface ColumnSelectorProps {
+  size?: 'default' | 'sm' | 'lg'
+}
+
+export default function ColumnSelector({
+  size = 'default',
+}: ColumnSelectorProps) {
   const { isColumnVisible, toggleColumn } = useColumnVisibility()
 
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant='outline' className='h-8' aria-label='Toggle columns'>
+        <Button variant='outline' size={size} aria-label='Toggle columns'>
           <Columns className='size-4' />
           <span className='hidden lg:inline'>Columns</span>
         </Button>
