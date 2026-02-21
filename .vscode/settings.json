@@ -7,5 +7,6 @@
   "files.associations": {
     "*.css": "tailwindcss"
   },
-  "sonarlint.analysisExcludesStandalone": "frontend/components/ui/**/*"
+  "sonarlint.analysisExcludesStandalone": "src/frontend/components/ui/**",
+  "sonarlint.testFilePattern": "**/*.spec.*,**/*.test.*,"
 }

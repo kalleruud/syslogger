@@ -73,8 +73,5 @@
         "./src/frontend/components/ui/**"
       ]
     }
-  },
-  "eslintIgnore": [
-    "./src/frontend/components/ui/**"
-  ]
+  }
 }

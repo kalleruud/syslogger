@@ -21,6 +21,6 @@ export default defineConfig([
     },
   },
   {
-    ignores: ['src/frontend/components/ui/**/*.tsx'],
+    ignores: ['./src/frontend/components/ui/**'],
   },
 ])
