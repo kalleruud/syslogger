@@ -1,0 +1,248 @@
+---
+description: Prefer shadcn/ui components over native HTML elements. Never modify shadcn UI files.
+globs: "src/frontend/**/*.tsx, src/frontend/**/*.jsx"
+alwaysApply: false
+---
+
+# shadcn/ui Component Usage Guidelines
+
+## Core Principles
+
+- ✅ **DO**: Use shadcn components from `./ui/` directory
+- ❌ **DON'T**: Use native HTML form/interactive elements when shadcn alternative exists
+- 🚫 **NEVER**: Modify files in `src/frontend/components/ui/`
+
+## ⚠️ CRITICAL: NEVER MODIFY UI COMPONENT FILES
+
+The files in `src/frontend/components/ui/` are managed by shadcn CLI and should **NEVER** be modified directly:
+
+- DO NOT edit these files
+- DO NOT add custom functionality to these files  
+- DO NOT refactor or "improve" these files
+- If you need custom behavior, create a wrapper component instead
+- These files may be overwritten when updating components via CLI
+
+## Currently Installed Components
+
+The following shadcn components are already installed in this project:
+
+```tsx
+import { Badge } from './ui/badge'
+import { Button, buttonVariants } from './ui/button'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './ui/card'
+import { Checkbox } from './ui/checkbox'
+import { Input } from './ui/input'
+import { Label } from './ui/label'
+import { MultiSelect } from './ui/multi-select'
+import { Popover, PopoverTrigger, PopoverContent } from './ui/popover'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/select'
+import { Textarea } from './ui/textarea'
+```
+
+## Available shadcn/ui Components
+
+All components available from https://ui.shadcn.com/docs/components:
+
+### Layout Components
+- **Accordion** - Collapsible content sections
+- **Aspect Ratio** - Maintain consistent aspect ratios
+- **Card** - Container for content and actions ✅ (installed)
+- **Collapsible** - Expandable/collapsible content
+- **Resizable** - Resizable panel layouts
+- **Scroll Area** - Custom scrollbar styling
+- **Separator** - Visual divider between content
+- **Tabs** - Tabbed interface navigation
+
+### Form Components
+- **Button** - Clickable button element ✅ (installed)
+- **Button Group** - Group related buttons
+- **Checkbox** - Checkbox input ✅ (installed)
+- **Field** - Form field wrapper with validation
+- **Input** - Text input field ✅ (installed)
+- **Input Group** - Grouped input with addons
+- **Input OTP** - One-time password input
+- **Label** - Form label element ✅ (installed)
+- **Native Select** - Native select dropdown
+- **Radio Group** - Radio button group
+- **Select** - Custom select dropdown ✅ (installed)
+- **Slider** - Range slider input
+- **Switch** - Toggle switch
+- **Textarea** - Multi-line text input ✅ (installed)
+
+### Data Display Components
+- **Avatar** - User avatar/profile image
+- **Badge** - Small status indicator ✅ (installed)
+- **Data Table** - Feature-rich data tables
+- **Empty** - Empty state placeholder
+- **Item** - Generic list item component
+- **Kbd** - Keyboard shortcut display
+- **Table** - Basic table structure
+- **Typography** - Text styling utilities
+
+### Feedback Components
+- **Alert** - Important messages/notifications
+- **Progress** - Progress indicator
+- **Skeleton** - Loading placeholder
+- **Spinner** - Loading spinner
+- **Sonner** - Toast notification system
+- **Toast** - Temporary notification
+
+### Overlay Components
+- **Alert Dialog** - Modal confirmation dialogs
+- **Dialog** - Modal dialog window
+- **Drawer** - Slide-out panel
+- **Hover Card** - Hover-triggered popover
+- **Popover** - Floating content container ✅ (installed)
+- **Sheet** - Side panel overlay
+- **Tooltip** - Hover tooltip
+
+### Navigation Components
+- **Breadcrumb** - Navigation breadcrumb trail
+- **Context Menu** - Right-click context menu
+- **Dropdown Menu** - Dropdown action menu
+- **Menubar** - Application menu bar
+- **Navigation Menu** - Complex navigation menus
+- **Pagination** - Page navigation controls
+- **Sidebar** - Application sidebar layout
+
+### Date & Time
+- **Calendar** - Date picker calendar
+- **Date Picker** - Complete date selection
+
+### Charts
+- **Chart** - Chart components with Recharts
+
+### Specialized Components
+- **Carousel** - Image/content carousel
+- **Combobox** - Searchable select dropdown
+- **Command** - Command palette/search
+- **Direction** - RTL/LTR direction support
+- **Multi-Select** - Multiple selection dropdown ✅ (installed)
+- **Toggle** - Toggle button
+- **Toggle Group** - Grouped toggle buttons
+
+## Adding New Components
+
+When you need a shadcn component that isn't installed yet, use the shadcn CLI:
+
+```bash
+# Add a single component
+bunx shadcn@latest add <component-name>
+
+# Examples:
+bunx shadcn@latest add dialog
+bunx shadcn@latest add dropdown-menu
+bunx shadcn@latest add tooltip
+bunx shadcn@latest add toast
+bunx shadcn@latest add data-table
+
+# Add multiple components at once
+bunx shadcn@latest add dialog dropdown-menu tooltip
+```
+
+The CLI will:
+1. Download the component to `src/frontend/components/ui/`
+2. Install any required dependencies
+3. Configure the component with your project's theme settings
+
+## Common Replacements
+
+Replace native HTML elements with shadcn components:
+
+| Native HTML | shadcn Component | Import |
+|-------------|------------------|--------|
+| `<button>` | `<Button>` | `import { Button } from './ui/button'` |
+| `<input>` | `<Input>` | `import { Input } from './ui/input'` |
+| `<select>` | `<Select>` | `import { Select } from './ui/select'` |
+| `<textarea>` | `<Textarea>` | `import { Textarea } from './ui/textarea'` |
+| `<input type="checkbox">` | `<Checkbox>` | `import { Checkbox } from './ui/checkbox'` |
+| `<label>` | `<Label>` | `import { Label } from './ui/label'` |
+| Native dialog | `<Dialog>` | `import { Dialog } from './ui/dialog'` |
+| Native tooltip | `<Tooltip>` | `import { Tooltip } from './ui/tooltip'` |
+
+### Example: Before and After
+
+**❌ Before (native HTML):**
+```tsx
+function MyForm() {
+  return (
+    <form>
+      <label htmlFor="name">Name</label>
+      <input id="name" type="text" />
+      <button type="submit">Submit</button>
+    </form>
+  )
+}
+```
+
+**✅ After (shadcn components):**
+```tsx
+import { Button } from './ui/button'
+import { Input } from './ui/input'
+import { Label } from './ui/label'
+
+function MyForm() {
+  return (
+    <form>
+      <Label htmlFor="name">Name</Label>
+      <Input id="name" type="text" />
+      <Button type="submit">Submit</Button>
+    </form>
+  )
+}
+```
+
+## Import Patterns
+
+Always use **relative imports** from the `./ui/` directory:
+
+```tsx
+// ✅ Correct - relative import
+import { Button } from './ui/button'
+import { Button, buttonVariants } from './ui/button'
+
+// ❌ Incorrect - absolute import (may not work in all contexts)
+import { Button } from '@/frontend/components/ui/button'
+```
+
+## When to Use Native HTML
+
+You may still use native HTML for:
+- **Layout containers**: `<div>`, `<span>`, `<section>`, `<article>`
+- **Semantic elements**: `<main>`, `<nav>`, `<header>`, `<footer>`
+- **Content elements**: `<p>`, `<h1>`-`<h6>`, `<ul>`, `<li>`, `<a>`
+
+**Rule of thumb**: If shadcn has a component for it, use the shadcn component. If not, use semantic HTML.
+
+## Creating Wrapper Components
+
+If you need custom behavior, create a wrapper component instead of modifying UI files:
+
+```tsx
+// ✅ Good - wrapper component
+import { Button } from './ui/button'
+
+export function SubmitButton({ isLoading, ...props }) {
+  return (
+    <Button disabled={isLoading} {...props}>
+      {isLoading ? 'Loading...' : 'Submit'}
+    </Button>
+  )
+}
+```
+
+```tsx
+// ❌ Bad - modifying UI file directly
+// Don't edit src/frontend/components/ui/button.tsx!
+```
+
+## Component Documentation
+
+For detailed component APIs, props, and examples, visit:
+https://ui.shadcn.com/docs/components
+
+Each component page includes:
+- Installation instructions
+- Usage examples
+- API reference
+- Accessibility notes
