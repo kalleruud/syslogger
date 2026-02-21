@@ -2,11 +2,13 @@ import { SEVERITIES } from '@/lib/severities'
 import { AlertTriangle } from 'lucide-react'
 import { useMemo } from 'react'
 import { MultiSelect, type MultiSelectOption } from '../ui/multi-select'
+import type { buttonVariants } from '../ui/button'
+import type { VariantProps } from 'class-variance-authority'
 
 interface SeverityFilterProps {
   value: number[] // Excluded severity levels (blacklist)
   onChange: (value: number[]) => void
-  size?: 'default' | 'sm' | 'lg'
+  size?: VariantProps<typeof buttonVariants>['size']
 }
 
 const severityStyles = [

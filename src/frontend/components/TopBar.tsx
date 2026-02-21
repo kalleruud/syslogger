@@ -23,7 +23,7 @@ export default function TopBar() {
         {/* Logo */}
         <div className='flex items-center gap-2'>
           <img src={logo} alt='syslogger logo' className='h-6 w-6' />
-          <h1 className='hidden text-lg font-black lg:block'>syslogger</h1>
+          <h1 className='hidden text-lg font-black md:block'>syslogger</h1>
         </div>
 
         {/* Search - always visible and expanded */}

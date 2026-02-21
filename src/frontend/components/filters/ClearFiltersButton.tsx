@@ -22,7 +22,7 @@ export function ClearFiltersButton({
       aria-label={`Clear ${count} filter${count > 1 ? 's' : ''}`}
       className='gap-1 text-xs'>
       <X className='size-3' />
-      <span className={showText ? '' : 'hidden lg:inline'}>
+      <span className={showText ? '' : 'hidden md:inline'}>
         Clear {count > 1 ? `(${count})` : ''}
       </span>
     </Button>

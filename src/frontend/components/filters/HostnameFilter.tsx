@@ -2,18 +2,18 @@ import { Server } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { fetchUniqueHostnames } from '../../lib/api'
 import { MultiSelect, type MultiSelectOption } from '../ui/multi-select'
+import type { buttonVariants } from '../ui/button'
+import type { VariantProps } from 'class-variance-authority'
 
 interface HostnameFilterProps {
   value: string[]
   onChange: (value: string[]) => void
-  showText?: boolean
-  size?: 'default' | 'sm' | 'lg'
+  size?: VariantProps<typeof buttonVariants>['size']
 }
 
 export function HostnameFilter({
   value,
   onChange,
-  showText,
   size,
 }: HostnameFilterProps) {
   const [options, setOptions] = useState<MultiSelectOption[]>([])
@@ -50,7 +50,6 @@ export function HostnameFilter({
       searchPlaceholder='Search hostnames...'
       icon={<Server className='size-4' />}
       ariaLabel='Filter by hostname'
-      showText={showText}
       size={size}
       disabled={isLoading}
     />

@@ -2,18 +2,18 @@ import { Package } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { fetchUniqueAppnames } from '../../lib/api'
 import { MultiSelect, type MultiSelectOption } from '../ui/multi-select'
+import type { VariantProps } from 'class-variance-authority'
+import type { buttonVariants } from '../ui/button'
 
 interface AppnameFilterProps {
   value: string[]
   onChange: (value: string[]) => void
-  showText?: boolean
-  size?: 'default' | 'sm' | 'lg'
+  size?: VariantProps<typeof buttonVariants>['size']
 }
 
 export function AppnameFilter({
   value,
   onChange,
-  showText,
   size,
 }: AppnameFilterProps) {
   const [options, setOptions] = useState<MultiSelectOption[]>([])
@@ -50,7 +50,6 @@ export function AppnameFilter({
       searchPlaceholder='Search applications...'
       icon={<Package className='size-4' />}
       ariaLabel='Filter by application'
-      showText={showText}
       size={size}
       disabled={isLoading}
     />

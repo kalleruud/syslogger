@@ -15,7 +15,7 @@ export default function LiveIndicator() {
             : 'bg-destructive shadow-destructive'
         )}
       />
-      <span className='hidden lg:inline'>
+      <span className='hidden md:inline'>
         {isConnected ? 'Listening' : 'Disconnected'}
       </span>
     </div>

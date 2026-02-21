@@ -34,7 +34,7 @@ export function SearchInput({ value, onChange }: SearchInputProps) {
         value={localValue}
         onChange={e => setLocalValue(e.target.value)}
         className={cn(
-          'h-8 w-48 pl-9 lg:w-64',
+          'h-8 w-48 pl-9 md:w-64',
           hasValue && 'border-primary text-primary'
         )}
         aria-label='Search logs'

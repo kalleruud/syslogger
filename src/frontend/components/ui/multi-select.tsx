@@ -2,7 +2,8 @@ import { ChevronsUpDown } from 'lucide-react'
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
-import { Button } from './button'
+import type { VariantProps } from 'class-variance-authority'
+import { Button, buttonVariants } from './button'
 import { Checkbox } from './checkbox'
 import { Input } from './input'
 import {
@@ -30,7 +31,7 @@ interface MultiSelectProps {
   renderOption?: (option: MultiSelectOption) => React.ReactNode
   icon?: React.ReactNode
   ariaLabel?: string
-  size?: 'default' | 'sm' | 'lg'
+  size?: VariantProps<typeof buttonVariants>['size']
 }
 
 export function MultiSelect({
@@ -105,7 +106,7 @@ export function MultiSelect({
           )}
           disabled={disabled}>
           {icon || <ChevronsUpDown className='size-4 shrink-0' />}
-          <span className='hidden lg:inline'>{placeholder}</span>
+          <span className='hidden md:inline'>{placeholder}</span>
           {hasActiveFilters && (
             <span className='flex size-4 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground'>
               {value.length}
