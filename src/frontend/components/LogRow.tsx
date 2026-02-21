@@ -116,14 +116,7 @@ export default function LogRow({
       )}
 
       {visibleColumns.has('message') && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className='line-clamp-1 break-all'>{log.message}</div>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p className='max-w-md break-all'>{log.raw}</p>
-          </TooltipContent>
-        </Tooltip>
+        <div className='line-clamp-1 break-all' title={log.raw}>{log.message}</div>
       )}
     </div>
   )
