@@ -9,7 +9,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { fetchLogs } from '../lib/api'
+import { fetchLogs, fetchTotalCount } from '../lib/api'
 import { useConnection } from './ConnectionContext'
 import { useFilters } from './FilterContext'
 
@@ -20,6 +20,8 @@ type DataContextType =
       hasMore: boolean
       isLoadingMore: boolean
       loadMore: () => Promise<void>
+      totalFilteredCount: number
+      totalUnfilteredCount: number | undefined
     }
   | {
       isLoading: true
@@ -27,6 +29,8 @@ type DataContextType =
       hasMore?: never
       isLoadingMore?: never
       loadMore?: never
+      totalFilteredCount?: never
+      totalUnfilteredCount?: never
     }
 
 const DataContext = createContext<DataContextType | undefined>(undefined)
@@ -40,10 +44,28 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
   const [logs, setLogs] = useState<Log[] | undefined>(undefined)
   const [hasMore, setHasMore] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
-  const totalRef = useRef(0)
+  const [totalUnfilteredCount, setTotalUnfilteredCount] = useState<
+    number | undefined
+  >(undefined)
+  const [totalFilteredCount, setTotalFilteredCount] = useState(0)
   const offsetRef = useRef(0)
   const oldestTimestampRef = useRef<string | null>(null)
   const isInitialLoadCompleteRef = useRef(false)
+
+  // Fetch total unfiltered count once on mount
+  useEffect(() => {
+    async function loadTotalCount() {
+      try {
+        const total = await fetchTotalCount()
+        setTotalUnfilteredCount(total)
+      } catch (err) {
+        console.error('Failed to load total count:', err)
+        setTotalUnfilteredCount(0)
+      }
+    }
+
+    loadTotalCount()
+  }, [])
 
   // Fetch initial logs on mount - get newest 100 logs (DESC from DB, then reverse)
   // Refetch when filters change
@@ -85,7 +107,7 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
         // Logs come in DESC order (newest first), reverse to get oldest→newest for display
         const reversedLogs = [...result.data].reverse()
         setLogs(reversedLogs)
-        totalRef.current = result.total
+        setTotalFilteredCount(result.total)
         offsetRef.current = result.data.length
 
         // Store the FIRST (oldest) timestamp after reversing
@@ -200,6 +222,9 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
         return
       }
 
+      // Always increment total unfiltered count for any log received
+      setTotalUnfilteredCount(prev => (prev ?? 0) + 1)
+
       // Apply filters client-side
       if (!applyFiltersToLog(parsed)) {
         console.debug('Log filtered out by client-side filters')
@@ -208,7 +233,7 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
 
       // APPEND new log to the END (newest at bottom, terminal style)
       setLogs(prevLogs => [...(prevLogs ?? []), parsed])
-      totalRef.current += 1
+      setTotalFilteredCount(prev => prev + 1)
     },
     [applyFiltersToLog]
   )
@@ -232,8 +257,17 @@ export function DataProvider({ children }: Readonly<{ children: ReactNode }>) {
       hasMore,
       isLoadingMore,
       loadMore,
+      totalFilteredCount,
+      totalUnfilteredCount,
     }
-  }, [logs, hasMore, isLoadingMore, loadMore])
+  }, [
+    logs,
+    hasMore,
+    isLoadingMore,
+    loadMore,
+    totalFilteredCount,
+    totalUnfilteredCount,
+  ])
 
   return <DataContext.Provider value={context}>{children}</DataContext.Provider>
 }

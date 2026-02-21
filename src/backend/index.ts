@@ -5,6 +5,7 @@ import {
   handleGetAppnames,
   handleGetHostnames,
   handleGetLogs,
+  handleGetTotalCount,
 } from './routes/api'
 
 export const serverConfig: Bun.Serve.Options<BunSocketData> = {
@@ -23,6 +24,9 @@ export const serverConfig: Bun.Serve.Options<BunSocketData> = {
     },
     '/api/filters/hostnames': {
       GET: handleGetHostnames,
+    },
+    '/api/stats/total': {
+      GET: handleGetTotalCount,
     },
 
     // Serve React

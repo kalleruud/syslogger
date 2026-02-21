@@ -124,3 +124,27 @@ export async function fetchUniqueHostnames(): Promise<string[]> {
     throw new Error(`Failed to fetch hostnames: ${message}`)
   }
 }
+
+/**
+ * Fetch total count of all logs in the database
+ */
+export async function fetchTotalCount(): Promise<number> {
+  try {
+    const response = await fetch('/api/stats/total')
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      const errorMessage =
+        errorData.error ||
+        `HTTP error ${response.status}: ${response.statusText}`
+      throw new Error(errorMessage)
+    }
+
+    const result = await response.json()
+    return result.total as number
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    console.error('Failed to fetch total count:', message)
+    throw new Error(`Failed to fetch total count: ${message}`)
+  }
+}

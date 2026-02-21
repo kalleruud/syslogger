@@ -150,3 +150,10 @@ export async function getUniqueHostnames(): Promise<string[]> {
 export async function getUniqueAppnames(): Promise<string[]> {
   return getDistinctFieldValues(logs.appname)
 }
+
+// Get total count of all logs in the database (no filters)
+export async function getTotalLogCount(): Promise<number> {
+  const result = await db.select({ count: sql<number>`count(*)` }).from(logs)
+
+  return result[0]?.count ?? 0
+}

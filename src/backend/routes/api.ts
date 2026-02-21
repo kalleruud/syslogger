@@ -1,5 +1,6 @@
 import {
   getLogs,
+  getTotalLogCount,
   getUniqueAppnames,
   getUniqueHostnames,
   type LogFilters,
@@ -127,5 +128,22 @@ export async function handleGetHostnames(): Promise<Response> {
     const message = err instanceof Error ? err.message : 'Unknown error'
     logger.error('api', `Failed to fetch hostnames: ${message}`)
     return error('Failed to fetch hostnames', 500)
+  }
+}
+
+/**
+ * Handler for GET /api/stats/total
+ * Returns the total count of all logs in the database
+ */
+export async function handleGetTotalCount(): Promise<Response> {
+  try {
+    logger.debug('api', 'Fetching total log count')
+    const total = await getTotalLogCount()
+    logger.debug('api', `Total log count: ${total}`)
+    return json({ total })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    logger.error('api', `Failed to fetch total count: ${message}`)
+    return error('Failed to fetch total count', 500)
   }
 }
