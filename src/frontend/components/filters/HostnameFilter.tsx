@@ -1,9 +1,9 @@
+import type { VariantProps } from 'class-variance-authority'
 import { Server } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { fetchUniqueHostnames } from '../../lib/api'
-import { MultiSelect, type MultiSelectOption } from '../ui/multi-select'
 import type { buttonVariants } from '../ui/button'
-import type { VariantProps } from 'class-variance-authority'
+import { MultiSelect, type MultiSelectOption } from '../ui/multi-select'
 
 interface HostnameFilterProps {
   value: string[]
@@ -11,11 +11,7 @@ interface HostnameFilterProps {
   size?: VariantProps<typeof buttonVariants>['size']
 }
 
-export function HostnameFilter({
-  value,
-  onChange,
-  size,
-}: HostnameFilterProps) {
+export function HostnameFilter({ value, onChange, size }: HostnameFilterProps) {
   const [options, setOptions] = useState<MultiSelectOption[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -52,6 +48,7 @@ export function HostnameFilter({
       ariaLabel='Filter by hostname'
       size={size}
       disabled={isLoading}
+      tooltipText='Filter logs by hostname'
     />
   )
 }

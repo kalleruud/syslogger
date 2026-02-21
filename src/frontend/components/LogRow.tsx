@@ -4,6 +4,7 @@ import { getFacility } from '@/lib/facilities'
 import { getSeverity } from '@/lib/severities'
 import { cn } from '@/lib/utils'
 import type { ComponentProps } from 'react'
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
 
 const timezone = process.env.TZ || 'UTC'
 
@@ -73,22 +74,33 @@ export default function LogRow({
       )}
 
       {visibleColumns.has('facility') && facility && (
-        <div
-          className='line-clamp-1 shrink-0 break-all'
-          title={facility.descriptopn}>
-          {facility.name}
-        </div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className='line-clamp-1 shrink-0 break-all'>
+              {facility.name}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{facility.descriptopn}</p>
+          </TooltipContent>
+        </Tooltip>
       )}
 
       {visibleColumns.has('severity') && (
-        <div
-          className={cn(
-            'line-clamp-1 shrink-0 break-all',
-            severityTextStyles[severity.level]
-          )}
-          title={severity.description}>
-          {severity.name}
-        </div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div
+              className={cn(
+                'line-clamp-1 shrink-0 break-all',
+                severityTextStyles[severity.level]
+              )}>
+              {severity.name}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{severity.description}</p>
+          </TooltipContent>
+        </Tooltip>
       )}
 
       {visibleColumns.has('hostname') && log.hostname && (
@@ -104,9 +116,14 @@ export default function LogRow({
       )}
 
       {visibleColumns.has('message') && (
-        <div className='line-clamp-1 break-all' title={log.raw}>
-          {log.message}
-        </div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className='line-clamp-1 break-all'>{log.message}</div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className='max-w-md break-all'>{log.raw}</p>
+          </TooltipContent>
+        </Tooltip>
       )}
     </div>
   )

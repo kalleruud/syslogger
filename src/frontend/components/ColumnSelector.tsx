@@ -2,6 +2,7 @@ import {
   COLUMNS,
   useColumnVisibility,
 } from '@/frontend/hooks/useColumnVisibility'
+import type { VariantProps } from 'class-variance-authority'
 import { Columns } from 'lucide-react'
 import { Button, buttonVariants } from './ui/button'
 import { Checkbox } from './ui/checkbox'
@@ -12,7 +13,7 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from './ui/popover'
-import type { VariantProps } from 'class-variance-authority'
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
 
 interface ColumnSelectorProps {
   size?: VariantProps<typeof buttonVariants>['size']
@@ -25,12 +26,19 @@ export default function ColumnSelector({
 
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <Button variant='outline' size={size} aria-label='Toggle columns'>
-          <Columns className='size-4' />
-          <span className='hidden md:inline'>Columns</span>
-        </Button>
-      </PopoverTrigger>
+      <Tooltip>
+        <PopoverTrigger asChild>
+          <TooltipTrigger asChild>
+            <Button variant='outline' size={size} aria-label='Toggle columns'>
+              <Columns className='size-4' />
+              <span className='hidden md:inline'>Columns</span>
+            </Button>
+          </TooltipTrigger>
+        </PopoverTrigger>
+        <TooltipContent>
+          <p>Choose visible columns</p>
+        </TooltipContent>
+      </Tooltip>
       <PopoverContent align='end' className='w-64'>
         <PopoverHeader className='mb-3'>
           <PopoverTitle>Visible Columns</PopoverTitle>

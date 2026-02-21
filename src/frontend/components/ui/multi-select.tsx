@@ -13,6 +13,7 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from './popover'
+import { Tooltip, TooltipContent, TooltipTrigger } from './tooltip'
 
 export interface MultiSelectOption {
   value: string
@@ -32,6 +33,7 @@ interface MultiSelectProps {
   icon?: React.ReactNode
   ariaLabel?: string
   size?: VariantProps<typeof buttonVariants>['size']
+  tooltipText?: string
 }
 
 export function MultiSelect({
@@ -46,6 +48,7 @@ export function MultiSelect({
   icon,
   ariaLabel,
   size = 'default',
+  tooltipText,
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState('')
@@ -89,31 +92,44 @@ export function MultiSelect({
     onChange([])
   }
 
+  const trigger = (
+    <PopoverTrigger asChild>
+      <Button
+        variant='outline'
+        size={size}
+        role='combobox'
+        aria-expanded={open}
+        aria-controls={contentId}
+        aria-label={ariaLabel || placeholder}
+        className={cn(
+          'justify-start',
+          hasActiveFilters && 'border-primary text-primary',
+          className
+        )}
+        disabled={disabled}>
+        {icon || <ChevronsUpDown className='size-4 shrink-0' />}
+        <span className='hidden md:inline'>{placeholder}</span>
+        {hasActiveFilters && (
+          <span className='flex size-4 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground'>
+            {value.length}
+          </span>
+        )}
+      </Button>
+    </PopoverTrigger>
+  )
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant='outline'
-          size={size}
-          role='combobox'
-          aria-expanded={open}
-          aria-controls={contentId}
-          aria-label={ariaLabel || placeholder}
-          className={cn(
-            'justify-start',
-            hasActiveFilters && 'border-primary text-primary',
-            className
-          )}
-          disabled={disabled}>
-          {icon || <ChevronsUpDown className='size-4 shrink-0' />}
-          <span className='hidden md:inline'>{placeholder}</span>
-          {hasActiveFilters && (
-            <span className='flex size-4 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground'>
-              {value.length}
-            </span>
-          )}
-        </Button>
-      </PopoverTrigger>
+      {tooltipText ? (
+        <Tooltip>
+          <TooltipTrigger asChild>{trigger}</TooltipTrigger>
+          <TooltipContent>
+            <p>{tooltipText}</p>
+          </TooltipContent>
+        </Tooltip>
+      ) : (
+        trigger
+      )}
       <PopoverContent id={contentId} className='w-75 p-0' align='start'>
         <PopoverHeader className='border-b p-2'>
           <Input

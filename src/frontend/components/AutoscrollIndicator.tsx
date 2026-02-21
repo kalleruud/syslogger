@@ -1,9 +1,12 @@
 import { ArrowDown, ArrowDownToLine } from 'lucide-react'
 import { useAutoscroll } from '../contexts/AutoscrollContext'
 import { Button } from './ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
 
 export default function AutoscrollIndicator() {
   const { isAutoscrollEnabled, scrollToBottomRef } = useAutoscroll()
+
+  const Icon = isAutoscrollEnabled ? ArrowDown : ArrowDownToLine
 
   const handleClick = () => {
     scrollToBottomRef.current?.()
@@ -11,25 +14,28 @@ export default function AutoscrollIndicator() {
 
   return (
     <div className='flex items-center gap-2'>
-      {isAutoscrollEnabled ? (
-        <div
-          className='flex h-8 items-center gap-1.5 rounded-md px-2.5 font-medium'
-          aria-label='Auto-scrolling enabled'>
-          <ArrowDown className='size-4 animate-bounce text-primary' />
-          <span className='hidden text-primary md:inline'>Auto-scrolling</span>
-        </div>
-      ) : (
-        <Button
-          variant='ghost'
-          size='sm'
-          onClick={handleClick}
-          aria-label='Enable autoscroll'>
-          <ArrowDownToLine className='size-4 text-muted-foreground' />
-          <span className='hidden text-muted-foreground md:inline'>
-            Autoscroll
-          </span>
-        </Button>
-      )}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant='ghost'
+            size='sm'
+            onClick={handleClick}
+            disabled={isAutoscrollEnabled}
+            aria-label='Enable autoscroll'>
+            <Icon className='size-4 text-muted-foreground' />
+            <span className='hidden text-muted-foreground md:inline'>
+              {isAutoscrollEnabled ? 'Autoscrolling' : 'Autoscroll   '}
+            </span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>
+            {isAutoscrollEnabled
+              ? 'Auto-scrolling enabled'
+              : 'Jump to bottom and enable auto-scroll'}
+          </p>
+        </TooltipContent>
+      </Tooltip>
     </div>
   )
 }

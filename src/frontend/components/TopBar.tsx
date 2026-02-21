@@ -7,6 +7,7 @@ import FilterBar from './FilterBar'
 import { SearchInput } from './filters/SearchInput'
 import LiveIndicator from './LiveIndicator'
 import { Button } from './ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
 
 export default function TopBar() {
   const { filters, setFilters } = useFilters()
@@ -38,14 +39,21 @@ export default function TopBar() {
         <div className='flex items-center gap-3'>
           <AutoscrollIndicator />
           <LiveIndicator />
-          <Button
-            variant='ghost'
-            size='icon'
-            onClick={toggleFilterBar}
-            aria-label='Toggle filters'
-            className='h-8 w-8'>
-            <SlidersHorizontal className='size-4' />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant='ghost'
+                size='icon'
+                onClick={toggleFilterBar}
+                aria-label='Toggle filters'
+                className='h-8 w-8'>
+                <SlidersHorizontal className='size-4' />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Toggle filters</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
 

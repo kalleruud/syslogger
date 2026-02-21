@@ -2,6 +2,7 @@ import { cn } from '@/lib/utils'
 import { Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Input } from '../ui/input'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 
 interface SearchInputProps {
   value: string
@@ -26,19 +27,26 @@ export function SearchInput({ value, onChange }: SearchInputProps) {
   }, [localValue, value, onChange])
 
   return (
-    <div className='relative'>
-      <Search className='absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground' />
-      <Input
-        type='text'
-        placeholder='Search logs...'
-        value={localValue}
-        onChange={e => setLocalValue(e.target.value)}
-        className={cn(
-          'h-8 w-48 pl-9 md:w-64',
-          hasValue && 'border-primary text-primary'
-        )}
-        aria-label='Search logs'
-      />
-    </div>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div className='relative'>
+          <Search className='absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground' />
+          <Input
+            type='text'
+            placeholder='Search logs...'
+            value={localValue}
+            onChange={e => setLocalValue(e.target.value)}
+            className={cn(
+              'h-8 w-48 pl-9 md:w-64',
+              hasValue && 'border-primary text-primary'
+            )}
+            aria-label='Search logs'
+          />
+        </div>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>Search in log messages</p>
+      </TooltipContent>
+    </Tooltip>
   )
 }
