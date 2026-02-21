@@ -55,7 +55,6 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 - [ ] **Full Field Display**: All syslog fields with human-readable labels
 - [ ] **Facility Names**: Numeric facilities shown as readable names (kernel, user, mail, daemon, etc.)
 - [ ] **Raw Message View**: Original unparsed syslog message
-- [ ] **Keyboard Support**: Press Escape to close the panel, cmd + k to search. Display hotkey helpers.
 
 ### Log Retention
 
