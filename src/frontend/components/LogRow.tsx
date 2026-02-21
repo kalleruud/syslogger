@@ -65,15 +65,17 @@ export default function LogRow({
       )}
       {...props}>
       {visibleColumns.has('timestamp') && (
-        <div className='line-clamp-1 shrink-0 opacity-50'>{`${datePart} ${timePart}`}</div>
+        <div className='line-clamp-1 shrink-0 break-all opacity-50'>{`${datePart} ${timePart}`}</div>
       )}
 
       {visibleColumns.has('appname') && (
-        <div className='line-clamp-1 shrink-0'>{log.appname}</div>
+        <div className='line-clamp-1 shrink-0 break-all'>{log.appname}</div>
       )}
 
       {visibleColumns.has('facility') && facility && (
-        <div className='line-clamp-1 shrink-0' title={facility.descriptopn}>
+        <div
+          className='line-clamp-1 shrink-0 break-all'
+          title={facility.descriptopn}>
           {facility.name}
         </div>
       )}
@@ -81,7 +83,7 @@ export default function LogRow({
       {visibleColumns.has('severity') && (
         <div
           className={cn(
-            'line-clamp-1 shrink-0',
+            'line-clamp-1 shrink-0 break-all',
             severityTextStyles[severity.level]
           )}
           title={severity.description}>
@@ -90,19 +92,19 @@ export default function LogRow({
       )}
 
       {visibleColumns.has('hostname') && log.hostname && (
-        <div className='line-clamp-1 shrink-0'>{log.hostname}</div>
+        <div className='line-clamp-1 shrink-0 break-all'>{log.hostname}</div>
       )}
 
       {visibleColumns.has('procid') && log.procid && (
-        <div className='line-clamp-1 shrink-0'>{log.procid}</div>
+        <div className='line-clamp-1 shrink-0 break-all'>{log.procid}</div>
       )}
 
       {visibleColumns.has('msgid') && log.msgid && (
-        <div className='line-clamp-1 shrink-0'>{log.msgid}</div>
+        <div className='line-clamp-1 shrink-0 break-all'>{log.msgid}</div>
       )}
 
       {visibleColumns.has('message') && (
-        <div className='line-clamp-1' title={log.raw}>
+        <div className='line-clamp-1 break-all' title={log.raw}>
           {log.message}
         </div>
       )}
