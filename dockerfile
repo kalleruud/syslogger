@@ -37,8 +37,8 @@ COPY --from=prerelease /usr/src/app/package.json .
 COPY --from=prerelease /usr/src/app/tsconfig.json .
 COPY --from=prerelease /usr/src/app/drizzle.config.ts .
 
-# Create data directory for SQLite database
-RUN mkdir -p /usr/src/app/data
+# Create data directory for SQLite database and set ownership
+RUN mkdir -p /usr/src/app/data && chown -R bun:bun /usr/src/app/data
 
 # Expose ports
 # 3791: HTTP server for web UI and API

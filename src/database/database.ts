@@ -8,7 +8,7 @@ import path from 'node:path'
 
 const dbDir = path.dirname(config.database.url.replace('file:', ''))
 if (!(await Bun.file(dbDir).exists())) {
-  mkdir(dbDir, { recursive: true })
+  await mkdir(dbDir, { recursive: true })
 }
 
 const database = new Database(config.database.url, { create: true })
