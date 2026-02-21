@@ -1,23 +1,32 @@
-# Dependencies
-node_modules/
-bun.lockb
+# Dependencies (will be installed in container)
+node_modules
 
-# Build outputs
-dist/
-.vite/
+# Build outputs (will be rebuilt in container)
+dist
 
-# Development files
-.git/
+# Docker files
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Git
+.git
 .gitignore
-.env*
-!.env.example
+
+# Environment files (except example)
+.env
+.env.local
+.env.*.local
 
 # IDE
-.vscode/
-.idea/
+.vscode
+.idea
+.claude
+.agents
 *.swp
 *.swo
 *~
+.editorconfig
 
 # OS
 .DS_Store
@@ -25,27 +34,31 @@ Thumbs.db
 
 # Logs
 *.log
-logs/
+logs
 
-# Data
-data/
+# Data (SQLite databases)
+data
 *.sqlite
 *.db
+*.db-shm
+*.db-wal
 
-# Documentation
+# Documentation (except README)
 *.md
 !README.md
-docs/
+docs
 
 # Testing
-coverage/
-.nyc_output/
+coverage*
+.nyc_output
 
 # CI/CD
-.github/
+.github
 .gitlab-ci.yml
 
-# Docker
-Dockerfile*
-docker-compose*.yml
-.dockerignore
+# Development tools
+Makefile
+
+# Misc
+sonar-project.properties
+vercel.json
