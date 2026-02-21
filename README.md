@@ -8,7 +8,7 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 
 - [x] **Real-time UDP Reception**: Listen for syslog messages on port 5140 (configurable)
 - [ ] **RFC 5424 Support**: Parse modern structured syslog format
-- [ ] **RFC 3164 Support**: Parse legacy BSD syslog format
+- [x] **RFC 3164 Support**: Parse legacy BSD syslog format
 - [x] **Docker-friendly Parsing**: Handle containerized logs without hostname field
 - [x] **Automatic Severity Detection**: Fallback regex-based severity extraction from message text
 - [x] **Complete Field Extraction**: Facility, severity, timestamp, hostname, appname, procid, msgid, and message
@@ -29,7 +29,7 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 
 ### Filtering & Search
 
-- [ ] **Full-text Search**: Search across message, appname, and hostname fields (300ms debounce)
+- [x] **Full-text Search**: Search across message, appname, and hostname fields (300ms debounce)
 - [x] **Severity Multi-select**: Filter by any combination of severity levels (0-7)
 - [x] **Application Multi-select**: Filter by dynamically-loaded application names
 - [x] **Hostname Filtering**: Filter by exact hostname match
