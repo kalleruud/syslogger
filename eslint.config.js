@@ -19,7 +19,9 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
-    ignores: ['react-hooks/incompatible-library'],
+    rules: {
+      'react-hooks/incompatible-library': 'off',
+    },
   },
   {
     ignores: ['./src/frontend/components/ui/**'],
