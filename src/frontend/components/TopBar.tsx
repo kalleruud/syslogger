@@ -1,4 +1,4 @@
-import logo from '@public/logo.svg'
+import logo from '@public/icon/logo.svg'
 import { Filter } from 'lucide-react'
 import { useState } from 'react'
 import { useFilters } from '../contexts/FilterContext'
