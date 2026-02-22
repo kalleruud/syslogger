@@ -1,8 +1,37 @@
-# Syslogger - Real-time Syslog Management System
+<div align="center">
+  <img src="src/frontend/public/icon/logo-text-w.png" alt="Syslogger Logo" width="400">
+  
+  **Real-time Syslog Management System**
+  
+  A modern, high-performance syslog server with beautiful real-time monitoring and powerful filtering.
+  
+  [![Build and Push Docker](https://github.com/kalleruud/syslogger/actions/workflows/build-image.yml/badge.svg)](https://github.com/kalleruud/syslogger/actions/workflows/build-image.yml)
+  [![Docker](https://img.shields.io/badge/docker-ready-blue?style=flat-square&logo=docker)](https://github.com/kalleruud/syslogger/blob/main/docker-compose.yml)
+  
+   [Features](#-features) • [Quick Start](#-quick-start) • [Roadmap](#️-roadmap) • [Docker](#-docker-deployment) • [Development](#development)
+</div>
 
-A full-stack syslog management system with real-time log streaming, filtering, and analysis. Features a minimal, terminal-inspired single-page interface. Built with Bun/TypeScript backend and React frontend.
+<div align="center">
+  <img src="src/frontend/public/screenshots/example.png" alt="Syslogger Interface" width="100%">
+  <br>
+  <i>Terminal-inspired interface with real-time log streaming, filtering, and search</i>
+</div>
 
-## Features
+## ✨ Overview
+
+**Syslogger** is a full-stack syslog management system built for speed and simplicity. It receives syslog messages via UDP, parses them intelligently, stores them in SQLite, and streams them to a beautiful terminal-inspired web interface in real-time using WebSockets.
+
+### Why Syslogger?
+
+- 🚀 **Blazingly Fast** - Built on Bun runtime with optimized SQLite queries
+- 🎨 **Beautiful UI** - Terminal-inspired design with real-time updates
+- 🔍 **Powerful Filtering** - Multi-select filters for severity, hostname, and application
+- 📡 **Real-time Streaming** - WebSocket-powered live log updates
+- 🐳 **Docker Ready** - Production-ready Docker setup with health checks
+- 🛠️ **Type-Safe** - Full TypeScript coverage with Drizzle ORM
+- 📱 **PWA Support** - Install as a native app on mobile devices
+
+## 🎯 Features
 
 ### Syslog Reception & Parsing
 
@@ -74,68 +103,6 @@ A full-stack syslog management system with real-time log streaming, filtering, a
 - [x] **Graceful Shutdown**: Clean database and socket cleanup
 - [x] **Health Checks**: Built-in HTTP health monitoring
 
-## Project Structure
-
-```
-syslogger/
-├── src/
-│   ├── syslogger.ts           # Main entry point
-│   ├── backend/
-│   │   ├── index.ts           # Bun.serve fullstack configuration
-│   │   ├── websocket.ts       # WebSocket handlers
-│   │   ├── managers/
-│   │   │   ├── syslog.manager.ts   # UDP socket handler
-│   │   │   └── log.manager.ts      # Internal logging (DB + broadcasts)
-│   │   ├── parsers/
-│   │   │   ├── parser.ts           # Main parser orchestrator
-│   │   │   ├── base.parser.ts      # RFC 5424/3164 parser
-│   │   │   ├── docker.parser.ts    # Docker log parser
-│   │   │   └── fallback.parser.ts  # Severity extraction fallback
-│   │   ├── routes/
-│   │   │   └── api.ts              # API route handlers
-│   │   └── utils/
-│   │       ├── api.ts              # API response helpers
-│   │       └── shutdown.ts         # Graceful shutdown
-│   ├── database/
-│   │   ├── schema.ts          # Drizzle schema (logs)
-│   │   ├── database.ts        # SQLite connection with WAL mode
-│   │   └── queries.ts         # Type-safe database queries
-│   ├── frontend/
-│   │   ├── frontend.tsx       # React app entry point
-│   │   ├── App.tsx            # Main app component
-│   │   ├── components/        # React components
-│   │   │   ├── TopBar.tsx     # Search, filters, column toggle
-│   │   │   ├── LogRow.tsx     # Individual log row
-│   │   │   ├── ColumnSelector.tsx
-│   │   │   ├── LiveIndicator.tsx
-│   │   │   ├── BrailleLoader.tsx
-│   │   │   └── ui/            # shadcn/ui components
-│   │   ├── contexts/          # React contexts
-│   │   │   ├── ConnectionContext.tsx
-│   │   │   └── DataContext.tsx
-│   │   ├── hooks/
-│   │   │   └── useColumnVisibility.ts
-│   │   ├── lib/
-│   │   │   └── api.ts         # API client functions
-│   │   └── public/
-│   │       ├── index.html     # HTML entry point
-│   │       └── logo.svg
-│   └── lib/                   # Shared utilities
-│       ├── config.ts          # Configuration management
-│       ├── facilities.ts      # Syslog facility mappings
-│       ├── severities.ts      # Syslog severity mappings
-│       └── utils.ts           # Shared utility functions
-├── data/
-│   ├── syslogger.db           # SQLite database (WAL mode)
-│   ├── syslogger.db-shm       # Shared memory file
-│   └── syslogger.db-wal       # Write-ahead log
-├── drizzle/                   # Generated migrations
-│   ├── 0000_*.sql
-│   └── meta/
-├── dist/                      # Production build output
-└── package.json
-```
-
 ## Architecture
 
 ```
@@ -147,16 +114,16 @@ syslogger/
 ┌───────────────────────────────────────────┐
 │    Backend (Bun/TypeScript)               │
 │  ┌─────────────────────────────────────┐  │
-│  │ ✓ Syslog Receiver (UDP 5140)        │  │
-│  │ ✓ Syslog Parser (RFC 5424/3164)     │  │
-│  │ ✓ SQLite + Drizzle ORM + WAL        │  │
-│  │ ✓ Advanced query functions          │  │
-│  │ ✓ WebSocket Server (Pub/Sub)        │  │
-│  │ ✓ Docker deployment                 │  │
-│  │ x REST API routes                   │  │
-│  │ x Settings API (config.json)        │  │
-│  │ x Log Retention Cleanup             │  │
-│  │ ✓ Bun.serve for fullstack           │  │
+│  │ Syslog Receiver (UDP 5140)          │  │
+│  │ Syslog Parser (RFC 5424/3164)       │  │
+│  │ SQLite + Drizzle ORM + WAL          │  │
+│  │ Advanced query functions            │  │
+│  │ WebSocket Server (Pub/Sub)          │  │
+│  │ Docker deployment                   │  │
+│  │ REST API routes                     │  │
+│  │ Settings API (config.json)          │  │
+│  │ Log Retention Cleanup               │  │
+│  │ Bun.serve for fullstack             │  │
 │  └─────────────────────────────────────┘  │
 └────────────────┬──────────────────────────┘
                  │
@@ -164,35 +131,18 @@ syslogger/
 ┌───────────────────────────────────────────┐
 │    Frontend (React 19 + Bun)              │
 │  ┌─────────────────────────────────────┐  │
-│  │ ✓ Minimal terminal-style UI         │  │
-│  │ x Top bar: search, filters, etc     │  │
-│  │ x Settings popup for retention      │  │
-│  │ - Log table with virtual scroll     │  │
-│  │ x Click-to-inspect detail panel     │  │
-│  │ - WebSocket Client (auto-reconnect) │  │
-│  │ x URL-synced filter state           │  │
+│  │ Minimal terminal-style UI           │  │
+│  │ Top bar: search, filters, etc       │  │
+│  │ Settings popup for retention        │  │
+│  │ Log table with virtual scroll       │  │
+│  │ Click-to-inspect detail panel       │  │
+│  │ WebSocket Client (auto-reconnect)   │  │
+│  │ URL-synced filter state             │  │
 │  └─────────────────────────────────────┘  │
 └───────────────────────────────────────────┘
 
 Legend: ✓ Complete | - In Progress | x Not Started
 ```
-
-## Technology Stack
-
-### Backend
-
-- **Bun** - Fast TypeScript runtime
-- **TypeScript** - Type-safe development
-- **Drizzle ORM** - Type-safe SQL with zero overhead
-- **SQLite** - Embedded database with WAL mode
-
-### Frontend
-
-- **React 19** - UI framework with React Compiler
-- **Bun** - Build tool with HMR (replaces Vite)
-- **Tailwind CSS 4** - Utility-first styling
-- **shadcn/ui** - Component library
-- **Lucide React** - Icon library
 
 ### Retention Settings
 
@@ -234,384 +184,12 @@ Fetch logs with optional filtering and pagination.
 - `appname` - Comma-separated application names (e.g., `nginx,sshd`)
 - `search` - Full-text search in message, appname, and hostname
 
-**Note**: Database query functions for these filters are already implemented in `src/database/queries.ts`.
-
-### WebSocket /ws
-
-Real-time log streaming to connected clients (in progress).
-
-## Implementation Details
-
-### Current Backend Features
-
-- **UDP Syslog Reception**: Receives and processes syslog messages on configurable port
-- **Multi-format Parsing**: Supports RFC 5424, RFC 3164, and Docker log formats
-- **SQLite with WAL**: Write-Ahead Logging enabled for better concurrency
-- **Advanced Queries**: Full filtering, pagination, and full-text search capability
-- **Database Indexes**: Optimized queries with composite indexes
-- **Type Safety**: Full TypeScript coverage with Drizzle ORM
-
-### Planned Performance Optimizations
-
-- **Virtual Scrolling**: Render only visible rows for 100k+ logs
-- **Request Deduplication**: Prevent stale API responses during rapid filtering
-- **Debounced Search**: 300ms delay to reduce excessive API calls
-- **WebSocket Pub/Sub**: Efficient real-time broadcasting
-- **Log Retention**: Automatic cleanup to prevent unbounded growth
-
-## Quick Start
-
-### Using Docker (Recommended)
-
-The easiest way to run Syslogger is using Docker Compose:
-
-```bash
-# Clone the repository
-git clone <repository-url>
-cd syslogger
-
-# Start with Docker Compose
-docker-compose up -d
-
-# View logs
-docker-compose logs -f
-
-# Stop the service
-docker-compose down
-```
-
-The application will be available at:
-
-- **Web UI**: http://localhost:3791
-- **Syslog UDP**: localhost:5140
-
-### Using Bun Directly
-
-```bash
-# Install dependencies
-bun install
-
-# Development mode with hot reload
-bun dev
-
-# Production build and run
-bun run build
-bun run start
-```
-
-## Docker Deployment
-
-Syslogger's Docker setup follows the [official Bun Docker guide](https://bun.sh/guides/ecosystem/docker) with optimized multi-stage builds for better caching and smaller image sizes.
-
-### Docker Compose Configuration
-
-The included `docker-compose.yml` provides a complete deployment configuration:
-
-- **Ports**:
-  - `3791`: Web UI and API
-  - `5140/udp`: Syslog message reception
-- **Volumes**:
-  - `./data:/usr/src/app/data` - Persists SQLite database
-- **Environment Variables**: See `.env.example` for all configuration options
-- **Security**: Runs as non-root `bun` user
-
-### Configuration
-
-Configuration is done via environment variables. You can:
-
-1. **Modify `docker-compose.yml`** directly (simplest approach)
-2. **Use environment variables** when running `docker compose up`
-3. **Create a `.env` file** (see `.env.docker` for an example)
-
-Available environment variables:
-
-```bash
-# Node environment
-NODE_ENV=production
-
-# HTTP server configuration
-SYSLOGGER_PORT=3791                # Web UI and API port
-
-# Syslog UDP configuration
-SYSLOGGER_SYSLOG_PORT=5140         # UDP port for syslog messages
-SYSLOGGER_SYSLOG_PROTOCOL=udp      # Protocol (udp)
-
-# Database configuration
-SYSLOGGER_DB_URL=./data/syslogger.db  # SQLite database path
-
-# CORS configuration
-SYSLOGGER_CORS_ORIGIN=*            # Allowed CORS origins (* for all)
-
-# Timezone (e.g., UTC, America/New_York, Europe/Oslo)
-TZ=UTC
-```
-
-**Example**: To change the timezone, edit the `TZ` value in `docker-compose.yml`:
-
-```yaml
-environment:
-  TZ: America/New_York # Changed from UTC
-```
-
-### Building Custom Images
-
-The Dockerfile uses Bun's recommended multi-stage build pattern for optimal caching and image size:
-
-```bash
-# Build the Docker image with pull latest base image
-docker build --pull -t syslogger:latest .
-
-# Run with custom configuration
-docker run -d \
-  --name syslogger \
-  -p 3791:3791 \
-  -p 5140:5140/udp \
-  -v $(pwd)/data:/usr/src/app/data \
-  -e TZ=America/New_York \
-  syslogger:latest
-```
-
-**Build Features:**
-
-- **Dependency caching**: Dependencies installed in temp directories for faster rebuilds
-- **Multi-stage build**: Separate dev and production dependencies
-- **Production optimized**: Only production dependencies in final image
-- **Security**: Runs as non-root `bun` user
-- **Health checks**: Built-in HTTP health monitoring
-
-### Health Checks
-
-The container includes built-in health checks that verify the HTTP server is responding:
-
-```bash
-# Check container health
-docker ps
-
-# View detailed health status
-docker inspect syslogger | grep -A 10 Health
-
-# Or use the Makefile
-make health
-```
-
-**How it works:**
-
-- The healthcheck runs **inside the container** using `127.0.0.1:3791`
-- It's not affected by external domains (like `logs.kallerud.no`)
-- The check verifies the app is responding to HTTP requests
-- Status appears in `docker ps` output (starting, healthy, unhealthy)
-
-**Example output:**
-
-```bash
-$ docker ps
-CONTAINER ID   IMAGE              STATUS                    PORTS
-abc123def456   syslogger:latest   Up 2 min (healthy)       0.0.0.0:3791->3791/tcp
-```
-
-### Testing Syslog Reception
-
-Send test syslog messages to verify the setup:
-
-```bash
-# Using logger command (Linux/macOS)
-logger -n localhost -P 5140 "Test message from logger"
-
-# Using netcat
-echo "<34>1 2024-01-01T12:00:00Z myhost myapp 1234 - - Test message" | nc -u localhost 5140
-
-# Using Python
-python3 -c "import socket; s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM); s.sendto(b'<34>Test message from Python', ('localhost', 5140))"
-```
-
-### Docker Logs
-
-View application logs from the container:
-
-```bash
-# Follow logs in real-time
-docker compose logs -f syslogger
-
-# View last 100 lines
-docker compose logs --tail=100 syslogger
-
-# View logs since a specific time
-docker compose logs --since 1h syslogger
-```
-
-## Development
-
-### Path Aliases
-
-Configured in `tsconfig.json`:
-
-- `@/*` → `./src/*` (points to src root)
-- `@public/*` → `./src/frontend/public/*`
-
-### Key Files
-
-- **Main entry**: `src/syslogger.ts`
-- **Backend server**: `src/backend/index.ts` (Bun.serve configuration)
-- **Frontend entry**: `src/frontend/frontend.tsx`
-- **Database schema**: `src/database/schema.ts`
-- **Syslog manager**: `src/backend/managers/syslog.manager.ts`
-- **Internal logging**: `src/backend/managers/log.manager.ts`
-
-### Development Commands
-
-```bash
-# Install dependencies
-bun install
-
-# Start development server with hot reload
-bun dev
-
-# Run linting and formatting checks
-bun run check
-
-# Build for production
-bun run build
-
-# Start production build
-bun run start
-
-# Database operations
-bunx drizzle-kit generate   # Generate migrations
-bunx drizzle-kit migrate    # Apply migrations
-bunx drizzle-kit studio     # Open Drizzle Studio
-```
-
-## Docker Quick Reference
-
-### Using Make (Recommended)
-
-A Makefile is provided for convenience:
-
-```bash
-make help      # Show all available commands
-make up        # Start services
-make down      # Stop services
-make logs      # View logs
-make restart   # Restart services
-make rebuild   # Rebuild and restart
-make shell     # Access container shell
-make health    # Check health status
-make clean     # Remove everything
-```
-
-### Using Docker Compose Directly
-
-```bash
-# Start services in detached mode
-docker compose up -d
-
-# Stop services
-docker compose down
-
-# Restart services
-docker compose restart
-
-# View logs
-docker compose logs -f
-
-# Rebuild and restart after code changes
-docker compose up -d --build
-
-# Remove everything (including volumes)
-docker compose down -v
-```
-
-### Troubleshooting
-
-```bash
-# Check container status
-docker compose ps
-
-# View container logs
-docker compose logs syslogger
-
-# Execute commands inside container
-docker compose exec syslogger bun --version
-
-# Check health status
-docker inspect syslogger --format='{{.State.Health.Status}}'
-
-# Access container shell
-docker compose exec syslogger sh
-```
-
-### Docker Build Architecture
-
-The Dockerfile follows the [official Bun guide](https://bun.sh/guides/ecosystem/docker) with four optimized stages:
-
-1. **base**: Sets up working directory with Bun image
-2. **install**: Installs dependencies in temp directories for better caching
-   - `/temp/dev`: All dependencies (including devDependencies)
-   - `/temp/prod`: Production dependencies only
-3. **prerelease**: Builds the application with dev dependencies
-4. **release**: Final slim image with only production code and dependencies
-
-**Benefits:**
-
-- Faster rebuilds through Docker layer caching
-- Smaller final image (no devDependencies)
-- Consistent builds with frozen lockfile
-- Security through non-root user
-
-### Production Deployment
-
-When deploying to production with an external domain (e.g., `logs.kallerud.no`):
-
-**Reverse Proxy Setup:**
-
-```nginx
-# Nginx example
-server {
-    listen 443 ssl http2;
-    server_name logs.kallerud.no;
-
-    # SSL certificates
-    ssl_certificate /path/to/cert.pem;
-    ssl_certificate_key /path/to/key.pem;
-
-    location / {
-        proxy_pass http://localhost:3791;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
-
-**Important Notes:**
-
-- The healthcheck always uses `127.0.0.1:3791` (internal container check)
-- External domain is handled by your reverse proxy (Nginx/Caddy/Traefik)
-- WebSocket support requires `Upgrade` and `Connection` headers
-- Update `SYSLOGGER_CORS_ORIGIN` if restricting CORS
-
-### Production Considerations
-
-- **Volume Backups**: Regularly backup the `./data` directory containing the SQLite database
-- **Resource Limits**: Adjust memory limits in `docker-compose.yml` based on log volume
-- **Log Rotation**: The compose file includes log rotation (10MB max, 3 files)
-- **Firewall**:
-  - Ensure UDP port 5140 is open for syslog reception
-  - HTTP port 3791 should only be exposed via reverse proxy (not directly)
-- **Monitoring**: Use the built-in health checks for monitoring
-- **Security**:
-  - Container runs as `bun` user (non-root) for better security
-  - Use SSL/TLS via reverse proxy for production
-  - Consider restricting CORS origins
-
-## Contributing
-
-This project follows [Clean Code principles](.agents/skills/clean-code/SKILL.md) and uses comprehensive logging via `src/backend/managers/log.manager.ts`.
-
-## License
-
-MIT
+**Note**: Database query functions for these filters are implemented in `src/database/queries.ts`.
+
+---
+
+<div align="center">
+  <sub>Built with ❤️ using Bun, React, and TypeScript</sub>
+  <br>
+  <sub>⭐ Star this repo if you find it useful!</sub>
+</div>
