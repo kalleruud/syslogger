@@ -5,7 +5,7 @@ node_modules
 dist
 
 # Docker files
-Dockerfile*
+dockerfile*
 docker-compose*
 .dockerignore
 

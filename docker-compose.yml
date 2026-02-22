@@ -2,7 +2,7 @@ services:
   syslogger:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
     image: syslogger:latest
     container_name: syslogger
     restart: unless-stopped
