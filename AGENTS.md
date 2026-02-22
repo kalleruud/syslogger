@@ -80,10 +80,6 @@ docker-compose up --build   # Build and run in Docker
 │       ├── facilities.ts    # Syslog facility mappings
 │       ├── severities.ts    # Syslog severity mappings
 │       └── utils.ts         # Shared utility functions
-├── data/                    # SQLite database files
-│   ├── syslogger.db
-│   ├── syslogger.db-shm
-│   └── syslogger.db-wal
 ├── drizzle/                 # Generated SQL migrations
 │   ├── 0000_*.sql
 │   └── meta/
