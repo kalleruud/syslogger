@@ -7,8 +7,7 @@
   
   [![Build and Push Docker](https://github.com/kalleruud/syslogger/actions/workflows/build-image.yml/badge.svg)](https://github.com/kalleruud/syslogger/actions/workflows/build-image.yml)
   [![Docker](https://img.shields.io/badge/docker-ready-blue?style=flat-square&logo=docker)](https://github.com/kalleruud/syslogger/blob/main/docker-compose.yml)
-  
-   [Features](#-features) • [Quick Start](#-quick-start) • [Roadmap](#️-roadmap) • [Docker](#-docker-deployment) • [Development](#development)
+
 </div>
 
 <div align="center">
