@@ -8,6 +8,7 @@
     "start": "NODE_ENV=production bun src/syslogger.ts",
     "build": "bun run build.ts",
     "check": "eslint . && prettier --check . && bunx react-doctor@latest . -y --no-ami --verbose --diff",
+    "icon:gen": "bun run scripts/generate-icons.ts",
     "db:gen": "drizzle-kit generate",
     "db:push": "drizzle-kit push --force",
     "db:studio": "drizzle-kit studio"
@@ -49,6 +50,7 @@
     "prettier": "^3.8.1",
     "prettier-plugin-organize-imports": "^4.3.0",
     "prettier-plugin-tailwindcss": "^0.7.2",
+    "sharp": "^0.34.5",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4"
   },
