@@ -53,5 +53,5 @@ USER bun
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD bun -e "fetch('http://127.0.0.1:3791/').then(() => process.exit(0)).catch(() => process.exit(1))"
 
-# Start the application
-ENTRYPOINT [ "bun", "run", "src/syslogger.ts" ]
+# Start the application in production mode
+ENTRYPOINT [ "bun", "run", "start" ]
