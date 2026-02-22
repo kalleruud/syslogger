@@ -145,6 +145,32 @@ const result = await Bun.build({
 
 const end = performance.now()
 
+// Copy and update manifest.json with hashed icon filenames
+console.log('\n📦 Processing PWA manifest...')
+const manifestSource = path.join(process.cwd(), 'src/frontend/public/manifest.json')
+const manifestDest = path.join(outdir, 'manifest.json')
+
+if (existsSync(manifestSource)) {
+  const manifest = JSON.parse(await Bun.file(manifestSource).text())
+  
+  // Find the hashed icon filenames from the build output
+  const icon512 = result.outputs.find(o => o.path.includes('icon-512'))
+  
+  if (icon512) {
+    manifest.icons = [
+      {
+        src: path.basename(icon512.path),
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'any maskable',
+      },
+    ]
+  }
+  
+  await Bun.write(manifestDest, JSON.stringify(manifest, null, 2))
+  console.log('✅ PWA manifest generated')
+}
+
 const outputTable = result.outputs.map(output => ({
   File: path.relative(process.cwd(), output.path),
   Type: output.kind,
